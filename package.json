@@ -1,0 +1,52 @@
+{
+  "name": "xes_converter_app",
+  "productName": "Xes Converter",
+  "version": "1.0.0",
+  "description": "Visual UI for xes_converter using Electron",
+  "main": "src/backend/main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "node build.js",
+    "build-prod": "node build.js production",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "package": "npm run build-prod && node package.js && npx electron-packager ./bin/unpackaged --out ./bin --overwrite"
+  },
+  "browserify": {
+    "transform": [
+      [
+        "babelify",
+        {
+          "presets": [
+            "env",
+            "react"
+          ]
+        }
+      ],
+      [
+        "browserify-css"
+      ]
+    ]
+  },
+  "author": "Bob620",
+  "license": "MIT",
+  "devDependencies": {
+    "babel-core": "^6.26.3",
+    "babel-preset-env": "^1.7.0",
+    "babel-preset-react": "^6.24.1",
+    "babelify": "^8.0.0",
+    "bakadux": "^1.0.5",
+    "browserify": "^16.2.3",
+    "browserify-css": "^0.14.0",
+    "electron": "^4.0.5",
+    "electron-packager": "^13.1.0",
+    "envify": "^4.1.0",
+    "react": "^16.8.3",
+    "react-dom": "^16.8.3",
+    "scssify": "^3.0.1",
+    "uglify-js": "^3.4.9",
+    "uglifyify": "^5.0.1"
+  },
+  "dependencies": {
+    "xes_converter": "github:Bob620/xes_converter#next"
+  }
+}
