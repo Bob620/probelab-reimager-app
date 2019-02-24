@@ -47,6 +47,5 @@
     "uglifyify": "^5.0.1"
   },
   "dependencies": {
-    "xes_converter": "github:Bob620/xes_converter#next"
   }
 }
