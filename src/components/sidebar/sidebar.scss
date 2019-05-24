@@ -1,0 +1,13 @@
+#sidebar {
+  p {
+    user-select: none;
+  }
+
+  > ul {
+    list-style-type: none;
+
+    > li {
+      cursor: pointer;
+    }
+  }
+}

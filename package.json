@@ -1,8 +1,8 @@
 {
-  "name": "xes_converter_app",
-  "productName": "Xes Converter",
+  "name": "thermo_reimager_app",
+  "productName": "Thermo Reimager",
   "version": "1.0.0",
-  "description": "Visual UI for xes_converter using Electron",
+  "description": "Visual UI for Thermo Reimager using Electron",
   "main": "src/backend/main.js",
   "scripts": {
     "start": "electron .",
@@ -36,7 +36,7 @@
     "babelify": "^8.0.0",
     "bakadux": "^1.0.5",
     "browserify": "^16.2.3",
-    "browserify-css": "^0.14.0",
+    "browserify-css": "^0.15.0",
     "electron": "^4.0.5",
     "electron-packager": "^13.1.0",
     "envify": "^4.1.0",
@@ -47,5 +47,6 @@
     "uglifyify": "^5.0.1"
   },
   "dependencies": {
+    "thermo-reimager": "^1.0.1"
   }
 }

@@ -1,5 +1,27 @@
-#App {
-  h1 {
-    margin: 0;
+body, #App, .app {
+  margin: 0;
+  padding: 0;
+  width: 100vw;
+  height: 100vh;
+
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+.app {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  grid-template-rows: 60px 1fr;
+  grid-template-areas: "navbar navbar" "sidebar main";
+
+  #navbar {
+    grid-area: navbar;
+  }
+
+  #sidebar {
+    grid-area: sidebar;
+  }
+
+  #main {
+    grid-area: main;
   }
 }

@@ -1,7 +1,7 @@
 const {BrowserWindow} = require('electron');
 
 module.exports = () => {
-	let window = new BrowserWindow({width: 800, height: 800, webPreferences: {nodeIntegration: false}});
+	let window = new BrowserWindow({width: 800, height: 800, webPreferences: {nodeIntegration: true}});
 
 	window.loadFile('./assets/index.html');
 

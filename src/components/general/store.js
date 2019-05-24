@@ -1,5 +1,8 @@
 import { Store } from 'bakadux';
 
 module.exports = new Store('general', {
-	page: 'landing'
+	page: 'landing',
+	workingDir: '',
+	images: {},
+	selectedImage: undefined
 });
