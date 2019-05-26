@@ -21,15 +21,18 @@ app.on('ready', async () => {
 				sender.send('debug', data.message);
 				break;
 			case 'loadImage':
+				sender.send('debug', 'Removing old image');
 				if (data.oldName)
 					images[data.oldName].data.image = undefined;
 
-				sender.send('debug', 'screw me1');
+				sender.send('debug', 'Processing new image');
 
 				const image = images[data.name];
-				await image.addScale(data.scaleType);
+				await Promise.race([image.addScale(data.scaleType), new Promise((resolve, reject) => {
+					setTimeout(reject, 5000);
+				})]);
 
-				sender.send('debug', 'screw me');
+				sender.send('debug', 'Image Processed');
 
 				sender.send('data', {
 					type: 'loadedImage',

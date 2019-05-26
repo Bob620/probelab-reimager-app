@@ -11,7 +11,12 @@ ipcRenderer.on('data', (event, {type, data}) => {
 			actions.updateDirImages(data.images);
 			break;
 		case 'loadedImage':
+			const oldImage = generalStore.get('selectedImage');
 			let images = generalStore.get('images');
+
+			if (oldImage)
+				images[oldImage.data.name].data.image = undefined;
+
 			let image = images[data.name];
 			image.data.image = data.image;
 			actions.selectImage(image);
@@ -44,8 +49,14 @@ const actions = CreateActions([
 		}
 	},
 	{
+		actionType: 'setScalePosition',
+		func: ({stores}, pos=0) => {
+			stores.general.set('scalePosition', pos);
+		}
+	},
+	{
 		actionType: 'loadImage',
-		func: ({stores}, name, scaleType=undefined) => {
+		func: ({stores}, name) => {
 			const oldImage = stores.general.get('selectedImage');
 
 			ipcRenderer.send('data', {
@@ -53,7 +64,7 @@ const actions = CreateActions([
 				data: {
 					oldName: oldImage ? oldImage.data.name : '',
 					name,
-					scaleType
+					scaleType: stores.general.get('scalePosition')
 				}
 			});
 		}
@@ -61,12 +72,7 @@ const actions = CreateActions([
 	{
 		actionType: 'selectImage',
 		func: ({stores}, image) => {
-			console.log('selecting image');
-			const oldImage = stores.general.get('selectedImage');
-
 			let images = stores.general.get('images');
-			if (oldImage)
-				images[oldImage.data.name].data.image = undefined;
 			images[image.data.name] = image;
 			stores.general.set('images', images);
 

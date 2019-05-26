@@ -4,5 +4,6 @@ module.exports = new Store('general', {
 	page: 'landing',
 	workingDir: '',
 	images: {},
-	selectedImage: undefined
+	selectedImage: undefined,
+	scalePosition: 0
 });
