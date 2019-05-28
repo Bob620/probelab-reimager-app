@@ -14,11 +14,21 @@ app.on('ready', async () => {
 	const Pointshoot = await ThermoReimager.PointShoot;
 
 	ipcMain.on('data', async ({sender}, {type, data}) => {
+		let image;
 		sender.send('debug', type);
 		sender.send('debug', data);
 		switch(type) {
 			case 'echo':
 				sender.send('debug', data.message);
+				break;
+			case 'writeImage':
+				sender.send('debug', 'Starting image write...');
+				image = images[data.name];
+				if (image.data.image) {
+					await image.writeImage();
+					sender.send('debug', 'Image written to file');
+				} else
+					sender.send('debug', 'No image found');
 				break;
 			case 'loadImage':
 				sender.send('debug', 'Removing old image');
@@ -27,7 +37,7 @@ app.on('ready', async () => {
 
 				sender.send('debug', 'Processing new image');
 
-				const image = images[data.name];
+				image = images[data.name];
 				await Promise.race([image.addScale(data.scaleType), new Promise((resolve, reject) => {
 					setTimeout(reject, 5000);
 				})]);

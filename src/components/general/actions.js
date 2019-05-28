@@ -78,6 +78,18 @@ const actions = CreateActions([
 
 			stores.general.set('selectedImage', image);
 		}
+	},
+	{
+		actionType: 'writeSelectedImage',
+		func: ({stores}) => {
+			if (stores.general.get('selectedImage'))
+				ipcRenderer.send('data', {
+					type: 'writeImage',
+					data: {
+						name: stores.general.get('selectedImage'),
+					}
+				});
+		}
 	}
 ]);
 

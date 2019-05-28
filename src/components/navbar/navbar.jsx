@@ -21,6 +21,7 @@ class Navbar extends Component {
 				<p onClick={generalActions.setScalePosition.bind(undefined, 2)}>Lower Right</p>
 				<p onClick={generalActions.setScalePosition.bind(undefined, 3)}>Upper Left</p>
 				<p onClick={generalActions.setScalePosition.bind(undefined, 4)}>Upper Right</p>
+				<p onClick={generalActions.writeSelectedImage}>Save Image</p>
 			</section>
 		);
 	}
