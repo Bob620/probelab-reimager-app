@@ -1,3 +1,33 @@
 #navbar {
-  display: inline-flex;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  > h1 {
+    margin: 0;
+    white-space: nowrap;
+    color: white;
+  }
+
+  > div {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    width: -webkit-fill-available;
+
+    > div {
+      border-style: solid;
+      border-width: 2px;
+      border-color: white;
+      border-radius: 4px;
+
+      > p {
+        cursor: pointer;
+        color: white;
+
+        padding: 5px;
+        margin: 0;
+      }
+    }
+  }
 }

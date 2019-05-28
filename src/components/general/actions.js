@@ -3,8 +3,6 @@ import generalStore from './store';
 
 const { ipcRenderer } = window.require('electron');
 
-console.log(ipcRenderer);
-
 ipcRenderer.on('data', (event, {type, data}) => {
 	switch(type) {
 		case 'updateDirImages':
@@ -14,7 +12,7 @@ ipcRenderer.on('data', (event, {type, data}) => {
 			const oldImage = generalStore.get('selectedImage');
 			let images = generalStore.get('images');
 
-			if (oldImage)
+			if (oldImage && images[oldImage.data.name])
 				images[oldImage.data.name].data.image = undefined;
 
 			let image = images[data.name];
@@ -51,22 +49,28 @@ const actions = CreateActions([
 	{
 		actionType: 'setScalePosition',
 		func: ({stores}, pos=0) => {
-			stores.general.set('scalePosition', pos);
+			const oldPos = stores.general.get('scalePosition');
+			if (oldPos !== pos)
+				stores.general.set('scalePosition', pos);
 		}
 	},
 	{
 		actionType: 'loadImage',
-		func: ({stores}, name) => {
+		func: ({stores}, name=false) => {
 			const oldImage = stores.general.get('selectedImage');
 
-			ipcRenderer.send('data', {
-				type: 'loadImage',
-				data: {
-					oldName: oldImage ? oldImage.data.name : '',
-					name,
-					scaleType: stores.general.get('scalePosition')
-				}
-			});
+			if (oldImage || name)
+				ipcRenderer.send('data', {
+					type: 'loadImage',
+					data: {
+						oldName: (name && oldImage) ? oldImage.data.name : '',
+						name: name ? name : oldImage.data.name,
+						scaleType: stores.general.get('scalePosition'),
+						scaleColor: stores.general.get('scaleColor'),
+						belowColor: stores.general.get('belowColor'),
+						scaleSize: stores.general.get('scaleSize')
+					}
+				});
 		}
 	},
 	{
@@ -86,9 +90,33 @@ const actions = CreateActions([
 				ipcRenderer.send('data', {
 					type: 'writeImage',
 					data: {
-						name: stores.general.get('selectedImage'),
+						name: stores.general.get('selectedImage').data.name,
+						scaleType: stores.general.get('scalePosition'),
+						scaleColor: stores.general.get('scaleColor'),
+						belowColor: stores.general.get('belowColor'),
+						scaleSize: stores.general.get('scaleSize')
 					}
 				});
+		}
+	},
+	{
+		actionType: 'changeBelowColor',
+		func: ({stores}, {target}) => {
+			const newColor = target.value;
+			const oldColor = stores.general.get('belowColor');
+
+			if (newColor !== oldColor)
+				stores.general.set('belowColor', newColor);
+		}
+	},
+	{
+		actionType: 'changeScaleColor',
+		func: ({stores}, {target}) => {
+			const newColor = target.value;
+			const oldColor = stores.general.get('scaleColor');
+
+			if (newColor !== oldColor)
+				stores.general.set('scaleColor', newColor);
 		}
 	}
 ]);

@@ -1,5 +1,54 @@
 #main {
-  img {
+  display: grid;
+  grid-template-rows: 60px 1fr;
+  grid-template-columns: 1fr;
+  grid-template-areas: "colors" "image";
+
+  > .colors {
+    grid-area: colors;
+
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
     width: 100%;
+
+    > .colorOptions {
+      > p {
+        margin: 0;
+        padding-bottom:5px;
+      }
+
+      > select {
+        width: 100%;
+      }
+    }
+
+    > .selectable {
+      border-style: solid;
+      border-width: 2px;
+      border-radius: 4px;
+
+      > p {
+        cursor: pointer;
+
+        padding: 5px;
+        margin: 0;
+      }
+    }
+  }
+
+  > .image {
+    grid-area: image;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    img {
+      max-width: 95%;
+      max-height: 95%;
+      object-fit: contain;
+    }
   }
 }

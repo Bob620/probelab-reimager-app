@@ -47,6 +47,6 @@
     "uglifyify": "^5.0.1"
   },
   "dependencies": {
-    "thermo-reimager": "^1.0.1"
+    "thermo-reimager": "^1.1.0"
   }
 }

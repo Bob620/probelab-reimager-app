@@ -18,7 +18,30 @@ class Image extends Component {
 		if (selectedImage)
 			return (
 				<section id='main'>
-					<img src={selectedImage.data.image} />
+					<div className='colors'>
+						<div className='colorOptions'>
+							<p>Font Color</p>
+							<select value={generalStore.get('scaleColor')} onChange={generalActions.changeScaleColor}>
+								<option value='auto'>Auto</option>
+								<option value='white'>White</option>
+								<option value='black'>Black</option>
+							</select>
+						</div>
+						<div className='colorOptions'>
+							<p>Below Color</p>
+							<select value={generalStore.get('belowColor')} onChange={generalActions.changeBelowColor}>
+								<option value='auto'>Auto</option>
+								<option value='white'>White</option>
+								<option value='black'>Black</option>
+							</select>
+						</div>
+						<div className='selectable'>
+							<p onClick={generalActions.loadImage.bind(undefined, false)}>Refresh Image</p>
+						</div>
+					</div>
+					<div className='image'>
+						<img src={selectedImage.data.image} />
+					</div>
 				</section>
 			);
 		return (

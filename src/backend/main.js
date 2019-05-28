@@ -3,7 +3,7 @@ const fs = require('fs');
 const createWindow = require('./createwindow.js');
 
 const ThermoReimager = require('thermo-reimager');
-const { app, ipcMain } = require('electron');
+const { app, ipcMain, dialog } = require('electron');
 let window = null;
 
 app.on('ready', async () => {
@@ -23,26 +23,45 @@ app.on('ready', async () => {
 				break;
 			case 'writeImage':
 				sender.send('debug', 'Starting image write...');
-				image = images[data.name];
-				if (image.data.image) {
-					await image.writeImage();
-					sender.send('debug', 'Image written to file');
-				} else
-					sender.send('debug', 'No image found');
+				dialog.showSaveDialog({
+						defaultPath: data.name + '.tif',
+						filters: [
+							{name: 'Images', extensions: ['jpg', 'png', 'tif']}
+						]
+					},
+					async (path) => {
+					image = images[data.name];
+					if (image.data.image) {
+						await image.writeImage({uri: path});
+						sender.send('debug', 'Image written to file');
+					} else {
+						sender.send('debug', 'Processing new image');
+
+						image = images[data.name];
+						await image.addScaleAndWrite(data.scaleType, {
+							scaleSize: data.scaleSize ? data.scaleSize : 0,
+							scaleColor: data.scaleColor ? data.scaleColor : ThermoReimager.constants.scale.colors.AUTO,
+							belowColor: data.belowColor ? data.belowColor : ThermoReimager.constants.scale.colors.AUTO,
+							uri: path
+						});
+
+						sender.send('debug', 'Scale made and Image written to file');
+					}
+				});
 				break;
 			case 'loadImage':
 				sender.send('debug', 'Removing old image');
-				if (data.oldName)
+				if (data.oldName && images[data.oldName])
 					images[data.oldName].data.image = undefined;
 
 				sender.send('debug', 'Processing new image');
 
 				image = images[data.name];
-				await Promise.race([image.addScale(data.scaleType), new Promise((resolve, reject) => {
-					setTimeout(reject, 5000);
-				})]);
-
-				sender.send('debug', 'Image Processed');
+				await image.addScale(data.scaleType, {
+					scaleSize: data.scaleSize ? data.scaleSize : 0,
+					scaleColor: data.scaleColor ? data.scaleColor : ThermoReimager.constants.scale.colors.AUTO,
+					belowColor: data.belowColor ? data.belowColor : ThermoReimager.constants.scale.colors.AUTO
+				});
 
 				sender.send('data', {
 					type: 'loadedImage',

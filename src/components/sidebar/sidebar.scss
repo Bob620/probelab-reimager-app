@@ -1,13 +1,39 @@
+@import '../general/colors.scss';
+
 #sidebar {
-  p {
-    user-select: none;
+  overflow: hidden;
+
+  > div {
+    height: 40px;
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    > input {
+      width: 100%;
+      cursor: pointer;
+    }
   }
 
   > ul {
     list-style-type: none;
+    padding: 0;
+    margin: 0;
+    height: calc(100% - 40px);
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+    overflow-y: scroll;
 
     > li {
-      cursor: pointer;
+      p {
+        user-select: none;
+        color: white;
+        margin-top: 1em;
+        margin-bottom: 1em;
+        margin-left:10px;
+      }
     }
   }
 }

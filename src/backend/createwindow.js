@@ -1,7 +1,15 @@
 const {BrowserWindow} = require('electron');
 
 module.exports = () => {
-	let window = new BrowserWindow({width: 800, height: 800, webPreferences: {nodeIntegration: true}});
+	let window = new BrowserWindow({
+		minWidth: 800,
+		minHeight: 800,
+		backgroundColor: '#4b6584',
+		width: 800,
+		height: 800,
+		title: 'Thermo-Reimager',
+		webPreferences: {nodeIntegration: true}
+	});
 
 	window.loadFile('./assets/index.html');
 

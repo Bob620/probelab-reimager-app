@@ -5,5 +5,8 @@ module.exports = new Store('general', {
 	workingDir: '',
 	images: {},
 	selectedImage: undefined,
-	scalePosition: 0
+	scalePosition: 0,
+	scaleColor: 'auto',
+	belowColor: 'auto',
+	scaleSize: 0
 });

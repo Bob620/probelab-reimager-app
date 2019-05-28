@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 
+import '../general/common.scss'
 import './navbar.scss'
 
 import history from '../../components/general/history.js';
@@ -13,15 +14,30 @@ class Navbar extends Component {
 	}
 
 	render() {
+		const currentPos = generalStore.get('scalePosition');
 		return (
 			<section id='navbar'>
 				<h1>Thermo-ReImager</h1>
-				<p onClick={generalActions.setScalePosition.bind(undefined, 0)}>Below</p>
-				<p onClick={generalActions.setScalePosition.bind(undefined, 1)}>Lower Left</p>
-				<p onClick={generalActions.setScalePosition.bind(undefined, 2)}>Lower Right</p>
-				<p onClick={generalActions.setScalePosition.bind(undefined, 3)}>Upper Left</p>
-				<p onClick={generalActions.setScalePosition.bind(undefined, 4)}>Upper Right</p>
-				<p onClick={generalActions.writeSelectedImage}>Save Image</p>
+				<div>
+					<div className={'selectable ' + (currentPos === 0 ? 'selected' : '')}>
+						<p onClick={generalActions.setScalePosition.bind(undefined, 0)}>Below</p>
+					</div>
+					<div className={'selectable ' + (currentPos === 1 ? 'selected' : '')}>
+						<p onClick={generalActions.setScalePosition.bind(undefined, 1)}>Lower Left</p>
+					</div>
+					<div className={'selectable ' + (currentPos === 2 ? 'selected' : '')}>
+						<p onClick={generalActions.setScalePosition.bind(undefined, 2)}>Lower Right</p>
+					</div>
+					<div className={'selectable ' + (currentPos === 3 ? 'selected' : '')}>
+						<p onClick={generalActions.setScalePosition.bind(undefined, 3)}>Upper Left</p>
+					</div>
+					<div className={'selectable ' + (currentPos === 4 ? 'selected' : '')}>
+						<p onClick={generalActions.setScalePosition.bind(undefined, 4)}>Upper Right</p>
+					</div>
+					<div className={'selectable'}>
+						<p onClick={generalActions.writeSelectedImage}>Save Image</p>
+					</div>
+				</div>
 			</section>
 		);
 	}
