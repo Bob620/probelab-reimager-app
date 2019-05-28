@@ -68,7 +68,7 @@ const actions = CreateActions([
 						scaleType: stores.general.get('scalePosition'),
 						scaleColor: stores.general.get('scaleColor'),
 						belowColor: stores.general.get('belowColor'),
-						scaleSize: stores.general.get('scaleSize')
+						scaleSize: (stores.general.get('autoScale') || stores.general.get('scaleSize') === '') ? 0 : stores.general.get('scaleSize')
 					}
 				});
 		}
@@ -94,7 +94,7 @@ const actions = CreateActions([
 						scaleType: stores.general.get('scalePosition'),
 						scaleColor: stores.general.get('scaleColor'),
 						belowColor: stores.general.get('belowColor'),
-						scaleSize: stores.general.get('scaleSize')
+						scaleSize: (stores.general.get('autoScale') || stores.general.get('scaleSize') === '') ? 0 : stores.general.get('scaleSize')
 					}
 				});
 		}
@@ -102,21 +102,29 @@ const actions = CreateActions([
 	{
 		actionType: 'changeBelowColor',
 		func: ({stores}, {target}) => {
-			const newColor = target.value;
-			const oldColor = stores.general.get('belowColor');
-
-			if (newColor !== oldColor)
-				stores.general.set('belowColor', newColor);
+			stores.general.set('belowColor', target.value);
 		}
 	},
 	{
 		actionType: 'changeScaleColor',
 		func: ({stores}, {target}) => {
-			const newColor = target.value;
-			const oldColor = stores.general.get('scaleColor');
-
-			if (newColor !== oldColor)
-				stores.general.set('scaleColor', newColor);
+			stores.general.set('scaleColor', target.value);
+		}
+	},
+	{
+		actionType: 'changeScaleSize',
+		func: ({stores}, {target}) => {
+			const num = parseInt(target.value);
+			if ((num || num === 0) && 0 <= num <= 1000)
+				stores.general.set('scaleSize', num);
+			if (target.value === '')
+				stores.general.set('scaleSize', num);
+		}
+	},
+	{
+		actionType: 'toggleAutoScale',
+		func: ({stores}) => {
+			stores.general.set('autoScale', !stores.general.get('autoScale'));
 		}
 	}
 ]);

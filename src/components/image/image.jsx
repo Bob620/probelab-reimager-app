@@ -35,7 +35,15 @@ class Image extends Component {
 								<option value='black'>Black</option>
 							</select>
 						</div>
-						<div className='selectable'>
+						<div className='scale selectable'>
+							<p onClick={generalActions.toggleAutoScale}>Scale(µm): </p>
+							{
+								generalStore.get('autoScale') ?
+									<input onClick={generalActions.toggleAutoScale} type='text' value='Auto'/> :
+									<input type='number' min='0' max='1000' value={generalStore.get('scaleSize')} onChange={generalActions.changeScaleSize} />
+							}
+						</div>
+						<div className='refresh selectable'>
 							<p onClick={generalActions.loadImage.bind(undefined, false)}>Refresh Image</p>
 						</div>
 					</div>

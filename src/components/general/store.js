@@ -8,5 +8,6 @@ module.exports = new Store('general', {
 	scalePosition: 0,
 	scaleColor: 'auto',
 	belowColor: 'auto',
-	scaleSize: 0
+	scaleSize: 0,
+	autoScale: true
 });

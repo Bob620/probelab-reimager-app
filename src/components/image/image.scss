@@ -21,6 +21,18 @@
 
       > select {
         width: 100%;
+        cursor: pointer;
+      }
+    }
+
+    > .scale {
+      > input {
+        padding-left: 3px;
+        width: 79px;
+      }
+
+      > p {
+        width: 76px;
       }
     }
 
