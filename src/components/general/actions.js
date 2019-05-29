@@ -30,20 +30,23 @@ const actions = CreateActions([
 		actionType: 'setWorkingDirectory',
 		func: ({stores}, {target}) => {
 			const dir = target.files[0].path;
-			stores.general.set('workingDir', dir);
+			if (dir) {
+				stores.general.set('workingDir', dir);
 
-			ipcRenderer.send('data', {
-				type: 'processDirectory',
-				data: {
-					dir
-				}
-			});
+				ipcRenderer.send('data', {
+					type: 'processDirectory',
+					data: {
+						dir
+					}
+				});
+			}
 		}
 	},
 	{
 		actionType: 'updateDirImages',
 		func: ({stores}, images) => {
 			stores.general.set('images', images);
+			console.log(images);
 		}
 	},
 	{
@@ -115,14 +118,21 @@ const actions = CreateActions([
 		actionType: 'changeScaleSize',
 		func: ({stores}, {target}) => {
 			const num = parseInt(target.value);
-			if ((num || num === 0) && 0 <= num <= 1000)
+			if (!isNaN(num) && 0 <= num <= 100000)
 				stores.general.set('scaleSize', num);
+
 			if (target.value === '')
 				stores.general.set('scaleSize', num);
 		}
 	},
 	{
 		actionType: 'toggleAutoScale',
+		func: ({stores}) => {
+			stores.general.set('autoScale', !stores.general.get('autoScale'));
+		}
+	},
+	{
+		actionType: 'changeFromAuto',
 		func: ({stores}) => {
 			stores.general.set('autoScale', !stores.general.get('autoScale'));
 		}

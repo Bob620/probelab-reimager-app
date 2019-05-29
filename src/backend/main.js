@@ -10,11 +10,12 @@ app.on('ready', async () => {
 	if (window === null)
 		window = createWindow();
 
-	let images;
+	let thermos;
 	const Pointshoot = await ThermoReimager.PointShoot;
+	const ExtractedMap = await ThermoReimager.ExtractedMap;
 
 	ipcMain.on('data', async ({sender}, {type, data}) => {
-		let image;
+		let thermo;
 		sender.send('debug', type);
 		sender.send('debug', data);
 		switch(type) {
@@ -30,15 +31,15 @@ app.on('ready', async () => {
 						]
 					},
 					async (path) => {
-					image = images[data.name];
-					if (image.data.image) {
-						await image.writeImage({uri: path});
+						thermo = thermos[data.name];
+					if (thermo.data.image) {
+						await thermo.writeImage({uri: path});
 						sender.send('debug', 'Image written to file');
 					} else {
 						sender.send('debug', 'Processing new image');
 
-						image = images[data.name];
-						await image.addScaleAndWrite(data.scaleType, {
+						thermo = thermos[data.name];
+						await thermo.addScaleAndWrite(data.scaleType, {
 							scaleSize: data.scaleSize ? data.scaleSize : 0,
 							scaleColor: data.scaleColor ? data.scaleColor : ThermoReimager.constants.scale.colors.AUTO,
 							belowColor: data.belowColor ? data.belowColor : ThermoReimager.constants.scale.colors.AUTO,
@@ -51,13 +52,13 @@ app.on('ready', async () => {
 				break;
 			case 'loadImage':
 				sender.send('debug', 'Removing old image');
-				if (data.oldName && images[data.oldName])
-					images[data.oldName].data.image = undefined;
+				if (data.oldName && thermos[data.oldName])
+					thermos[data.oldName].data.image = undefined;
 
 				sender.send('debug', 'Processing new image');
 
-				image = images[data.name];
-				await image.addScale(data.scaleType, {
+				thermo = thermos[data.name];
+				await thermo.addScale(data.scaleType, {
 					scaleSize: data.scaleSize ? data.scaleSize : 0,
 					scaleColor: data.scaleColor ? data.scaleColor : ThermoReimager.constants.scale.colors.AUTO,
 					belowColor: data.belowColor ? data.belowColor : ThermoReimager.constants.scale.colors.AUTO
@@ -66,8 +67,8 @@ app.on('ready', async () => {
 				sender.send('data', {
 					type: 'loadedImage',
 					data: {
-						image: await image.data.image.getBase64Async('image/png'),
-						name: image.data.name
+						image: await thermo.data.image.getBase64Async('image/png'),
+						name: thermo.data.name
 					}
 				});
 				break;
@@ -78,23 +79,27 @@ app.on('ready', async () => {
 
 				const directory = fs.readdirSync(dirUri, {withFileTypes: true});
 
-				images = directory.flatMap(dir => {
+				thermos = directory.flatMap(dir => {
 					if (dir.isDirectory()) {
 						const files = fs.readdirSync(dirUri + dir.name, {withFileTypes: true});
-						return files.filter(file => file.isFile() && file.name.endsWith(ThermoReimager.constants.pointShoot.fileFormats.ENTRY)).map(entryFile => {
-							entryFile.uri = dirUri + dir.name + '/' + entryFile.name;
-							return new Pointshoot(entryFile);
-						});
+						return files.filter(file => file.isFile()).map(file => {
+							file.uri = dirUri + dir.name + '/' + file.name;
+							if (file.name.endsWith(ThermoReimager.constants.pointShoot.fileFormats.ENTRY))
+								return new Pointshoot(file);
+
+							if (file.name.endsWith(ThermoReimager.constants.extractedMap.fileFormats.ENTRY))
+								return new ExtractedMap(file);
+						}).filter(item => item);
 					}
-				}).filter(i => i).reduce((images, ps) => {
-					images[ps.data.name] = ps;
-					return images;
+				}).filter(i => i).reduce((items, item) => {
+					items[item.data.name] = item;
+					return items;
 				}, {});
 
 				sender.send('data', {
 					type: 'updateDirImages',
 					data: {
-						images
+						images: thermos
 					}
 				});
 				break;

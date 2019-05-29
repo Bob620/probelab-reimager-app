@@ -39,8 +39,8 @@ class Image extends Component {
 							<p onClick={generalActions.toggleAutoScale}>Scale(µm): </p>
 							{
 								generalStore.get('autoScale') ?
-									<input onClick={generalActions.toggleAutoScale} type='text' value='Auto'/> :
-									<input type='number' min='0' max='1000' value={generalStore.get('scaleSize')} onChange={generalActions.changeScaleSize} />
+									<input onClick={generalActions.toggleAutoScale} onChange={generalActions.changeFromAuto} type='text' value='Auto'/> :
+									<input type='number' min='0' max='100000' autoFocus value={generalStore.get('scaleSize')} onChange={generalActions.changeScaleSize} />
 							}
 						</div>
 						<div className='refresh selectable'>
