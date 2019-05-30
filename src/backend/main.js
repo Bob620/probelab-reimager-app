@@ -43,6 +43,7 @@ app.on('ready', async () => {
 							scaleSize: data.scaleSize ? data.scaleSize : 0,
 							scaleColor: data.scaleColor ? data.scaleColor : ThermoReimager.constants.scale.colors.AUTO,
 							belowColor: data.belowColor ? data.belowColor : ThermoReimager.constants.scale.colors.AUTO,
+							scaleBarHeight: data.scaleBarHeight ? data.scaleBarHeight : ThermoReimager.constants.scale.AUTOSIZE,
 							uri: path
 						});
 
@@ -61,7 +62,8 @@ app.on('ready', async () => {
 				await thermo.addScale(data.scaleType, {
 					scaleSize: data.scaleSize ? data.scaleSize : 0,
 					scaleColor: data.scaleColor ? data.scaleColor : ThermoReimager.constants.scale.colors.AUTO,
-					belowColor: data.belowColor ? data.belowColor : ThermoReimager.constants.scale.colors.AUTO
+					belowColor: data.belowColor ? data.belowColor : ThermoReimager.constants.scale.colors.AUTO,
+					scaleBarHeight: data.scaleBarHeight ? data.scaleBarHeight : ThermoReimager.constants.scale.AUTOSIZE
 				});
 
 				sender.send('data', {

@@ -20,13 +20,22 @@ class Navbar extends Component {
 				<h1>Thermo-ReImager</h1>
 				<div>
 					<div className={'selectable ' + (currentPos === 0 ? 'selected' : '')}>
-						<p onClick={generalActions.setScalePosition.bind(undefined, 0)}>Below</p>
+						<p onClick={generalActions.setScalePosition.bind(undefined, 0)}>Below Left</p>
+					</div>
+					<div className={'selectable ' + (currentPos === 6 ? 'selected' : '')}>
+						<p onClick={generalActions.setScalePosition.bind(undefined, 6)}>Below Right</p>
+					</div>
+					<div className={'selectable ' + (currentPos === 7 ? 'selected' : '')}>
+						<p onClick={generalActions.setScalePosition.bind(undefined, 7)}>BelowCenter</p>
 					</div>
 					<div className={'selectable ' + (currentPos === 1 ? 'selected' : '')}>
 						<p onClick={generalActions.setScalePosition.bind(undefined, 1)}>Lower Left</p>
 					</div>
 					<div className={'selectable ' + (currentPos === 2 ? 'selected' : '')}>
 						<p onClick={generalActions.setScalePosition.bind(undefined, 2)}>Lower Right</p>
+					</div>
+					<div className={'selectable ' + (currentPos === 5 ? 'selected' : '')}>
+						<p onClick={generalActions.setScalePosition.bind(undefined, 5)}>Lower Center</p>
 					</div>
 					<div className={'selectable ' + (currentPos === 3 ? 'selected' : '')}>
 						<p onClick={generalActions.setScalePosition.bind(undefined, 3)}>Upper Left</p>

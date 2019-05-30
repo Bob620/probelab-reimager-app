@@ -71,7 +71,8 @@ const actions = CreateActions([
 						scaleType: stores.general.get('scalePosition'),
 						scaleColor: stores.general.get('scaleColor'),
 						belowColor: stores.general.get('belowColor'),
-						scaleSize: (stores.general.get('autoScale') || stores.general.get('scaleSize') === '') ? 0 : stores.general.get('scaleSize')
+						scaleSize: (stores.general.get('autoScale') || stores.general.get('scaleSize') === '') ? 0 : stores.general.get('scaleSize'),
+						scaleBarHeight: stores.general.get('scaleBarHeight')/100
 					}
 				});
 		}
@@ -97,7 +98,8 @@ const actions = CreateActions([
 						scaleType: stores.general.get('scalePosition'),
 						scaleColor: stores.general.get('scaleColor'),
 						belowColor: stores.general.get('belowColor'),
-						scaleSize: (stores.general.get('autoScale') || stores.general.get('scaleSize') === '') ? 0 : stores.general.get('scaleSize')
+						scaleSize: (stores.general.get('autoScale') || stores.general.get('scaleSize') === '') ? 0 : stores.general.get('scaleSize'),
+						scaleBarHeight: stores.general.get('scaleBarHeight')/100
 					}
 				});
 		}
@@ -132,9 +134,32 @@ const actions = CreateActions([
 		}
 	},
 	{
-		actionType: 'changeFromAuto',
+		actionType: 'changeFromAutoScale',
 		func: ({stores}) => {
 			stores.general.set('autoScale', !stores.general.get('autoScale'));
+		}
+	},
+	{
+		actionType: 'changeScaleBarHeight',
+		func: ({stores}, {target}) => {
+			const num = parseInt(target.value);
+			if (!isNaN(num) && 0 <= num <= 100)
+				stores.general.set('scaleBarHeight', num);
+
+			if (target.value === '')
+				stores.general.set('scaleBarHeight', num);
+		}
+	},
+	{
+		actionType: 'toggleAutoScaleHeight',
+		func: ({stores}) => {
+			stores.general.set('autoHeight', !stores.general.get('autoHeight'));
+		}
+	},
+	{
+		actionType: 'changeFromAutoHeight',
+		func: ({stores}) => {
+			stores.general.set('autoHeight', !stores.general.get('autoHeight'));
 		}
 	}
 ]);

@@ -9,5 +9,7 @@ module.exports = new Store('general', {
 	scaleColor: 'auto',
 	belowColor: 'auto',
 	scaleSize: 0,
-	autoScale: true
+	autoScale: true,
+	scaleBarHeight: 0,
+	autoHeight: true
 });
