@@ -57,6 +57,10 @@ class Image extends Component {
 								<input type='number' maxLength='3' min='0' max='100' value={generalStore.get('scaleBarHeight')} onChange={generalActions.changeScaleBarHeight} />
 						}
 					</div>
+					<div onClick={generalActions.navigateSettings}
+						 className='refresh selectable'>
+						<p>Settings</p>
+					</div>
 					<div onClick={generalActions.loadImage.bind(undefined, false)}
 						 className='refresh selectable'>
 						<p>Refresh Image</p>

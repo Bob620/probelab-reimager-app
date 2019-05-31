@@ -13,6 +13,7 @@ import generalActions from '../../components/general/actions.js';
 import Navbar from '../../components/navbar/navbar.jsx';
 import Sidebar from '../../components/sidebar/sidebar.jsx';
 import Image from '../../components/image/image.jsx';
+import Settings from '../../components/settings/settings.jsx';
 
 class Page extends Component {
 	constructor(props) {
@@ -21,13 +22,26 @@ class Page extends Component {
 	}
 
 	render() {
-		return (
-			<section className='app'>
-				<Navbar />
-				<Sidebar />
-				<Image />
-			</section>
-		);
+		const page = generalStore.get('page');
+
+		switch(page) {
+			default:
+			case 'landing':
+				return (
+					<section className='app'>
+						<Navbar />
+						<Sidebar />
+						<Image />
+					</section>
+				);
+			case 'settings':
+				return (
+					<section className='app'>
+						<Navbar />
+						<Settings />
+					</section>
+				);
+		}
 	}
 }
 

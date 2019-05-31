@@ -12,5 +12,7 @@ module.exports = new Store('general', {
 	autoScale: true,
 	scaleBarHeight: 0,
 	autoHeight: true,
-	scaleBarTop: true
+	scaleBarTop: true,
+	pixelSizeConstant: 0,
+	autoPixelSizeConstant: true
 });

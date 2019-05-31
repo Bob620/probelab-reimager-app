@@ -1,8 +1,6 @@
-const fs = require('fs');
-
 const createWindow = require('./createwindow.js');
+const Child = require('./child');
 
-const ThermoReimager = require('thermo-reimager');
 const { app, ipcMain, dialog } = require('electron');
 let window = null;
 
@@ -11,11 +9,9 @@ app.on('ready', async () => {
 		window = createWindow();
 
 	let thermos;
-	const Pointshoot = await ThermoReimager.PointShoot;
-	const ExtractedMap = await ThermoReimager.ExtractedMap;
+	const child = new Child();
 
 	ipcMain.on('data', async ({sender}, {type, data}) => {
-		let thermo;
 		sender.send('debug', type);
 		sender.send('debug', data);
 		switch(type) {
@@ -31,81 +27,62 @@ app.on('ready', async () => {
 						]
 					},
 					async (path) => {
-						thermo = thermos[data.name];
-					if (thermo.data.image) {
-						await thermo.writeImage({uri: path});
-						sender.send('debug', 'Image written to file');
-					} else {
-						sender.send('debug', 'Processing new image');
+						data.uri = path;
+						await child.sendMessage('writeImage', data);
+						sender.send('debug', 'Image written');
 
-						thermo = thermos[data.name];
-						await thermo.addScaleAndWrite(data.scaleType, {
-							scaleSize: data.scaleSize ? data.scaleSize : 0,
-							scaleColor: data.scaleColor ? data.scaleColor : ThermoReimager.constants.scale.colors.AUTO,
-							belowColor: data.belowColor ? data.belowColor : ThermoReimager.constants.scale.colors.AUTO,
-							scaleBarHeight: data.scaleBarHeight ? data.scaleBarHeight : ThermoReimager.constants.scale.AUTOSIZE,
-							scaleBarTop: data.scaleBarTop ? data.scaleBarTop : ThermoReimager.constants.scale.SCALEBARTOP,
-							uri: path
+						sender.send('data', {
+							type: 'write',
+							data: {name: data.name}
 						});
-
-						sender.send('debug', 'Scale made and Image written to file');
 					}
-				});
+				);
 				break;
 			case 'loadImage':
 				sender.send('debug', 'Removing old image');
 				if (data.oldName && thermos[data.oldName])
 					thermos[data.oldName].data.image = undefined;
 
+				if (child.isWaitingOn('addScale')) {
+					sender.send('debug', 'Respawning child');
+					child.respawn();
+				}
+
 				sender.send('debug', 'Processing new image');
 
-				thermo = thermos[data.name];
-				await thermo.addScale(data.scaleType, {
-					scaleSize: data.scaleSize ? data.scaleSize : 0,
-					scaleColor: data.scaleColor ? data.scaleColor : ThermoReimager.constants.scale.colors.AUTO,
-					belowColor: data.belowColor ? data.belowColor : ThermoReimager.constants.scale.colors.AUTO,
-					scaleBarHeight: data.scaleBarHeight ? data.scaleBarHeight : ThermoReimager.constants.scale.AUTOSIZE,
-					scaleBarTop: data.scaleBarTop ? data.scaleBarTop : ThermoReimager.constants.scale.SCALEBARTOP
-				});
+				try {
+					const image = await child.sendMessage('addScale', data);
 
-				sender.send('data', {
-					type: 'loadedImage',
-					data: {
-						image: await thermo.data.image.getBase64Async('image/png'),
-						name: thermo.data.name
-					}
-				});
+					sender.send('data', {
+						type: 'loadedImage',
+						data: {
+							image,
+							name: data.name
+						}
+					});
+				} catch(err) {
+					sender.send('debug', err);
+				}
 				break;
 			case 'processDirectory':
 				let dirUri = data.dir.replace(/\\/gmi, '/');
 				if (!dirUri.endsWith('/'))
 					dirUri = dirUri + '/';
 
-				const directory = fs.readdirSync(dirUri, {withFileTypes: true});
+				try {
+					thermos = await child.sendMessage('processDirectory', {uri: dirUri});
 
-				thermos = directory.flatMap(dir => {
-					if (dir.isDirectory()) {
-						const files = fs.readdirSync(dirUri + dir.name, {withFileTypes: true});
-						return files.filter(file => file.isFile()).map(file => {
-							file.uri = dirUri + dir.name + '/' + file.name;
-							if (file.name.endsWith(ThermoReimager.constants.pointShoot.fileFormats.ENTRY))
-								return new Pointshoot(file);
+					sender.send('debug', thermos);
 
-							if (file.name.endsWith(ThermoReimager.constants.extractedMap.fileFormats.ENTRY))
-								return new ExtractedMap(file);
-						}).filter(item => item);
-					}
-				}).filter(i => i).reduce((items, item) => {
-					items[item.data.name] = item;
-					return items;
-				}, {});
-
-				sender.send('data', {
-					type: 'updateDirImages',
-					data: {
-						images: thermos
-					}
-				});
+					sender.send('data', {
+						type: 'updateDirImages',
+						data: {
+							images: thermos ? thermos : {}
+						}
+					});
+				} catch(err) {
+					sender.send('debug', err);
+				}
 				break;
 		}
 	});

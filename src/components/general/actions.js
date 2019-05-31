@@ -9,15 +9,15 @@ ipcRenderer.on('data', (event, {type, data}) => {
 			actions.updateDirImages(data.images);
 			break;
 		case 'loadedImage':
-			const oldImage = generalStore.get('selectedImage');
 			let images = generalStore.get('images');
+			let selectedImage = generalStore.get('selectedImage');
 
-			if (oldImage && images[oldImage.data.name])
-				images[oldImage.data.name].data.image = undefined;
-
-			let image = images[data.name];
-			image.data.image = data.image;
-			actions.selectImage(image);
+			if (selectedImage.data.name === data.name) {
+				let image = images[data.name];
+				image.data.image = data.image;
+			}
+			actions.toggleBarLocation();
+			actions.toggleBarLocation();
 	}
 });
 
@@ -62,6 +62,9 @@ const actions = CreateActions([
 		func: ({stores}, name=false) => {
 			const oldImage = stores.general.get('selectedImage');
 
+			if (name)
+				actions.selectImage(name);
+
 			if (oldImage || name)
 				ipcRenderer.send('data', {
 					type: 'loadImage',
@@ -72,20 +75,24 @@ const actions = CreateActions([
 						scaleColor: stores.general.get('scaleColor'),
 						belowColor: stores.general.get('belowColor'),
 						scaleSize: stores.general.get('autoScale') ? 0 : stores.general.get('scaleSize') === '' ? 0 : stores.general.get('scaleSize'),
-						scaleBarHeight: stores.general.get('scaleBarHeight')/100,
-						scaleBarTop: stores.general.get('scaleBarTop')
+						scaleBarHeight: stores.general.get('scaleBarHeight') / 100,
+						scaleBarTop: stores.general.get('scaleBarTop'),
+						pixelSizeConstant: stores.general.get('pixelSizeConstant')
 					}
 				});
 		}
 	},
 	{
 		actionType: 'selectImage',
-		func: ({stores}, image) => {
+		func: ({stores}, name) => {
+			const oldImage = stores.general.get('selectedImage');
 			let images = stores.general.get('images');
-			images[image.data.name] = image;
-			stores.general.set('images', images);
 
-			stores.general.set('selectedImage', image);
+			if (oldImage)
+				images[oldImage.data.name].data.image = undefined;
+
+			stores.general.set('images', images);
+			stores.general.set('selectedImage', images[name]);
 		}
 	},
 	{
@@ -101,7 +108,8 @@ const actions = CreateActions([
 						belowColor: stores.general.get('belowColor'),
 						scaleSize: stores.general.get('autoScale') ? 0 : stores.general.get('scaleSize') === '' ? 0 : stores.general.get('scaleSize'),
 						scaleBarHeight: stores.general.get('scaleBarHeight')/100,
-						scaleBarTop: stores.general.get('scaleBarTop')
+						scaleBarTop: stores.general.get('scaleBarTop'),
+						pixelSizeConstant: stores.general.get('pixelSizeConstant')
 					}
 				});
 		}
@@ -152,8 +160,6 @@ const actions = CreateActions([
 		actionType: 'changeScaleBarHeight',
 		func: ({stores}, {target}) => {
 			const num = parseInt(target.value === '0' ? '0' : target.value.replace(/^0+/g, ''));
-			console.log(target.value);
-			console.log(num);
 			if (!isNaN(num))
 				if (0 <= num)
 					if (num <= 100)
@@ -185,7 +191,49 @@ const actions = CreateActions([
 		func: ({stores}) => {
 			stores.general.set('scaleBarTop', !stores.general.get('scaleBarTop'));
 		}
-	}
+	},
+	{
+		actionType: 'navigateSettings',
+		func: ({stores}) => {
+			stores.general.set('page', 'settings');
+		}
+	},
+	{
+		actionType: 'navigateHome',
+		func: ({stores}) => {
+			stores.general.set('page', 'landing');
+		}
+	},
+	{
+		actionType: 'changePixelSizeConstant',
+		func: ({stores}, {target}) => {
+			const num = parseFloat(target.value);
+			if (!isNaN(num))
+				if (0 < num)
+					if (num <= 500)
+						stores.general.set('pixelSizeConstant', num);
+					else
+						stores.general.set('pixelSizeConstant', 500);
+				else
+					stores.general.set('pixelSizeConstant', 0);
+
+			if (target.value === '')
+				stores.general.set('pixelSizeConstant', '');
+		}
+	},
+	{
+		actionType: 'toggleAutoPixelSizeConstant',
+		func: ({stores}) => {
+			stores.general.set('autoPixelSizeConstant', !stores.general.get('autoPixelSizeConstant'));
+		}
+	},
+	{
+		actionType: 'changeFromAutoPixelSizeConstant',
+		func: ({stores}, event) => {
+			actions.changeScaleBarHeight(event);
+			stores.general.set('autoPixelSizeConstant', false);
+		}
+	},
 ]);
 
 module.exports = actions;
