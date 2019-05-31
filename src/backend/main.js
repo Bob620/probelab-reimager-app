@@ -44,6 +44,7 @@ app.on('ready', async () => {
 							scaleColor: data.scaleColor ? data.scaleColor : ThermoReimager.constants.scale.colors.AUTO,
 							belowColor: data.belowColor ? data.belowColor : ThermoReimager.constants.scale.colors.AUTO,
 							scaleBarHeight: data.scaleBarHeight ? data.scaleBarHeight : ThermoReimager.constants.scale.AUTOSIZE,
+							scaleBarTop: data.scaleBarTop ? data.scaleBarTop : ThermoReimager.constants.scale.SCALEBARTOP,
 							uri: path
 						});
 
@@ -63,7 +64,8 @@ app.on('ready', async () => {
 					scaleSize: data.scaleSize ? data.scaleSize : 0,
 					scaleColor: data.scaleColor ? data.scaleColor : ThermoReimager.constants.scale.colors.AUTO,
 					belowColor: data.belowColor ? data.belowColor : ThermoReimager.constants.scale.colors.AUTO,
-					scaleBarHeight: data.scaleBarHeight ? data.scaleBarHeight : ThermoReimager.constants.scale.AUTOSIZE
+					scaleBarHeight: data.scaleBarHeight ? data.scaleBarHeight : ThermoReimager.constants.scale.AUTOSIZE,
+					scaleBarTop: data.scaleBarTop ? data.scaleBarTop : ThermoReimager.constants.scale.SCALEBARTOP
 				});
 
 				sender.send('data', {

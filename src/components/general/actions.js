@@ -71,8 +71,9 @@ const actions = CreateActions([
 						scaleType: stores.general.get('scalePosition'),
 						scaleColor: stores.general.get('scaleColor'),
 						belowColor: stores.general.get('belowColor'),
-						scaleSize: (stores.general.get('autoScale') || stores.general.get('scaleSize') === '') ? 0 : stores.general.get('scaleSize'),
-						scaleBarHeight: stores.general.get('scaleBarHeight')/100
+						scaleSize: stores.general.get('autoScale') ? 0 : stores.general.get('scaleSize') === '' ? 0 : stores.general.get('scaleSize'),
+						scaleBarHeight: stores.general.get('scaleBarHeight')/100,
+						scaleBarTop: stores.general.get('scaleBarTop')
 					}
 				});
 		}
@@ -98,8 +99,9 @@ const actions = CreateActions([
 						scaleType: stores.general.get('scalePosition'),
 						scaleColor: stores.general.get('scaleColor'),
 						belowColor: stores.general.get('belowColor'),
-						scaleSize: (stores.general.get('autoScale') || stores.general.get('scaleSize') === '') ? 0 : stores.general.get('scaleSize'),
-						scaleBarHeight: stores.general.get('scaleBarHeight')/100
+						scaleSize: stores.general.get('autoScale') ? 0 : stores.general.get('scaleSize') === '' ? 0 : stores.general.get('scaleSize'),
+						scaleBarHeight: stores.general.get('scaleBarHeight')/100,
+						scaleBarTop: stores.general.get('scaleBarTop')
 					}
 				});
 		}
@@ -120,11 +122,17 @@ const actions = CreateActions([
 		actionType: 'changeScaleSize',
 		func: ({stores}, {target}) => {
 			const num = parseInt(target.value);
-			if (!isNaN(num) && 0 <= num <= 100000)
-				stores.general.set('scaleSize', num);
+			if (!isNaN(num))
+				if (0 <= num)
+					if (num <= 10000000)
+						stores.general.set('scaleSize', num);
+					else
+						stores.general.set('scaleSize', 10000000);
+				else
+					stores.general.set('scaleSize', 0);
 
 			if (target.value === '')
-				stores.general.set('scaleSize', num);
+				stores.general.set('scaleSize', '');
 		}
 	},
 	{
@@ -136,18 +144,27 @@ const actions = CreateActions([
 	{
 		actionType: 'changeFromAutoScale',
 		func: ({stores}) => {
-			stores.general.set('autoScale', !stores.general.get('autoScale'));
+			actions.changeScaleSize(event);
+			stores.general.set('autoScale', false);
 		}
 	},
 	{
 		actionType: 'changeScaleBarHeight',
 		func: ({stores}, {target}) => {
-			const num = parseInt(target.value);
-			if (!isNaN(num) && 0 <= num <= 100)
-				stores.general.set('scaleBarHeight', num);
+			const num = parseInt(target.value === '0' ? '0' : target.value.replace(/^0+/g, ''));
+			console.log(target.value);
+			console.log(num);
+			if (!isNaN(num))
+				if (0 <= num)
+					if (num <= 100)
+						stores.general.set('scaleBarHeight', num);
+					else
+						stores.general.set('scaleBarHeight', 100);
+				else
+					stores.general.set('scaleBarHeight', 0);
 
 			if (target.value === '')
-				stores.general.set('scaleBarHeight', num);
+				stores.general.set('scaleBarHeight', '');
 		}
 	},
 	{
@@ -158,8 +175,15 @@ const actions = CreateActions([
 	},
 	{
 		actionType: 'changeFromAutoHeight',
+		func: ({stores}, event) => {
+			actions.changeScaleBarHeight(event);
+			stores.general.set('autoHeight', false);
+		}
+	},
+	{
+		actionType: 'toggleBarLocation',
 		func: ({stores}) => {
-			stores.general.set('autoHeight', !stores.general.get('autoHeight'));
+			stores.general.set('scaleBarTop', !stores.general.get('scaleBarTop'));
 		}
 	}
 ]);
