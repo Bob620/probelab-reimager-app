@@ -33,15 +33,15 @@ app.on('ready', async () => {
 
 						sender.send('data', {
 							type: 'write',
-							data: {name: data.name}
+							data: {uuid: data.uuid}
 						});
 					}
 				);
 				break;
 			case 'loadImage':
 				sender.send('debug', 'Removing old image');
-				if (data.oldName && thermos[data.oldName])
-					thermos[data.oldName].data.image = undefined;
+				if (data.oldUuid && thermos[data.oldUuid])
+					thermos[data.oldUuid].data.image = undefined;
 
 				if (child.isWaitingOn('addScale')) {
 					sender.send('debug', 'Respawning child');
@@ -57,7 +57,7 @@ app.on('ready', async () => {
 						type: 'loadedImage',
 						data: {
 							image,
-							name: data.name
+							uuid: data.uuid
 						}
 					});
 				} catch(err) {
@@ -71,8 +71,6 @@ app.on('ready', async () => {
 
 				try {
 					thermos = await child.sendMessage('processDirectory', {uri: dirUri});
-
-					sender.send('debug', thermos);
 
 					sender.send('data', {
 						type: 'updateDirImages',

@@ -14,8 +14,8 @@ class Sidebar extends Component {
 	}
 
 	render() {
-		let selectedName = generalStore.get('selectedImage');
-		selectedName = selectedName ? selectedName.data.name : '';
+		let selectedUuid = generalStore.get('selectedImage');
+		selectedUuid = selectedUuid ? selectedUuid.data.uuid : '';
 
 		return (
 			<section id='sidebar'>
@@ -24,9 +24,9 @@ class Sidebar extends Component {
 				</div>
 				<ul>{
 					Object.values(generalStore.get('images')).map(image =>
-						<li className={'selectable ' + (image.data.name === selectedName ? 'selected' : '')}
-							key={image.data.name}
-							onClick={image.data.name === selectedName ? () => {} : generalActions.loadImage.bind(undefined, image.data.name)}
+						<li className={'selectable ' + (image.data.uuid === selectedUuid ? 'selected' : '')}
+							key={image.data.uuid}
+							onClick={image.data.uuid === selectedUuid ? () => {} : generalActions.loadImage.bind(undefined, image.data.uuid)}
 						>
 							<p>{image.data.name}</p>
 						</li>

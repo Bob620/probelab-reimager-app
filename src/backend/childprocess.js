@@ -1,24 +1,30 @@
 const fs = require('fs');
 const ThermoReimager = require('thermo-reimager');
 
+const generateUUID = require('./generateuuid.js');
+
 Promise.all([ThermoReimager.PointShoot, ThermoReimager.ExtractedMap]).then(([PointShoot, ExtractedMap]) => {
 	let thermos = {};
 	let thermo;
 
 	process.on('message', async ({type, data, uuid}) => {
-		switch(type) {
-			case 'processDirectory':
-				thermos = processDirectory(data.uri);
-				process.send({type: 'resolve', data: thermos, uuid});
-				break;
-			case 'addScale':
-				thermo = await addScale(thermos[data.name], data);
-				process.send({type: 'resolve', data: await thermo.data.image.getBase64Async('image/png'), uuid});
-				break;
-			case 'writeImage':
-				await writeImage(thermos[data.name], data);
-				process.send({type: 'resolve', data: {name: data.name}});
-				break;
+		try {
+			switch(type) {
+				case 'processDirectory':
+					thermos = processDirectory(data.uri);
+					process.send({type: 'resolve', data: thermos, uuid});
+					break;
+				case 'addScale':
+					thermo = await addScale(thermos[data.uuid], data);
+					process.send({type: 'resolve', data: await thermo.data.image.getBase64Async('image/png'), uuid});
+					break;
+				case 'writeImage':
+					await writeImage(thermos[data.uuid], data);
+					process.send({type: 'resolve', data: {uuid: data.uuid}, uuid});
+					break;
+			}
+		} catch (err) {
+			process.send({type: 'reject', data: err, uuid});
 		}
 	});
 
@@ -66,7 +72,8 @@ Promise.all([ThermoReimager.PointShoot, ThermoReimager.ExtractedMap]).then(([Poi
 				}).filter(item => item);
 			}
 		}).filter(i => i).reduce((items, item) => {
-			items[item.data.name] = item;
+			item.data.uuid = generateUUID.v4();
+			items[item.data.uuid] = item;
 			return items;
 		}, {});
 	}

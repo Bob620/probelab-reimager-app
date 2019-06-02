@@ -12,10 +12,12 @@ ipcRenderer.on('data', (event, {type, data}) => {
 			let images = generalStore.get('images');
 			let selectedImage = generalStore.get('selectedImage');
 
-			if (selectedImage.data.name === data.name) {
-				let image = images[data.name];
-				image.data.image = data.image;
-			}
+			console.log(selectedImage);
+			console.log(data);
+
+			if (selectedImage.data.uuid === data.uuid)
+				images[data.uuid].data.image = data.image;
+
 			actions.toggleBarLocation();
 			actions.toggleBarLocation();
 	}
@@ -31,6 +33,7 @@ const actions = CreateActions([
 		func: ({stores}, {target}) => {
 			const dir = target.files[0].path;
 			if (dir) {
+				stores.general.set('selectedImage', undefined);
 				stores.general.set('workingDir', dir);
 
 				ipcRenderer.send('data', {
@@ -59,18 +62,18 @@ const actions = CreateActions([
 	},
 	{
 		actionType: 'loadImage',
-		func: ({stores}, name=false) => {
+		func: ({stores}, uuid=false) => {
 			const oldImage = stores.general.get('selectedImage');
 
-			if (name)
-				actions.selectImage(name);
+			if (uuid)
+				actions.selectImage(uuid);
 
-			if (oldImage || name)
+			if (oldImage || uuid)
 				ipcRenderer.send('data', {
 					type: 'loadImage',
 					data: {
-						oldName: (name && oldImage) ? oldImage.data.name : '',
-						name: name ? name : oldImage.data.name,
+						oldUuid: (uuid && oldImage) ? oldImage.data.uuid : '',
+						uuid: uuid ? uuid : oldImage.data.uuid,
 						scaleType: stores.general.get('scalePosition'),
 						scaleColor: stores.general.get('scaleColor'),
 						belowColor: stores.general.get('belowColor'),
@@ -84,25 +87,27 @@ const actions = CreateActions([
 	},
 	{
 		actionType: 'selectImage',
-		func: ({stores}, name) => {
+		func: ({stores}, uuid) => {
 			const oldImage = stores.general.get('selectedImage');
 			let images = stores.general.get('images');
 
-			if (oldImage)
-				images[oldImage.data.name].data.image = undefined;
+			if (oldImage && images[oldImage.data.uuid])
+				images[oldImage.data.uuid].data.image = undefined;
 
 			stores.general.set('images', images);
-			stores.general.set('selectedImage', images[name]);
+			stores.general.set('selectedImage', images[uuid]);
 		}
 	},
 	{
 		actionType: 'writeSelectedImage',
 		func: ({stores}) => {
-			if (stores.general.get('selectedImage'))
+			const selectedImage = stores.general.get('selectedImage');
+			if (selectedImage)
 				ipcRenderer.send('data', {
 					type: 'writeImage',
 					data: {
-						name: stores.general.get('selectedImage').data.name,
+						name: selectedImage.data.name,
+						uuid: selectedImage.data.uuid,
 						scaleType: stores.general.get('scalePosition'),
 						scaleColor: stores.general.get('scaleColor'),
 						belowColor: stores.general.get('belowColor'),

@@ -53,7 +53,7 @@ class Navbar extends Component {
 					</div>
 					<div onClick={generalActions.writeSelectedImage}
 						 className={'selectable'}>
-						<p>Save Image</p>
+						<p>Export Images</p>
 					</div>
 				</div>
 			</section>
