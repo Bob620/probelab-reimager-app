@@ -28,7 +28,7 @@ class Child {
 
 		this.data.waitingList = new Map();
 		this.data.toRun = [];
-		this.data.process = fork('./src/backend/childprocess.js');
+		this.data.process = fork(`${__dirname}/childprocess.js`);
 
 		this.data.process.on('message', ({type, data, uuid}) => {
 			let task;
