@@ -2,7 +2,7 @@ const fork = require('child_process').fork;
 
 const generateUUID = require('./generateuuid.js');
 
-class Child {
+module.exports = class ReimagerChild {
 	constructor() {
 		this.data = {
 			process: undefined,
@@ -28,20 +28,24 @@ class Child {
 
 		this.data.waitingList = new Map();
 		this.data.toRun = [];
-		this.data.process = fork(`${__dirname}/childprocess.js`);
+		this.data.process = fork(`${__dirname}/children/reimagerchildprocess.js`);
 
 		this.data.process.on('message', ({type, data, uuid}) => {
 			let task;
 			switch (type) {
 				case 'resolve':
 					task = this.data.waitingList.get(uuid);
-					if (task)
+					if (task) {
 						task.resolve(data);
+						this.data.waitingList.delete(uuid);
+					}
 					break;
 				case 'reject':
 					task = this.data.waitingList.get(uuid);
-					if (task)
+					if (task) {
 						task.reject(data);
+						this.data.waitingList.delete(uuid);
+					}
 					break;
 				case 'debug':
 					break;
@@ -81,5 +85,3 @@ class Child {
 	}
 
 }
-
-module.exports = Child;

@@ -5,6 +5,8 @@ import './settings.scss'
 import history from '../../components/general/history.js';
 import generalStore from '../../components/general/store.js';
 import generalActions from '../../components/general/actions.js';
+import settingStore from '../../components/settings/store.js';
+import settingActions from '../../components/settings/actions.js';
 
 class Settings extends Component {
 	constructor(props) {
@@ -17,11 +19,11 @@ class Settings extends Component {
 			<section id='main'>
 				<div className='colors'>
 					<div className='scale selectable'>
-						<p onClick={generalActions.toggleAutoPixelSizeConstant}>Pixel Size Constant: </p>
+						<p onClick={settingActions.toggleAutoPixelSizeConstant}>Pixel Size Constant: </p>
 						{
-							generalStore.get('autoPixelSizeConstant') ?
-								<input onClick={generalActions.toggleAutoPixelSizeConstant} onChange={generalActions.changeFromAutoPixelSizeConstant} type='text' value='Auto'/> :
-								<input type='number' maxLength='10' min='0' max='500' value={generalStore.get('pixelSizeConstant')} onChange={generalActions.changePixelSizeConstant} />
+							settingStore.get('autoPixelSizeConstant') ?
+								<input onClick={settingActions.toggleAutoPixelSizeConstant} onChange={settingActions.changeFromAutoPixelSizeConstant} type='text' value='Auto'/> :
+								<input type='number' maxLength='10' min='0' max='500' value={settingStore.get('pixelSizeConstant')} onChange={settingActions.changePixelSizeConstant} />
 						}
 					</div>
 					<div onClick={generalActions.navigateHome}

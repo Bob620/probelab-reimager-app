@@ -5,6 +5,8 @@ import './image.scss'
 import history from '../../components/general/history.js';
 import generalStore from '../../components/general/store.js';
 import generalActions from '../../components/general/actions.js';
+import settingStore from '../../components/settings/store.js';
+import settingActions from '../../components/settings/actions.js';
 
 class Image extends Component {
 	constructor(props) {
@@ -20,7 +22,7 @@ class Image extends Component {
 				<div className='colors'>
 					<div className='colorOptions'>
 						<p>Font Color</p>
-						<select value={generalStore.get('scaleColor')} onChange={generalActions.changeScaleColor}>
+						<select value={settingStore.get('scaleColor')} onChange={settingActions.changeScaleColor}>
 							<option value='auto'>Auto</option>
 							<option value='white'>White</option>
 							<option value='black'>Black</option>
@@ -28,33 +30,33 @@ class Image extends Component {
 					</div>
 					<div className='colorOptions'>
 						<p>Below Color</p>
-						<select value={generalStore.get('belowColor')} onChange={generalActions.changeBelowColor}>
+						<select value={settingStore.get('belowColor')} onChange={settingActions.changeBelowColor}>
 							<option value='auto'>Auto</option>
 							<option value='white'>White</option>
 							<option value='black'>Black</option>
 						</select>
 					</div>
-					<div onClick={generalActions.toggleBarLocation} className='scale selectable'>
+					<div onClick={settingActions.toggleBarLocation} className='scale selectable'>
 						<p>Scale Bar: </p>
 						{
-							generalStore.get('scaleBarTop') ?
+							settingStore.get('scaleBarTop') ?
 								<p>Above</p> : <p>Below</p>
 						}
 					</div>
 					<div className='scale selectable'>
-						<p onClick={generalActions.toggleAutoScale}>Scale(µm): </p>
+						<p onClick={settingActions.toggleAutoScale}>Scale(µm): </p>
 						{
-							generalStore.get('autoScale') ?
-								<input onClick={generalActions.toggleAutoScale} onChange={generalActions.changeFromAutoScale} type='text' value='Auto'/> :
-								<input type='number' maxLength='8' min='0' max='10000000' value={generalStore.get('scaleSize')} onChange={generalActions.changeScaleSize} />
+							settingStore.get('autoScale') ?
+								<input onClick={settingActions.toggleAutoScale} onChange={settingActions.changeFromAutoScale} type='text' value='Auto'/> :
+								<input type='number' maxLength='8' min='0' max='10000000' value={settingStore.get('scaleSize')} onChange={settingActions.changeScaleSize} />
 						}
 					</div>
 					<div className='scale selectable'>
-						<p onClick={generalActions.toggleAutoScaleHeight}>Scale Bar Height(%): </p>
+						<p onClick={settingActions.toggleAutoScaleHeight}>Scale Bar Height(%): </p>
 						{
-							generalStore.get('autoHeight') ?
-								<input onClick={generalActions.toggleAutoScaleHeight} onChange={generalActions.changeFromAutoHeight} type='text' value='Auto'/> :
-								<input type='number' maxLength='3' min='0' max='100' value={generalStore.get('scaleBarHeight')} onChange={generalActions.changeScaleBarHeight} />
+							settingStore.get('autoHeight') ?
+								<input onClick={settingActions.toggleAutoScaleHeight} onChange={settingActions.changeFromAutoHeight} type='text' value='Auto'/> :
+								<input type='number' maxLength='3' min='0' max='100' value={settingStore.get('scaleBarHeight')} onChange={settingActions.changeScaleBarHeight} />
 						}
 					</div>
 					<div onClick={generalActions.navigateSettings}
@@ -69,7 +71,7 @@ class Image extends Component {
 				{
 					selectedImage &&
 					<div className='image'>
-						<img src={selectedImage.data.image} />
+						<img src={selectedImage} />
 					</div>
 				}
 			</section>

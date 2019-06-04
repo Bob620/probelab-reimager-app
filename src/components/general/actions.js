@@ -1,200 +1,29 @@
 import { CreateActions } from 'bakadux';
-import generalStore from './store';
+import Communications from './communications';
 
-const { ipcRenderer } = window.require('electron');
-
-ipcRenderer.on('data', (event, {type, data}) => {
-	switch(type) {
-		case 'updateDirImages':
-			actions.updateDirImages(data.images);
-			break;
-		case 'loadedImage':
-			let images = generalStore.get('images');
-			let selectedImage = generalStore.get('selectedImage');
-
-			console.log(selectedImage);
-			console.log(data);
-
-			if (selectedImage.data.uuid === data.uuid)
-				images[data.uuid].data.image = data.image;
-
-			actions.toggleBarLocation();
-			actions.toggleBarLocation();
-	}
-});
-
-ipcRenderer.on('debug', (event, arg) => {
-	console.log(arg);
-});
+const comms = new Communications();
 
 const actions = CreateActions([
 	{
-		actionType: 'setWorkingDirectory',
-		func: ({stores}, {target}) => {
-			const dir = target.files[0].path;
-			if (dir) {
-				stores.general.set('selectedImage', undefined);
-				stores.general.set('workingDir', dir);
-
-				ipcRenderer.send('data', {
-					type: 'processDirectory',
-					data: {
-						dir
-					}
-				});
-			}
-		}
-	},
-	{
-		actionType: 'updateDirImages',
-		func: ({stores}, images) => {
-			stores.general.set('images', images);
-			console.log(images);
-		}
-	},
-	{
-		actionType: 'setScalePosition',
-		func: ({stores}, pos=0) => {
-			const oldPos = stores.general.get('scalePosition');
-			if (oldPos !== pos)
-				stores.general.set('scalePosition', pos);
-		}
-	},
-	{
-		actionType: 'loadImage',
-		func: ({stores}, uuid=false) => {
-			const oldImage = stores.general.get('selectedImage');
-
+		actionType: 'saveImage',
+		func: ({stores}, uuid, data) => {
 			if (uuid)
-				actions.selectImage(uuid);
-
-			if (oldImage || uuid)
-				ipcRenderer.send('data', {
-					type: 'loadImage',
-					data: {
-						oldUuid: (uuid && oldImage) ? oldImage.data.uuid : '',
-						uuid: uuid ? uuid : oldImage.data.uuid,
-						scaleType: stores.general.get('scalePosition'),
-						scaleColor: stores.general.get('scaleColor'),
-						belowColor: stores.general.get('belowColor'),
-						scaleSize: stores.general.get('autoScale') ? 0 : stores.general.get('scaleSize') === '' ? 0 : stores.general.get('scaleSize'),
-						scaleBarHeight: stores.general.get('scaleBarHeight') / 100,
-						scaleBarTop: stores.general.get('scaleBarTop'),
-						pixelSizeConstant: stores.general.get('pixelSizeConstant')
-					}
+				comms.sendMessage('saveImage', {
+					uuid
+				}).then(({uuid: newUuid}) => {
+					data.uuid = newUuid;
+					stores.general.get('safebox').set(newUuid, data);
+					actions.navigateHome();
 				});
 		}
 	},
 	{
-		actionType: 'selectImage',
+		actionType: 'deleteImage',
 		func: ({stores}, uuid) => {
-			const oldImage = stores.general.get('selectedImage');
-			let images = stores.general.get('images');
-
-			if (oldImage && images[oldImage.data.uuid])
-				images[oldImage.data.uuid].data.image = undefined;
-
-			stores.general.set('images', images);
-			stores.general.set('selectedImage', images[uuid]);
-		}
-	},
-	{
-		actionType: 'writeSelectedImage',
-		func: ({stores}) => {
-			const selectedImage = stores.general.get('selectedImage');
-			if (selectedImage)
-				ipcRenderer.send('data', {
-					type: 'writeImage',
-					data: {
-						name: selectedImage.data.name,
-						uuid: selectedImage.data.uuid,
-						scaleType: stores.general.get('scalePosition'),
-						scaleColor: stores.general.get('scaleColor'),
-						belowColor: stores.general.get('belowColor'),
-						scaleSize: stores.general.get('autoScale') ? 0 : stores.general.get('scaleSize') === '' ? 0 : stores.general.get('scaleSize'),
-						scaleBarHeight: stores.general.get('scaleBarHeight')/100,
-						scaleBarTop: stores.general.get('scaleBarTop'),
-						pixelSizeConstant: stores.general.get('pixelSizeConstant')
-					}
-				});
-		}
-	},
-	{
-		actionType: 'changeBelowColor',
-		func: ({stores}, {target}) => {
-			stores.general.set('belowColor', target.value);
-		}
-	},
-	{
-		actionType: 'changeScaleColor',
-		func: ({stores}, {target}) => {
-			stores.general.set('scaleColor', target.value);
-		}
-	},
-	{
-		actionType: 'changeScaleSize',
-		func: ({stores}, {target}) => {
-			const num = parseInt(target.value);
-			if (!isNaN(num))
-				if (0 <= num)
-					if (num <= 10000000)
-						stores.general.set('scaleSize', num);
-					else
-						stores.general.set('scaleSize', 10000000);
-				else
-					stores.general.set('scaleSize', 0);
-
-			if (target.value === '')
-				stores.general.set('scaleSize', '');
-		}
-	},
-	{
-		actionType: 'toggleAutoScale',
-		func: ({stores}) => {
-			stores.general.set('autoScale', !stores.general.get('autoScale'));
-		}
-	},
-	{
-		actionType: 'changeFromAutoScale',
-		func: ({stores}) => {
-			actions.changeScaleSize(event);
-			stores.general.set('autoScale', false);
-		}
-	},
-	{
-		actionType: 'changeScaleBarHeight',
-		func: ({stores}, {target}) => {
-			const num = parseInt(target.value === '0' ? '0' : target.value.replace(/^0+/g, ''));
-			if (!isNaN(num))
-				if (0 <= num)
-					if (num <= 100)
-						stores.general.set('scaleBarHeight', num);
-					else
-						stores.general.set('scaleBarHeight', 100);
-				else
-					stores.general.set('scaleBarHeight', 0);
-
-			if (target.value === '')
-				stores.general.set('scaleBarHeight', '');
-		}
-	},
-	{
-		actionType: 'toggleAutoScaleHeight',
-		func: ({stores}) => {
-			stores.general.set('autoHeight', !stores.general.get('autoHeight'));
-		}
-	},
-	{
-		actionType: 'changeFromAutoHeight',
-		func: ({stores}, event) => {
-			actions.changeScaleBarHeight(event);
-			stores.general.set('autoHeight', false);
-		}
-	},
-	{
-		actionType: 'toggleBarLocation',
-		func: ({stores}) => {
-			stores.general.set('scaleBarTop', !stores.general.get('scaleBarTop'));
+			if (uuid)
+				comms.sendMessage('removeImage', {
+					uuid: uuid
+				}, false);
 		}
 	},
 	{
@@ -210,35 +39,127 @@ const actions = CreateActions([
 		}
 	},
 	{
-		actionType: 'changePixelSizeConstant',
-		func: ({stores}, {target}) => {
-			const num = parseFloat(target.value);
-			if (!isNaN(num))
-				if (0 < num)
-					if (num <= 500)
-						stores.general.set('pixelSizeConstant', num);
-					else
-						stores.general.set('pixelSizeConstant', 500);
-				else
-					stores.general.set('pixelSizeConstant', 0);
-
-			if (target.value === '')
-				stores.general.set('pixelSizeConstant', '');
-		}
-	},
-	{
-		actionType: 'toggleAutoPixelSizeConstant',
-		func: ({stores}) => {
-			stores.general.set('autoPixelSizeConstant', !stores.general.get('autoPixelSizeConstant'));
-		}
-	},
-	{
-		actionType: 'changeFromAutoPixelSizeConstant',
+		actionType: 'setWorkingDirectory',
 		func: ({stores}, event) => {
-			actions.changeScaleBarHeight(event);
-			stores.general.set('autoPixelSizeConstant', false);
+			let dir = event;
+			if (typeof event === 'object')
+				dir = event.target.files[0].path;
+			if (dir) {
+				stores.general.set('selectedImage', undefined);
+				stores.general.set('selectedUuid', undefined);
+				stores.general.set('workingDir', dir);
+
+				comms.sendMessage('processDirectory', { dir }).then(({images}) => {
+					actions.updateDirImages(images);
+					const selectedUuid = stores.general.get('selectedUuid');
+					if (selectedUuid)
+						actions.selectImage(selectedUuid);
+				});
+			}
 		}
 	},
+	{
+		actionType: 'updateDirImages',
+		func: ({stores}, images) => {
+			stores.general.set('images', images);
+		}
+	},
+	{
+		actionType: 'selectImage',
+		func: ({stores}, uuid) => {
+			if (Object.keys(stores.general.get('images')).includes(uuid) || Array.from(stores.general.get('safebox').keys()).includes(uuid)) {
+				stores.general.set('selectedImage', undefined);
+				stores.general.set('selectedUuid', uuid);
+			}
+		}
+	},
+	{
+		actionType: 'loadImage',
+		func: ({stores}, uuid=false) => {
+			const oldUuid = stores.general.get('selectedUuid');
+
+			console.log(uuid ? uuid : oldUuid);
+
+			if (uuid)
+				actions.selectImage(uuid);
+
+			if (oldUuid || uuid)
+				comms.sendMessage('loadImage', {
+						oldUuid: (uuid && oldUuid) ? oldUuid : '',
+						uuid: uuid ? uuid : oldUuid,
+						scaleType: stores.settings.get('scalePosition'),
+						scaleColor: stores.settings.get('scaleColor'),
+						belowColor: stores.settings.get('belowColor'),
+						scaleSize: stores.settings.get('autoScale') ? 0 : stores.settings.get('scaleSize') === '' ? 0 : stores.settings.get('scaleSize'),
+						scaleBarHeight: stores.settings.get('scaleBarHeight') / 100,
+						scaleBarTop: stores.settings.get('scaleBarTop'),
+						pixelSizeConstant: stores.settings.get('pixelSizeConstant')
+				}).then(({image, uuid}) => {
+					console.log(`${stores.general.get('selectedUuid')} =?= ${uuid}`);
+
+					if (stores.general.get('selectedUuid') === uuid)
+						stores.general.set('selectedImage', image);
+
+					actions.navigateHome();
+				});
+		}
+	},
+	{
+		actionType: 'writeSelectedImage',
+		func: ({stores}, override=undefined, callback=() => {}) => {
+			const selectedUuid = override ? override : stores.general.get('selectedUuid');
+			let image = stores.general.get('images')[selectedUuid];
+			image = image !== undefined ? image : stores.general.get('safebox').get(selectedUuid);
+			let data = {};
+
+			if (image.name)
+				data = {
+					name: (image.data && image.data.name) ? image.data.name : image.name,
+					uuid: selectedUuid,
+					scaleType: image.settings.scalePosition,
+					scaleColor: image.settings.scaleColor,
+					belowColor: image.settings.belowColor,
+					scaleSize: image.settings.autoScale ? 0 : (image.settings.scaleSize !== '' ? image.settings.scaleSize : 0),
+					scaleBarHeight: image.settings.scaleBarHeight/100,
+					scaleBarTop: image.settings.scaleBarTop,
+					pixelSizeConstant: image.settings.pixelSizeConstant
+				};
+			else
+				data = {
+					name: image.data.name,
+					uuid: selectedUuid,
+					scaleType: stores.settings.get('scalePosition'),
+					scaleColor: stores.settings.get('scaleColor'),
+					belowColor: stores.settings.get('belowColor'),
+					scaleSize: stores.settings.get('autoScale') ? 0 : (stores.settings.get('scaleSize') !== '' ? stores.settings.get('scaleSize') : 0),
+					scaleBarHeight: stores.settings.get('scaleBarHeight')/100,
+					scaleBarTop: stores.settings.get('scaleBarTop'),
+					pixelSizeConstant: stores.settings.get('pixelSizeConstant')
+				};
+
+			if (selectedUuid)
+				comms.sendMessage('writeImage', data).then(({image, uuid}) => {
+					if (stores.general.get('selectedUuid') === uuid)
+						stores.general.set('selectedImage', image);
+
+					actions.navigateHome();
+					callback();
+				});
+		}
+	},
+	{
+		actionType: 'writeSavedImages',
+		func: ({stores}, uuidList=undefined) => {
+			let uuids = uuidList !== undefined ? uuidList : Array.from(stores.general.get('safebox').keys());
+
+			if (uuids.length > 0) {
+				const uuid = uuids.pop();
+
+				actions.loadImage(uuid);
+				actions.writeSelectedImage(undefined, actions.writeSavedImages.bind(undefined, uuids));
+			}
+		}
+	}
 ]);
 
 module.exports = actions;

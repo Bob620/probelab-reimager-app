@@ -2,12 +2,12 @@ const {BrowserWindow} = require('electron');
 
 module.exports = () => {
 	let window = new BrowserWindow({
-		minWidth: 800,
+		minWidth: 1000,
 		minHeight: 800,
 		backgroundColor: '#4b6584',
-		width: 800,
+		width: 1000,
 		height: 800,
-		title: 'Thermo-Reimager',
+		title: 'Probelab Reimager',
 		webPreferences: {nodeIntegration: true}
 	});
 

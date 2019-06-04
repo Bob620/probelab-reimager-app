@@ -1,88 +1,63 @@
 const createWindow = require('./createwindow.js');
-const Child = require('./child');
+const ReimagerChild = require('./reimagerchild');
+const Communications = require('./communications');
 
-const { app, ipcMain, dialog } = require('electron');
+const { app, dialog } = require('electron');
+
 let window = null;
+const comms = new Communications();
+const child = new ReimagerChild();
 
 app.on('ready', async () => {
 	if (window === null)
 		window = createWindow();
 
-	let thermos;
-	const child = new Child();
+	comms.onMessage('saveImage', data =>
+		child.sendMessage('save', data)
+	);
 
-	ipcMain.on('data', async ({sender}, {type, data}) => {
-		sender.send('debug', type);
-		sender.send('debug', data);
-		switch(type) {
-			case 'echo':
-				sender.send('debug', data.message);
-				break;
-			case 'writeImage':
-				sender.send('debug', 'Starting image write...');
+	comms.onMessage('removeImage', async data => {
+		child.sendMessage('remove', data);
+	});
+
+	comms.onMessage('writeImage', data => {
+		return new Promise((resolve, reject) => {
+			try {
 				dialog.showSaveDialog({
 						defaultPath: data.name + '.tif',
 						filters: [
 							{name: 'Images', extensions: ['jpg', 'png', 'tif']}
 						]
 					},
-					async (path) => {
+					async path => {
 						data.uri = path;
 						await child.sendMessage('writeImage', data);
-						sender.send('debug', 'Image written');
 
-						sender.send('data', {
-							type: 'write',
-							data: {uuid: data.uuid}
-						});
+						resolve({uuid: data.uuid});
 					}
 				);
-				break;
-			case 'loadImage':
-				sender.send('debug', 'Removing old image');
-				if (data.oldUuid && thermos[data.oldUuid])
-					thermos[data.oldUuid].data.image = undefined;
+			} catch(err) {
+				reject(err);
+			}
+		});
+	});
 
-				if (child.isWaitingOn('addScale')) {
-					sender.send('debug', 'Respawning child');
-					child.respawn();
-				}
+	comms.onMessage('loadImage', async data => {
+		if (child.isWaitingOn('addScale'))
+			child.respawn();
 
-				sender.send('debug', 'Processing new image');
+		return {
+			image: await child.sendMessage('addScale', data),
+			uuid: data.uuid
+		};
+	});
 
-				try {
-					const image = await child.sendMessage('addScale', data);
+	comms.onMessage('processDirectory', async data => {
+		let dirUri = data.dir.replace(/\\/gmi, '/');
+		if (!dirUri.endsWith('/'))
+			dirUri = dirUri + '/';
 
-					sender.send('data', {
-						type: 'loadedImage',
-						data: {
-							image,
-							uuid: data.uuid
-						}
-					});
-				} catch(err) {
-					sender.send('debug', err);
-				}
-				break;
-			case 'processDirectory':
-				let dirUri = data.dir.replace(/\\/gmi, '/');
-				if (!dirUri.endsWith('/'))
-					dirUri = dirUri + '/';
-
-				try {
-					thermos = await child.sendMessage('processDirectory', {uri: dirUri});
-
-					sender.send('data', {
-						type: 'updateDirImages',
-						data: {
-							images: thermos ? thermos : {}
-						}
-					});
-				} catch(err) {
-					sender.send('debug', err);
-				}
-				break;
-		}
+		return { images: await child.sendMessage('processDirectory', {uri: dirUri}) };
 	});
 });
 
