@@ -106,21 +106,21 @@ export default CreateActions([
 	},
 	{
 		actionType: 'changeFromAutoScale',
-		func: ({stores}) => {
+		func: ({actions, stores}) => {
 			actions.changeScaleSize(event);
 			stores.settings.set('autoScale', false);
 		}
 	},
 	{
 		actionType: 'changeFromAutoHeight',
-		func: ({stores}, event) => {
+		func: ({actions, stores}, event) => {
 			actions.changeScaleBarHeight(event);
 			stores.settings.set('autoHeight', false);
 		}
 	},
 	{
 		actionType: 'changeFromAutoPixelSizeConstant',
-		func: ({stores}, event) => {
+		func: ({actions, stores}, event) => {
 			actions.changeScaleBarHeight(event);
 			stores.settings.set('autoPixelSizeConstant', false);
 		}

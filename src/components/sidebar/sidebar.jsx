@@ -1,12 +1,15 @@
 import React, { Component } from 'react';
+import ReactSVG from 'react-svg';
 
 import '../general/common.scss'
 import './sidebar.scss'
 
-import history from '../../components/general/history.js';
-import generalStore from '../../components/general/store.js';
-import generalActions from '../../components/general/actions.js';
-import safeboxActions from '../../components/safebox/actions.js';
+import history from '../general/history.js';
+import generalStore from '../general/store.js';
+import generalActions from '../general/actions.js';
+import safeboxActions from '../safebox/actions.js';
+
+import MiniPosition from '../miniposition/miniposition.jsx';
 
 class Sidebar extends Component {
 	constructor(props) {
@@ -21,37 +24,40 @@ class Sidebar extends Component {
 
 		return (
 			<section id='sidebar'>
-				<div className='input'>
-					<input onChange={generalActions.setWorkingDirectory} type="file" webkitdirectory="true" />
-				</div>
-				<ul>{
-					Object.values(images).sort((one, two) => one.data.name < two.data.name ? -1 : 1).map(image =>
-						<li className={'selectable ' + (image.data.uuid === selectedUuid ? 'selected' : '')}
-							key={image.data.uuid}
-							onClick={image.data.uuid === selectedUuid ? () => {} : generalActions.loadImage.bind(undefined, image.data.uuid)}
-						>
-							<p>{image.data.name}</p>
-							<span><p></p></span>
-						</li>
-					)
-				}</ul>
-				<ul>{ safebox.length > 0 &&
-					safebox.sort((one, two) => one.name < two.name ? -1 : 1)
-						.map(({ uuid, name }) =>
-							<li className={'selectable ' + (uuid === selectedUuid ? 'selected' : '')}
-								key={uuid}
-								onClick={uuid === selectedUuid ? () => {
-								} : safeboxActions.restoreImage.bind(undefined, uuid)}
+				<div className='content'>
+					<div className='input'>
+						<input onChange={generalActions.setWorkingDirectory} type="file" webkitdirectory="true" />
+					</div>
+					<ul className='current-dir'>{
+						Object.values(images).sort((one, two) => one.data.name < two.data.name ? -1 : 1).map(image =>
+							<li className={'selectable ' + (image.data.uuid === selectedUuid ? 'selected' : '')}
+								key={image.data.uuid}
+								onClick={image.data.uuid === selectedUuid ? () => {} : generalActions.loadImage.bind(undefined, image.data.uuid)}
 							>
-								<p>{name}</p>
-								<span onClick={(e) => safeboxActions.removeImage(e, uuid)}><p>X</p></span>
+								<p>{image.data.name}</p>
 							</li>
 						)
-				}</ul>
-				<div onClick={generalActions.writeSavedImages.bind(undefined, undefined)}
-					 className={'export selectable'}>
-					<p>Export Saved Images</p>
+					}</ul>
+					<ul className='safebox'>{ safebox.length > 0 &&
+						safebox.sort((one, two) => one.name < two.name ? -1 : 1)
+							.map(({ uuid, name }) =>
+								<li className={'selectable ' + (uuid === selectedUuid ? 'selected' : '')}
+									key={uuid}
+									onClick={uuid === selectedUuid ? () => {
+									} : safeboxActions.restoreImage.bind(undefined, uuid)}
+								>
+									<p>{name}</p>
+									<MiniPosition pos={generalStore.get('safebox').get(uuid).settings.scalePosition} />
+									<span onClick={(e) => safeboxActions.removeImage(e, uuid)}><p>X</p></span>
+								</li>
+							)
+					}</ul>
+					<div onClick={generalActions.writeSavedImages.bind(undefined, undefined)}
+						 className={'export selectable'}>
+						<p>Export Saved Images</p>
+					</div>
 				</div>
+				<div className='expand' draggable='true' onDrag={generalActions.moveSidebar} onDragStart={generalActions.startMove}></div>
 			</section>
 		);
 	}

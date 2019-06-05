@@ -2,53 +2,78 @@
 
 #sidebar {
   overflow: hidden;
+  display: flex;
 
-  > .input {
-    height: 40px;
+  > div {
+    height: 100%;
+  }
+
+  > .expand {
+    width: 3px;
+    cursor: ew-resize;
+    background-color: white;
+  }
+
+  > .content {
     width: 100%;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
 
-    > input {
+    > .input {
+      height: 40px;
       width: 100%;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+
+      > input {
+        width: 100%;
+        cursor: pointer;
+      }
+    }
+
+    > .export {
+      height: 40px;
+      width: 100%;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
       cursor: pointer;
     }
-  }
 
-  > .export {
-    height: 40px;
-    width: 100%;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    cursor: pointer;
-  }
+    > .current-dir {
+      height: calc(70% - 42px);
+      border-bottom-style: solid;
+      border-bottom-width: 2px;
+      border-bottom-color: white;
+    }
 
-  > ul {
-    list-style-type: none;
-    padding: 0;
-    margin: 0;
-    height: calc(50% - 40px);
-    overflow-x: hidden;
-    overflow-y: scroll;
+    > .safebox {
+      height: calc(30% - 40px);
+    }
 
-    > li {
-      display: flex;
-      justify-content: space-between;
+    > ul {
+      list-style-type: none;
+      padding: 0;
+      margin: 0;
+      overflow-x: hidden;
+      overflow-y: scroll;
 
-      p {
-        user-select: none;
-        color: white;
-        margin-top: 1em;
-        margin-bottom: 1em;
-        margin-left:10px;
-        white-space: nowrap;
-        width: min-content;
-      }
+      > li {
+        display: flex;
+        justify-content: space-between;
 
-      span {
-        margin-right: 15px;
+        p {
+          user-select: none;
+          color: white;
+          margin-top: 1em;
+          margin-bottom: 1em;
+          margin-left:10px;
+          white-space: nowrap;
+          width: min-content;
+        }
+
+        span {
+          margin-right: 15px;
+        }
       }
     }
   }

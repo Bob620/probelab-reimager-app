@@ -1,0 +1,124 @@
+.mini-position {
+  width: 36px;
+  height: 28px;
+  border-width: 2px;
+  border-style: solid;
+  border-color: white;
+  border-radius: 2px;
+  display: flex;
+
+  > div {
+    background-color: white;
+    height: 10px;
+  }
+
+  > :first-child {
+    display: none;
+    flex-grow: 1;
+  }
+
+  > :last-child {
+    display: none;
+    flex-grow: 1;
+  }
+
+  > .pos {
+    width: 12px;
+  }
+
+  &.ul {
+    justify-content: flex-start;
+    align-items: flex-start;
+
+    > .pos {
+      border-bottom-right-radius: 2px;
+    }
+  }
+  &.ur {
+    justify-content: flex-end;
+    align-items: flex-start;
+
+    > .pos {
+      border-bottom-left-radius: 2px;
+    }
+  }
+
+  &.ll {
+    justify-content: flex-start;
+    align-items: flex-end;
+
+    > .pos {
+      border-top-right-radius: 2px;
+    }
+  }
+  &.lr {
+    justify-content: flex-end;
+    align-items: flex-end;
+
+    > .pos {
+      border-top-left-radius: 2px;
+    }
+  }
+  &.lc {
+    justify-content: center;
+    align-items: flex-end;
+
+    > .pos {
+      border-top-right-radius: 2px;
+      border-top-left-radius: 2px;
+    }
+  }
+
+  &.bl {
+    justify-content: flex-start;
+    align-items: flex-end;
+
+    > :last-child {
+      display: block;
+    }
+
+    > .pos {
+      background-color: rgba(0,0,0,0);
+      border-top-width: 2px;
+      border-top-style: solid;
+      border-top-color: white;
+      height: 8px;
+    }
+  }
+  &.br {
+    justify-content: flex-end;
+    align-items: flex-end;
+
+    > :first-child {
+      display: block;
+    }
+
+    > .pos {
+      background-color: rgba(0,0,0,0);
+      border-top-width: 2px;
+      border-top-style: solid;
+      border-top-color: white;
+      height: 8px;
+    }
+  }
+  &.bc {
+    justify-content: center;
+    align-items: flex-end;
+
+    > :first-child {
+      display: block;
+    }
+
+    > :last-child {
+      display: block;
+    }
+
+    > .pos {
+      background-color: rgba(0,0,0,0);
+      border-top-width: 2px;
+      border-top-style: solid;
+      border-top-color: white;
+      height: 8px;
+    }
+  }
+}

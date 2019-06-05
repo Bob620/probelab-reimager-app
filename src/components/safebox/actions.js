@@ -24,6 +24,22 @@ export default CreateActions([
 		}
 	},
 	{
+		actionType: 'updateImage',
+		func: ({actions, stores}, uuid) => {
+			let image = stores.general.get('safebox').get(uuid);
+
+			if (image) {
+				let settings = {};
+
+				for (const key of stores.settings.getKeys())
+					settings[key] = stores.settings.get(key);
+
+				image.settings = JSON.parse(JSON.stringify(settings));
+				image.settingsUuid = JSON.stringify(settings);
+			}
+		}
+	},
+	{
 		actionType: 'removeImage',
 		func: ({actions, stores}, event, uuid) => {
 			event.preventDefault();

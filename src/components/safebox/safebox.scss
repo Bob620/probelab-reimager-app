@@ -1,66 +1,39 @@
-#main {
-  display: grid;
-  grid-template-rows: 60px 1fr;
-  grid-template-columns: 1fr;
-  grid-template-areas: "colors" "image";
+#safebox {
+  > ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    height: calc(50% - 40px);
+    overflow-x: hidden;
+    overflow-y: scroll;
 
-  > .colors {
-    grid-area: colors;
+    > li {
+      display: flex;
+      justify-content: space-between;
 
-    display: flex;
-    flex-direction: row;
-    justify-content: space-around;
-    align-items: center;
-    width: 100%;
-
-    > .colorOptions {
-      > p {
-        margin: 0;
-        padding-bottom:5px;
+      p {
+        user-select: none;
+        color: white;
+        margin-top: 1em;
+        margin-bottom: 1em;
+        margin-left:10px;
+        white-space: nowrap;
+        width: min-content;
       }
 
-      > select {
-        width: 100%;
-        cursor: pointer;
-      }
-    }
-
-    > .scale {
-      > input {
-        padding-left: 3px;
-        width: 79px;
-      }
-
-      > p {
-        width: 76px;
-      }
-    }
-
-    > .selectable {
-      border-style: solid;
-      border-width: 2px;
-      border-radius: 4px;
-
-      > p {
-        cursor: pointer;
-
-        padding: 5px;
-        margin: 0;
+      span {
+        margin-right: 15px;
       }
     }
   }
 
-  > .image {
-    grid-area: image;
-
+  .export {
+    height: 40px;
+    width: 100%;
     display: flex;
-    justify-content: center;
+    flex-direction: row;
     align-items: center;
-
-    img {
-      max-width: 95%;
-      max-height: 95%;
-      object-fit: contain;
-    }
+    justify-content: center;
+    cursor: pointer;
   }
 }

@@ -1,7 +1,7 @@
 {
   "name": "thermo_reimager_app",
   "productName": "Probelab Reimager",
-  "version": "2.0.1-pre",
+  "version": "2.1.0-pre",
   "description": "Visual UI for Probelab Reimager using Electron",
   "main": "./src/backend/main.js",
   "scripts": {
@@ -43,6 +43,7 @@
     "envify": "^4.1.0",
     "react": "^16.8.3",
     "react-dom": "^16.8.3",
+    "react-svg": "^10.0.6",
     "scssify": "^3.0.1",
     "uglify-js": "^3.4.9",
     "uglifyify": "^5.0.1"

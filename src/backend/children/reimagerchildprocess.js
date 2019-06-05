@@ -27,9 +27,9 @@ Promise.all([ThermoReimager.PointShoot, ThermoReimager.ExtractedMap]).then(([Poi
 					break;
 				case 'processDirectory':
 					thermos = processDirectory(data.uri);
-					const tempThermos = processDirectory(`${data.uri}.~temp/`);
+					const tempThermos = processDirectory(`${data.uri}~temp/`);
 
-					for (const uuid of Object.keys(tempThermos))
+					for (const thermo of Object.keys(tempThermos))
 						thermos[uuid] = tempThermos[uuid];
 
 					process.send({type: 'resolve', data: thermos, uuid});
@@ -107,7 +107,7 @@ Promise.all([ThermoReimager.PointShoot, ThermoReimager.ExtractedMap]).then(([Poi
 					}).filter(item => item);
 				}
 			}).filter(i => i).reduce((items, item) => {
-				item.data.uuid = item.data.files.entry;
+				item.data.uuid = item.data.name;
 				items[item.data.uuid] = item;
 				return items;
 			}, {});

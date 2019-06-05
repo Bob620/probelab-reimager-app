@@ -78,8 +78,6 @@ const actions = CreateActions([
 		func: ({stores}, uuid=false) => {
 			const oldUuid = stores.general.get('selectedUuid');
 
-			console.log(uuid ? uuid : oldUuid);
-
 			if (uuid)
 				actions.selectImage(uuid);
 
@@ -95,8 +93,6 @@ const actions = CreateActions([
 						scaleBarTop: stores.settings.get('scaleBarTop'),
 						pixelSizeConstant: stores.settings.get('pixelSizeConstant')
 				}).then(({image, uuid}) => {
-					console.log(`${stores.general.get('selectedUuid')} =?= ${uuid}`);
-
 					if (stores.general.get('selectedUuid') === uuid)
 						stores.general.set('selectedImage', image);
 
@@ -114,7 +110,7 @@ const actions = CreateActions([
 
 			if (image.name)
 				data = {
-					name: (image.data && image.data.name) ? image.data.name : image.name,
+					name: image.name,
 					uuid: selectedUuid,
 					scaleType: image.settings.scalePosition,
 					scaleColor: image.settings.scaleColor,
@@ -143,21 +139,46 @@ const actions = CreateActions([
 						stores.general.set('selectedImage', image);
 
 					actions.navigateHome();
-					callback();
+					if (typeof callback === 'function')
+						callback();
 				});
 		}
 	},
 	{
 		actionType: 'writeSavedImages',
-		func: ({stores}, uuidList=undefined) => {
+		func: ({actions, stores}, uuidList=undefined) => {
 			let uuids = uuidList !== undefined ? uuidList : Array.from(stores.general.get('safebox').keys());
 
 			if (uuids.length > 0) {
 				const uuid = uuids.pop();
 
-				actions.loadImage(uuid);
+				actions.restoreImage(uuid);
 				actions.writeSelectedImage(undefined, actions.writeSavedImages.bind(undefined, uuids));
 			}
+		}
+	},
+	{
+		actionType: 'startMove',
+		func: ({stores}, event) => {
+
+		}
+	},
+	{
+		actionType: 'moveSidebar',
+		func: ({stores}, event) => {
+			event.preventDefault();
+			event.dataTransfer.dropEffect = 'move';
+			const xpos = event.screenX;
+			const optionsWidth = stores.general.get('optionsWidth');
+
+			if (xpos > 100)
+				if (xpos < 500) {
+					if (document.styleSheets[0].cssRules[0].selectorText === '.app')
+						document.styleSheets[0].deleteRule(0);
+
+					stores.general.set('sidebarWidth', xpos);
+					document.styleSheets[0].insertRule(`.app {grid-template-columns: ${xpos}px 1fr ${optionsWidth}px !important }`)
+				}
 		}
 	}
 ]);

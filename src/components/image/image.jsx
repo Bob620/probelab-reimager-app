@@ -36,7 +36,7 @@ class Image extends Component {
 							<option value='black'>Black</option>
 						</select>
 					</div>
-					<div onClick={settingActions.toggleBarLocation} className='scale selectable'>
+					<div onClick={() => settingActions.toggleBarLocation()} className='scale selectable'>
 						<p>Scale Bar: </p>
 						{
 							settingStore.get('scaleBarTop') ?
@@ -44,18 +44,18 @@ class Image extends Component {
 						}
 					</div>
 					<div className='scale selectable'>
-						<p onClick={settingActions.toggleAutoScale}>Scale(µm): </p>
+						<p onClick={() => settingActions.toggleAutoScale()}>Scale(µm): </p>
 						{
 							settingStore.get('autoScale') ?
-								<input onClick={settingActions.toggleAutoScale} onChange={settingActions.changeFromAutoScale} type='text' value='Auto'/> :
+								<input onClick={() => settingActions.toggleAutoScale()} onChange={settingActions.changeFromAutoScale} type='text' value='Auto'/> :
 								<input type='number' maxLength='8' min='0' max='10000000' value={settingStore.get('scaleSize')} onChange={settingActions.changeScaleSize} />
 						}
 					</div>
 					<div className='scale selectable'>
-						<p onClick={settingActions.toggleAutoScaleHeight}>Scale Bar Height(%): </p>
+						<p onClick={() => settingActions.toggleAutoScaleHeight()}>Scale Bar Height(%): </p>
 						{
 							settingStore.get('autoHeight') ?
-								<input onClick={settingActions.toggleAutoScaleHeight} onChange={settingActions.changeFromAutoHeight} type='text' value='Auto'/> :
+								<input onClick={() => settingActions.toggleAutoScaleHeight()} onChange={settingActions.changeFromAutoHeight} type='text' value='Auto'/> :
 								<input type='number' maxLength='3' min='0' max='100' value={settingStore.get('scaleBarHeight')} onChange={settingActions.changeScaleBarHeight} />
 						}
 					</div>
