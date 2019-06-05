@@ -3,9 +3,16 @@ import { CreateActions } from 'bakadux';
 export default CreateActions([
 	{
 		actionType: 'addImage',
-		func: ({actions, stores}, uuid) => {
-			let image = stores.general.get('images')[uuid];
-			image = image ? image : stores.general.get('safebox').get(uuid);
+		func: ({actions, stores}, fromUuid, callback=undefined) => {
+			let image = stores.general.get('images')[fromUuid];
+			let imageUuid = '';
+
+			if (image) {
+				imageUuid = image.data.uuid;
+			} else {
+				image = stores.general.get('safebox').get(fromUuid);
+				imageUuid = image.imageUuid;
+			}
 
 			if (image) {
 				let settings = {};
@@ -13,13 +20,14 @@ export default CreateActions([
 				for (const key of stores.settings.getKeys())
 					settings[key] = stores.settings.get(key);
 
-				actions.saveImage(uuid, {
+				actions.saveImage(fromUuid, {
 					settingUuid: JSON.stringify(settings),
-					imageUuid: uuid,
+					imageUuid,
+					fromUuid,
 					name: (' ' + ((image.data && image.data.name) ? image.data.name : image.name)).slice(1),
 					settings: JSON.parse(JSON.stringify(settings)),
 					workingDir: (' ' + stores.general.get('workingDir')).slice(1)
-				});
+				}, callback);
 			}
 		}
 	},
@@ -34,15 +42,18 @@ export default CreateActions([
 				for (const key of stores.settings.getKeys())
 					settings[key] = stores.settings.get(key);
 
-				image.settings = JSON.parse(JSON.stringify(settings));
-				image.settingsUuid = JSON.stringify(settings);
+				actions.addImage(uuid, newUuid => {
+					actions.removeImage(undefined, uuid);
+					actions.loadImage(newUuid);
+				});
 			}
 		}
 	},
 	{
 		actionType: 'removeImage',
 		func: ({actions, stores}, event, uuid) => {
-			event.preventDefault();
+			if (event)
+				event.preventDefault();
 			stores.general.get('safebox').delete(uuid);
 			actions.deleteImage(uuid);
 

@@ -12,6 +12,7 @@ import generalActions from '../../components/general/actions.js';
 
 import Navbar from '../../components/navbar/navbar.jsx';
 import Sidebar from '../../components/sidebar/sidebar.jsx';
+import Options from '../../components/options/options.jsx';
 import Image from '../../components/image/image.jsx';
 import Settings from '../../components/settings/settings.jsx';
 
@@ -32,6 +33,7 @@ class Page extends Component {
 						<Navbar />
 						<Sidebar />
 						<Image />
+						<Options />
 					</section>
 				);
 			case 'settings':

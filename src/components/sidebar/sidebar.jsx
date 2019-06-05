@@ -39,15 +39,15 @@ class Sidebar extends Component {
 						)
 					}</ul>
 					<ul className='safebox'>{ safebox.length > 0 &&
-						safebox.sort((one, two) => one.name < two.name ? -1 : 1)
-							.map(({ uuid, name }) =>
+						safebox.sort((one, two) => one.uuid < two.uuid ? -1 : 1)
+							.map(({ uuid, name, settings }) =>
 								<li className={'selectable ' + (uuid === selectedUuid ? 'selected' : '')}
 									key={uuid}
 									onClick={uuid === selectedUuid ? () => {
 									} : safeboxActions.restoreImage.bind(undefined, uuid)}
 								>
 									<p>{name}</p>
-									<MiniPosition pos={generalStore.get('safebox').get(uuid).settings.scalePosition} />
+									<MiniPosition pos={settings.scalePosition} />
 									<span onClick={(e) => safeboxActions.removeImage(e, uuid)}><p>X</p></span>
 								</li>
 							)
@@ -57,7 +57,7 @@ class Sidebar extends Component {
 						<p>Export Saved Images</p>
 					</div>
 				</div>
-				<div className='expand' draggable='true' onDrag={generalActions.moveSidebar} onDragStart={generalActions.startMove}></div>
+				<div className='expand' draggable='true' onDrag={generalActions.moveSidebar}></div>
 			</section>
 		);
 	}

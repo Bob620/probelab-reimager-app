@@ -14,9 +14,10 @@ body, #App, .app {
 
 .app {
   display: grid;
-  grid-template-columns: 300px 1fr 0px;
+  grid-template-columns: 300px 1fr 300px;
   grid-template-rows: 60px 1fr;
   grid-template-areas: "navbar navbar navbar" "sidebar main options";
+  overflow: hidden;
 
   #navbar {
     grid-area: navbar;

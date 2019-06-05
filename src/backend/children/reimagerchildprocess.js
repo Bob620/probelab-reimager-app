@@ -14,7 +14,7 @@ Promise.all([ThermoReimager.PointShoot, ThermoReimager.ExtractedMap]).then(([Poi
 		try {
 			switch(type) {
 				case 'save':
-					const newUuid = generateUUID.v4();
+					const newUuid = generateUUID.v1Lexical();
 					thermo = thermos[data.uuid];
 					if (thermo === undefined)
 						thermo = safebox[data.uuid];

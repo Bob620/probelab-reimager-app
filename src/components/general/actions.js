@@ -6,7 +6,7 @@ const comms = new Communications();
 const actions = CreateActions([
 	{
 		actionType: 'saveImage',
-		func: ({stores}, uuid, data) => {
+		func: ({stores}, uuid, data, callback=undefined) => {
 			if (uuid)
 				comms.sendMessage('saveImage', {
 					uuid
@@ -14,6 +14,8 @@ const actions = CreateActions([
 					data.uuid = newUuid;
 					stores.general.get('safebox').set(newUuid, data);
 					actions.navigateHome();
+					if (typeof callback === 'function')
+						callback(newUuid);
 				});
 		}
 	},
@@ -22,7 +24,7 @@ const actions = CreateActions([
 		func: ({stores}, uuid) => {
 			if (uuid)
 				comms.sendMessage('removeImage', {
-					uuid: uuid
+					uuid
 				}, false);
 		}
 	},
@@ -158,12 +160,6 @@ const actions = CreateActions([
 		}
 	},
 	{
-		actionType: 'startMove',
-		func: ({stores}, event) => {
-
-		}
-	},
-	{
 		actionType: 'moveSidebar',
 		func: ({stores}, event) => {
 			event.preventDefault();
@@ -171,13 +167,33 @@ const actions = CreateActions([
 			const xpos = event.screenX;
 			const optionsWidth = stores.general.get('optionsWidth');
 
-			if (xpos > 100)
+			if (xpos > 160) // Smaller wraps Export button text
 				if (xpos < 500) {
 					if (document.styleSheets[0].cssRules[0].selectorText === '.app')
 						document.styleSheets[0].deleteRule(0);
 
 					stores.general.set('sidebarWidth', xpos);
 					document.styleSheets[0].insertRule(`.app {grid-template-columns: ${xpos}px 1fr ${optionsWidth}px !important }`)
+				}
+		}
+	},
+	{
+		actionType: 'moveOptions',
+		func: ({stores}, event) => {
+			event.preventDefault();
+			event.dataTransfer.dropEffect = 'move';
+			const xpos = event.screenX - window.innerWidth;
+			const sidebarWidth = stores.general.get('sidebarWidth');
+
+			if (xpos < -160) // Smaller wraps Export button text
+				if (xpos > -500) {
+					if (document.styleSheets[0].cssRules[0].selectorText === '.app')
+						document.styleSheets[0].deleteRule(0);
+
+					console.log(`.app {grid-template-columns: ${sidebarWidth}px 1fr ${Math.abs(xpos)}px !important }`);
+
+					stores.general.set('optionsWidth', Math.abs(xpos));
+					document.styleSheets[0].insertRule(`.app {grid-template-columns: ${sidebarWidth}px 1fr ${Math.abs(xpos)}px !important }`)
 				}
 		}
 	}

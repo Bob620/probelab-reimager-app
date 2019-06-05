@@ -8,5 +8,5 @@ module.exports = new Store('general', {
 	selectedImage: undefined,
 	selectedUuid: undefined,
 	sidebarWidth: 300,
-	optionsWidth: 0
+	optionsWidth: 300
 });

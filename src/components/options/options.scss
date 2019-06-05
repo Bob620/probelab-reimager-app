@@ -1,0 +1,114 @@
+@import '../general/colors.scss';
+
+#options {
+  overflow: hidden;
+  display: flex;
+
+  > div {
+    height: 100%;
+  }
+
+  > .expand {
+    width: 5px;
+    cursor: ew-resize;
+    background-color: white;
+  }
+
+  > .content {
+    width: 100%;
+    overflow-x: hidden;
+
+    > .positions {
+      display: grid;
+      grid-template-columns: 1fr 10px 1fr 10px 1fr;
+      grid-template-rows: 1fr 10px 1fr 10px 1fr;
+      grid-template-areas: "ul . . . ur" ". . . . ." "ll . lc . lr" "f f f f f" "bl fl bc fr br";
+      height: 200px;
+      width: 90%;
+      margin: 5%;
+      border-radius: 4px;
+      border-color: white;
+      border-style: solid;
+      border-width: 2px;
+
+      > .filler-area {
+        grid-area: f;
+        background-color: white;
+      }
+
+      > .filler-left {
+        grid-area: fl;
+        background-color: white;
+      }
+
+      > .filler-right {
+        grid-area: fr;
+        background-color: white;
+      }
+
+      > div {
+        background-color: rgba(0,0,0,0);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-width: 2px;
+        border-color: white;
+        border-style: solid;
+
+        > p {
+          margin: 0;
+          padding: 0;
+          width: min-content;
+        }
+      }
+
+      > .ul {
+        grid-area: ul;
+        border-bottom-right-radius: 4px;
+        border-top-width: 0;
+        border-left-width: 0;
+      }
+      > .ur {
+        grid-area: ur;
+        border-bottom-left-radius: 4px;
+        border-top-width: 0;
+        border-right-width: 0;
+      }
+
+      > .ll {
+        grid-area: ll;
+        border-top-right-radius: 4px;
+        border-bottom-width: 0;
+        border-left-width: 0;
+      }
+      > .lc {
+        grid-area: lc;
+        border-top-right-radius: 4px;
+        border-top-left-radius: 4px;
+        border-bottom-width: 0;
+      }
+      > .lr {
+        grid-area: lr;
+        border-top-left-radius: 4px;
+        border-bottom-width: 0;
+        border-right-width: 0;
+      }
+
+      > .bl {
+        grid-area: bl;
+        background-color: white;
+        color: black;
+      }
+      > .bc {
+        grid-area: bc;
+        background-color: white;
+        color: black;
+      }
+      > .br {
+        grid-area: br;
+        background-color: white;
+        color: black;
+      }
+    }
+  }
+}

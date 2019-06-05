@@ -7,36 +7,7 @@ class MiniPosition extends Component {
 	constructor(props) {
 		super(props);
 
-		let pos = 'lc';
-
-		switch(props.pos) {
-			case 0:
-				pos = 'bl';
-				break;
-			case 1:
-				pos = 'll';
-				break;
-			case 2:
-				pos = 'lr';
-				break;
-			case 3:
-				pos = 'ul';
-				break;
-			case 4:
-				pos = 'ur';
-				break;
-			case 5:
-				pos = 'lc';
-				break;
-			case 6:
-				pos = 'br';
-				break;
-			case 7:
-				pos = 'bc';
-				break;
-		}
-
-		this.state = {pos};
+		this.state = {pos: findPos(props.pos)};
 	}
 
 	render() {
@@ -48,6 +19,29 @@ class MiniPosition extends Component {
 			</div>
 		);
 	}
+}
+
+function findPos(posNum) {
+	switch(posNum) {
+		case 0:
+			return 'bl';
+		case 1:
+			return 'll';
+		case 2:
+			return 'lr';
+		case 3:
+			return 'ul';
+		case 4:
+			return 'ur';
+		case 5:
+			return 'lc';
+		case 6:
+			return 'br';
+		case 7:
+			return 'bc';
+	}
+
+	return 'lc';
 }
 
 module.exports = MiniPosition;

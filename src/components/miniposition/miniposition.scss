@@ -6,6 +6,7 @@
   border-color: white;
   border-radius: 2px;
   display: flex;
+  flex-shrink: 0;
 
   > div {
     background-color: white;
