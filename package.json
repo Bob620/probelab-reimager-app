@@ -1,7 +1,7 @@
 {
   "name": "thermo_reimager_app",
   "productName": "Probelab Reimager",
-  "version": "2.2.0-pre",
+  "version": "2.3.0-pre",
   "description": "Visual UI for Probelab Reimager using Electron",
   "main": "./src/backend/main.js",
   "scripts": {
@@ -40,6 +40,7 @@
     "browserify-css": "^0.15.0",
     "electron": "^4.0.5",
     "electron-packager": "^13.1.0",
+    "electron-rebuild": "^1.8.5",
     "envify": "^4.1.0",
     "react": "^16.8.3",
     "react-dom": "^16.8.3",
@@ -50,6 +51,6 @@
     "uuid": "latest"
   },
   "dependencies": {
-    "thermo-reimager": "^2.2.0"
+    "thermo-reimager": "^4.0.1"
   }
 }
