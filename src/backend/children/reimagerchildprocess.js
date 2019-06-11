@@ -2,7 +2,10 @@ const fs = require('fs');
 const { PointShoot, ExtractedMap, CanvasRoot, constants } = require('thermo-reimager');
 
 const generateUUID = require('../generateuuid.js');
-const RemoteCanvas = require('./remotecanvas');
+const Comms = require('./childComms');
+
+const comms = new Comms(process);
+const canvas = new CanvasRoot(comms);
 
 let thermos = {};
 let safebox = {};
@@ -102,10 +105,10 @@ function processDirectory(dirUri) {
 				return files.filter(file => file.isFile()).map(file => {
 					file.uri = dirUri + dir.name + '/' + file.name;
 					if (file.name.endsWith(constants.pointShoot.fileFormats.ENTRY))
-						return new PointShoot(file);
+						return new PointShoot(file, canvas);
 
 					if (file.name.endsWith(constants.extractedMap.fileFormats.ENTRY))
-						return new ExtractedMap(file);
+						return new ExtractedMap(file, canvas);
 				}).filter(item => item);
 			}
 		}).filter(i => i).reduce((items, item) => {

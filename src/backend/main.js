@@ -12,6 +12,14 @@ app.on('ready', async () => {
 	if (window === null)
 		window = createWindow();
 
+	child.on('canvas', data => {
+		comms.sendMessage('canvas', data);
+	});
+
+	comms.onMessage('canvas', data => {
+		child.sendMessage('canvas', data)
+	});
+
 	comms.onMessage('saveImage', data =>
 		child.sendMessage('save', data)
 	);

@@ -1,6 +1,8 @@
 import { CreateActions } from 'bakadux';
 import Communications from './communications';
+import RemoteCanvas from './remotecanvas';
 
+const canvas = new RemoteCanvas(comms);
 const comms = new Communications();
 
 const actions = CreateActions([
