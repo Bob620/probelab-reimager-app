@@ -5,19 +5,20 @@ const Communications = require('./communications');
 const { app, dialog } = require('electron');
 
 let window = null;
-const comms = new Communications();
 const child = new ReimagerChild();
 
 app.on('ready', async () => {
 	if (window === null)
 		window = createWindow();
 
-	child.on('canvas', data => {
+	const comms = new Communications(window);
+
+	child.onCanvas(data => {
 		comms.sendMessage('canvas', data);
 	});
 
 	comms.onMessage('canvas', data => {
-		child.sendMessage('canvas', data)
+		child.sendMessage('canvas', data, false);
 	});
 
 	comms.onMessage('saveImage', data =>
@@ -54,10 +55,7 @@ app.on('ready', async () => {
 		if (child.isWaitingOn('addScale'))
 			child.respawn();
 
-		return {
-			image: await child.sendMessage('addScale', data),
-			uuid: data.uuid
-		};
+		return await child.sendMessage('addScale', data);
 	});
 
 	comms.onMessage('processDirectory', async data => {

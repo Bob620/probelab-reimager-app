@@ -22,6 +22,8 @@ module.exports = class ReimagerChild {
 	respawn() {
 		this.kill();
 
+		console.log('Killed');
+
 		for (const {uuid, reject} of this.data.waitingList.values())
 			if (!this.data.toRun.map(({uuid}) => uuid).includes(uuid))
 				reject('killed');
@@ -33,6 +35,10 @@ module.exports = class ReimagerChild {
 		this.data.process.on('message', ({type, data, uuid}) => {
 			let task;
 			switch (type) {
+				case 'canvas':
+					if (this.data.canvasCB)
+						this.data.canvasCB(data);
+					break;
 				case 'resolve':
 					task = this.data.waitingList.get(uuid);
 					if (task) {
@@ -64,6 +70,10 @@ module.exports = class ReimagerChild {
 		this.data.process.on('exit', () => {
 			this.data.ready = false;
 		});
+	}
+
+	onCanvas(cb) {
+		this.data.canvasCB = cb;
 	}
 
 	isWaitingOn(type) {

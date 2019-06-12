@@ -4,9 +4,10 @@ const { ipcMain } = require('electron');
 const ipcChannel = 'data';
 
 module.exports = class {
-	constructor() {
+	constructor(window) {
 		this.data = {
 			ipc: ipcMain,
+			window,
 			awaiting: new Map(),
 			onMessage: new Map()
 		};
@@ -48,9 +49,9 @@ module.exports = class {
 		if (willReturn)
 			return new Promise((resolve, reject) => {
 				this.data.awaiting.set(uuid, {resolve, reject, type});
-				this.data.ipc.send(ipcChannel, {type, data, uuid});
+				this.data.window.send(ipcChannel, {type, data, uuid});
 			});
 		else
-			this.data.ipc.send(ipcChannel, {type, data, uuid});
+			this.data.window.send(ipcChannel, {type, data, uuid});
 	}
 };

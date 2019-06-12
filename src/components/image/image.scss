@@ -4,6 +4,13 @@
   grid-template-columns: 1fr;
   grid-template-areas: "colors" "image";
 
+  .image {
+    canvas {
+      max-width: 95%;
+      max-height: 95%;
+    }
+  }
+
   > .colors {
     grid-area: colors;
 

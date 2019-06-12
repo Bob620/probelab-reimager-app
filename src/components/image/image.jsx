@@ -15,8 +15,6 @@ class Image extends Component {
 	}
 
 	render() {
-		const selectedImage = generalStore.get('selectedImage');
-
 		return (
 			<section id='main'>
 				<div className='colors'>
@@ -68,12 +66,9 @@ class Image extends Component {
 						<p>Refresh Image</p>
 					</div>
 				</div>
-				{
-					selectedImage &&
-					<div className='image'>
-						<img src={selectedImage} />
-					</div>
-				}
+				<div className='image'>
+					<canvas id='image-canvas' />
+				</div>
 			</section>
 		);
 	}

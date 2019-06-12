@@ -1,13 +1,20 @@
+require('babel-core/register');
+require('babel-polyfill');
+
 const GenerateUuid = require('../../backend/generateuuid');
 
 module.exports = class {
 	constructor(comms) {
 		this.data = {
+			Canvas: undefined,
 			comms,
-			namespaces: {}
+			width: 0,
+			namespaces: {root: this}
 		};
 
 		comms.onMessage('canvas', async ({namespace, command, args, uuid}) => {
+			if (this.data.Canvas === undefined)
+				this.data.Canvas = document.getElementById('image-canvas');
 			const space = this.data.namespaces[namespace];
 			if (space)
 				try {
@@ -24,6 +31,22 @@ module.exports = class {
 							case 'getBuffer':
 								data = await space.toBufferOverride(...args);
 								break;
+							case 'drawImage':
+								const backupUuid = uuid;
+								uuid = '';
+								const image = new Image();
+								image.addEventListener('load', async () => {
+									try {
+										args = args.filter(arg => arg !== null && arg !== undefined);
+										args[0] = image;
+										data = await space.drawImage(...args);
+										comms.sendMessage('canvas', {type: 'resolve', uuid: backupUuid, data});
+									} catch(err) {
+										comms.sendMessage('canvas', {type: 'reject', uuid: backupUuid, data: err});
+									}
+								});
+								image.src = args[0];
+								break;
 							case 'getOrCreateCanvas':
 								const innerSpace = this.data.namespaces[args[0]];
 								if (innerSpace)
@@ -33,9 +56,12 @@ module.exports = class {
 								break;
 							default:
 								if (typeof args === 'object')
-									data = await space[command].apply(space, args.filter(arg => arg !== undefined));
+									data = await space[command].apply(space, args.filter(arg => arg !== null && arg !== undefined));
 								else
 									data = await space[command]();
+
+								if (command === 'measureText')
+									data = {width: data.width};
 						}
 					comms.sendMessage('canvas', {type: 'resolve', uuid, data});
 				} catch(err) {
@@ -44,16 +70,31 @@ module.exports = class {
 			else
 				comms.sendMessage('canvas', {type: 'reject', uuid, data: {message: 'Namespace does not exist'}});
 		});
+
+		comms.sendMessage('canvas', {type: 'init'});
 	}
 
-	registerFont(uri, css) {
-		return this.data.Canvas.registerFont(uri, css);
+	registerFont(data, css) {
+		return new Promise(async (resolve, reject) => {
+			try {
+				const font = new FontFace(css.family, Uint8Array.from(atob(data), c => c.charCodeAt(0)));
+				await font.load();
+				document.fonts.add(font);
+				resolve();
+			} catch(err) {
+				reject(err);
+			}
+		});
 	}
 
 	async createCanvas(width, height, uuid=undefined) {
 		if (uuid === undefined)
 			uuid = GenerateUuid.v4();
-		const space = await this.data.Canvas.createCanvas(width, height);
+
+		this.data.Canvas.width = width;
+		this.data.Canvas.height = height;
+
+		const space = await this.data.Canvas;
 
 		space.getContextOverride = contextId => {
 			const uuid = GenerateUuid.v4();
@@ -62,9 +103,8 @@ module.exports = class {
 		};
 
 		space.toBufferOverride = (type, quality) => {
-			if (type === 'raw')
-				return fixBGRA(space.toBuffer(type, quality));
-			return space.toBuffer(type, quality);
+			console.log('Buffer');
+			return new Buffer();
 		};
 
 		this.data.namespaces[uuid] = space;

@@ -7,13 +7,13 @@ module.exports = class extends EventEmitter {
 		this.data = {
 			remote
 		};
+	}
 
-		remote.on('canvas', ({type, uuid, data}) => {
-			this.emit(type, uuid, data);
-		});
+	onMessage({type, uuid, data}) {
+		this.emit(type, uuid, data);
 	}
 
 	async send(namespace, command, args, uuid) {
-		this.data.remote.send('canvas', {namespace, command, args, uuid});
+		this.data.remote.send({type: 'canvas', data: {namespace, command, args, uuid}, uuid});
 	}
 };

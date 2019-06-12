@@ -24,7 +24,7 @@ module.exports = class {
 				else
 					waiting.reject(data);
 			else if (onMessage) {
-				onMessage.func(data).then(sendData => {
+				onMessage(data).then(sendData => {
 					sender.send(ipcChannel, {
 						uuid,
 						type: 'resolve',

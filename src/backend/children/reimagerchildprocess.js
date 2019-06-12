@@ -16,6 +16,12 @@ let thermo = undefined;
 process.on('message', async ({type, data, uuid}) => {
 	try {
 		switch(type) {
+			case 'canvas':
+				if (data.type === 'init')
+					await canvas.init();
+				else
+					comms.onMessage(data);
+				break;
 			case 'save':
 				const newUuid = generateUUID.v1Lexical();
 				thermo = thermos[data.uuid];
@@ -35,7 +41,7 @@ process.on('message', async ({type, data, uuid}) => {
 				for (const thermo of Object.keys(tempThermos))
 					thermos[uuid] = tempThermos[uuid];
 
-				process.send({type: 'resolve', data: thermos, uuid});
+				process.send({type: 'resolve', data: Object.values(thermos).reduce((thermos, thermo) => {thermos[thermo.data.uuid] = thermo.serialize(); return thermos}, {}), uuid});
 				break;
 			case 'addScale':
 				thermo = thermos[data.uuid];
@@ -44,7 +50,7 @@ process.on('message', async ({type, data, uuid}) => {
 
 				imageUuid = data.uuid;
 				image = await addScale(thermo, data);
-				process.send({type: 'resolve', data: await image.getBase64Async('image/png'), uuid});
+				process.send({type: 'resolve', data: {uuid: imageUuid}, uuid});
 				break;
 			case 'writeImage':
 				thermo = thermos[data.uuid];
@@ -61,13 +67,37 @@ process.on('message', async ({type, data, uuid}) => {
 });
 
 async function writeImage(thermo, data) {
+	switch(data.scaleColor) {
+		default:
+		case 'auto':
+			data.scaleColor = constants.colors.AUTO;
+			break;
+		case 'white':
+			data.scaleColor = constants.colors.white;
+			break;
+		case 'black':
+			data.scaleColor = constants.colors.black;
+			break;
+	}
+
+	switch(data.belowColor) {
+		default:
+		case 'auto':
+			data.belowColor = constants.colors.AUTO;
+			break;
+		case 'white':
+			data.belowColor = constants.colors.white;
+			break;
+		case 'black':
+			data.belowColor = constants.colors.black;
+			break;
+	}
+
 	if (thermo.data.image)
 		await thermo.writeImage(data);
 	else
 		await thermo.createWrite(data.scaleType, {
 			scaleSize: data.scaleSize ? data.scaleSize : 0,
-			scaleColor: data.scaleColor ? data.scaleColor : constants.colors.AUTO,
-			belowColor: data.belowColor ? data.belowColor : constants.colors.AUTO,
 			scaleBarHeight: data.scaleBarHeight ? data.scaleBarHeight : constants.scale.AUTOSIZE,
 			scaleBarTop: data.scaleBarTop ? data.scaleBarTop : constants.scale.SCALEBARTOP,
 			pixelSizeConstant: data.pixelSizeConstant ? data.pixelSizeConstant : constants.PIXELSIZECONSTANT,
@@ -78,21 +108,46 @@ async function writeImage(thermo, data) {
 }
 
 async function addScale(thermo, data) {
-	await thermo.addScale(data.scaleType, {
-		scaleSize: data.scaleSize ? data.scaleSize : 0,
-		scaleColor: data.scaleColor ? data.scaleColor : constants.colors.AUTO,
-		belowColor: data.belowColor ? data.belowColor : constants.colors.AUTO,
-		scaleBarHeight: data.scaleBarHeight ? data.scaleBarHeight : constants.scale.AUTOSIZE,
-		scaleBarTop: data.scaleBarTop ? data.scaleBarTop : constants.scale.SCALEBARTOP,
-		pixelSizeConstant: data.pixelSizeConstant ? data.pixelSizeConstant : constants.PIXELSIZECONSTANT,
-		backgroundOpacity: data.backgroundOpacity ? data.backgroundOpacity : constants.scale.background.AUTOOPACITY,
-		font: data.font ? data.font : constants.fonts.OPENSANS
-	});
+	try {
+		switch(data.scaleColor) {
+			default:
+			case 'auto':
+				data.scaleColor = constants.colors.AUTO;
+				break;
+			case 'white':
+				data.scaleColor = constants.colors.white;
+				break;
+			case 'black':
+				data.scaleColor = constants.colors.black;
+				break;
+		}
 
-	const image = thermo.data.image;
-	thermo.data.image = undefined;
+		switch(data.belowColor) {
+			default:
+			case 'auto':
+				data.belowColor = constants.colors.AUTO;
+				break;
+			case 'white':
+				data.belowColor = constants.colors.white;
+				break;
+			case 'black':
+				data.belowColor = constants.colors.black;
+				break;
+		}
 
-	return image;
+		await thermo.addScale(data.scaleType, {
+			scaleSize: data.scaleSize ? data.scaleSize : 0,
+			scaleColor: data.scaleColor,
+			belowColor: data.belowColor,
+			scaleBarHeight: data.scaleBarHeight ? data.scaleBarHeight : constants.scale.AUTOSIZE,
+			scaleBarTop: data.scaleBarTop ? data.scaleBarTop : constants.scale.SCALEBARTOP,
+			pixelSizeConstant: data.pixelSizeConstant ? data.pixelSizeConstant : constants.PIXELSIZECONSTANT,
+			backgroundOpacity: data.backgroundOpacity ? data.backgroundOpacity : constants.scale.background.AUTOOPACITY,
+			font: data.font ? data.font : constants.fonts.OPENSANS
+		});
+	} catch(err) {
+		console.warn(err);
+	}
 }
 
 function processDirectory(dirUri) {
@@ -113,6 +168,18 @@ function processDirectory(dirUri) {
 			}
 		}).filter(i => i).reduce((items, item) => {
 			item.data.uuid = item.data.name;
+			item.serialize = function() {
+				return {
+					data: {
+						uri: this.data.uri,
+						name: this.data.name,
+						uuid: this.data.uuid,
+						points: this.data.points,
+						files: this.data.files
+					}
+				}
+			}.bind(item);
+
 			items[item.data.uuid] = item;
 			return items;
 		}, {});

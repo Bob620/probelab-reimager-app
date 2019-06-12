@@ -5,8 +5,8 @@ module.exports = new Store('general', {
 	workingDir: '',
 	images: {},
 	safebox: new Map(),
-	selectedImage: undefined,
 	selectedUuid: undefined,
 	sidebarWidth: 300,
-	optionsWidth: 300
+	optionsWidth: 300,
+	interactable: true
 });

@@ -2,8 +2,8 @@ import { CreateActions } from 'bakadux';
 import Communications from './communications';
 import RemoteCanvas from './remotecanvas';
 
-const canvas = new RemoteCanvas(comms);
 const comms = new Communications();
+const canvas = new RemoteCanvas(comms);
 
 const actions = CreateActions([
 	{
@@ -49,7 +49,6 @@ const actions = CreateActions([
 			if (typeof event === 'object')
 				dir = event.target.files[0].path;
 			if (dir) {
-				stores.general.set('selectedImage', undefined);
 				stores.general.set('selectedUuid', undefined);
 				stores.general.set('workingDir', dir);
 
@@ -71,10 +70,8 @@ const actions = CreateActions([
 	{
 		actionType: 'selectImage',
 		func: ({stores}, uuid) => {
-			if (Object.keys(stores.general.get('images')).includes(uuid) || Array.from(stores.general.get('safebox').keys()).includes(uuid)) {
-				stores.general.set('selectedImage', undefined);
+			if (Object.keys(stores.general.get('images')).includes(uuid) || Array.from(stores.general.get('safebox').keys()).includes(uuid))
 				stores.general.set('selectedUuid', uuid);
-			}
 		}
 	},
 	{
@@ -96,10 +93,7 @@ const actions = CreateActions([
 						scaleBarHeight: stores.settings.get('scaleBarHeight') / 100,
 						scaleBarTop: stores.settings.get('scaleBarTop'),
 						pixelSizeConstant: stores.settings.get('pixelSizeConstant')
-				}).then(({image, uuid}) => {
-					if (stores.general.get('selectedUuid') === uuid)
-						stores.general.set('selectedImage', image);
-
+				}).then(({uuid}) => {
 					actions.navigateHome();
 				});
 		}
@@ -139,9 +133,6 @@ const actions = CreateActions([
 
 			if (selectedUuid)
 				comms.sendMessage('writeImage', data).then(({image, uuid}) => {
-					if (stores.general.get('selectedUuid') === uuid)
-						stores.general.set('selectedImage', image);
-
 					actions.navigateHome();
 					if (typeof callback === 'function')
 						callback();
