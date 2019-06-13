@@ -1,11 +1,12 @@
 const fs = require('fs');
-const { PointShoot, ExtractedMap, CanvasRoot, constants } = require('thermo-reimager');
+const { PointShoot, ExtractedMap, CanvasRoot, constants, NodeCanvas } = require('thermo-reimager');
+const Canvas = require('canvas');
 
 const generateUUID = require('../generateuuid.js');
-const Comms = require('./childComms');
+//const Comms = require('./childComms');
 
-const comms = new Comms(process);
-const canvas = new CanvasRoot(comms);
+//const comms = new Comms(process);
+const canvas = new CanvasRoot(new NodeCanvas(Canvas));
 
 let thermos = {};
 let safebox = {};
@@ -19,8 +20,6 @@ process.on('message', async ({type, data, uuid}) => {
 			case 'canvas':
 				if (data.type === 'init')
 					await canvas.init();
-				else
-					comms.onMessage(data);
 				break;
 			case 'save':
 				const newUuid = generateUUID.v1Lexical();

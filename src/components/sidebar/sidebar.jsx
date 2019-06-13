@@ -21,6 +21,7 @@ class Sidebar extends Component {
 		let selectedUuid = generalStore.get('selectedUuid');
 		const safebox = Array.from(generalStore.get('safebox').values());
 		const images = generalStore.get('images');
+		const interactable = generalStore.get('interactable');
 
 		return (
 			<section id='sidebar'>
@@ -30,9 +31,9 @@ class Sidebar extends Component {
 					</div>
 					<ul className='current-dir'>{
 						Object.values(images).sort((one, two) => one.data.name < two.data.name ? -1 : 1).map(image =>
-							<li className={'selectable ' + (image.data.uuid === selectedUuid ? 'selected' : '')}
+							<li className={`${interactable ? 'selectable' : ''} ${image.data.uuid === selectedUuid ? 'selected' : ''}`}
 								key={image.data.uuid}
-								onClick={image.data.uuid === selectedUuid ? () => {} : generalActions.loadImage.bind(undefined, image.data.uuid)}
+								onClick={image.data.uuid === selectedUuid || !interactable ? () => {} : generalActions.loadImage.bind(undefined, image.data.uuid)}
 							>
 								<p>{image.data.name}</p>
 							</li>
@@ -41,18 +42,18 @@ class Sidebar extends Component {
 					<ul className='safebox'>{ safebox.length > 0 &&
 						safebox.sort((one, two) => one.uuid < two.uuid ? -1 : 1)
 							.map(({ uuid, name, settings }) =>
-								<li className={'selectable ' + (uuid === selectedUuid ? 'selected' : '')}
+								<li className={`${interactable ? 'selectable' : ''} ${uuid === selectedUuid ? 'selected' : ''}`}
 									key={uuid}
-									onClick={uuid === selectedUuid ? () => {
+									onClick={uuid === selectedUuid || !interactable ? () => {
 									} : safeboxActions.restoreImage.bind(undefined, uuid)}
 								>
 									<p>{name}</p>
 									<MiniPosition pos={settings.scalePosition} />
-									<span onClick={(e) => safeboxActions.removeImage(e, uuid)}><p>X</p></span>
+									<span onClick={interactable ? (e) => safeboxActions.removeImage(e, uuid) : () => {}}><p>X</p></span>
 								</li>
 							)
 					}</ul>
-					<div onClick={generalActions.writeSavedImages.bind(undefined, undefined)}
+					<div onClick={interactable ? generalActions.writeSavedImages.bind(undefined, undefined) : () => {}}
 						 className={'export selectable'}>
 						<p>Export Saved Images</p>
 					</div>

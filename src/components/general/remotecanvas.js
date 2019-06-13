@@ -4,10 +4,11 @@ require('babel-polyfill');
 const GenerateUuid = require('../../backend/generateuuid');
 
 module.exports = class {
-	constructor(comms) {
+	constructor(comms, store) {
 		this.data = {
 			Canvas: undefined,
 			comms,
+			store,
 			width: 0,
 			namespaces: {root: this}
 		};
@@ -32,6 +33,7 @@ module.exports = class {
 								data = await space.toBufferOverride(...args);
 								break;
 							case 'drawImage':
+								this.data.store.data.set('interactable', false);
 								const backupUuid = uuid;
 								uuid = '';
 								const image = new Image();
@@ -40,9 +42,11 @@ module.exports = class {
 										args = args.filter(arg => arg !== null && arg !== undefined);
 										args[0] = image;
 										data = await space.drawImage(...args);
-										comms.sendMessage('canvas', {type: 'resolve', uuid: backupUuid, data});
+										await comms.sendMessage('canvas', {type: 'resolve', uuid: backupUuid, data});
+										await this.data.store.data.set('interactable', true);
 									} catch(err) {
-										comms.sendMessage('canvas', {type: 'reject', uuid: backupUuid, data: err});
+										await comms.sendMessage('canvas', {type: 'reject', uuid: backupUuid, data: err});
+										await this.data.store.data.set('interactable', true);
 									}
 								});
 								image.src = args[0];
@@ -62,6 +66,7 @@ module.exports = class {
 
 								if (command === 'measureText')
 									data = {width: data.width};
+								break;
 						}
 					comms.sendMessage('canvas', {type: 'resolve', uuid, data});
 				} catch(err) {
@@ -103,8 +108,7 @@ module.exports = class {
 		};
 
 		space.toBufferOverride = (type, quality) => {
-			console.log('Buffer');
-			return new Buffer();
+			return {type: 'image/png', data: space.toDataURL('image/png')};
 		};
 
 		this.data.namespaces[uuid] = space;

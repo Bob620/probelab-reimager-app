@@ -2,8 +2,10 @@ import { CreateActions } from 'bakadux';
 import Communications from './communications';
 import RemoteCanvas from './remotecanvas';
 
+import generalStore from './store.js'
+
 const comms = new Communications();
-const canvas = new RemoteCanvas(comms);
+const canvas = new RemoteCanvas(comms, generalStore);
 
 const actions = CreateActions([
 	{
@@ -89,8 +91,8 @@ const actions = CreateActions([
 						scaleType: stores.settings.get('scalePosition'),
 						scaleColor: stores.settings.get('scaleColor'),
 						belowColor: stores.settings.get('belowColor'),
-						scaleSize: stores.settings.get('autoScale') ? 0 : stores.settings.get('scaleSize') === '' ? 0 : stores.settings.get('scaleSize'),
-						scaleBarHeight: stores.settings.get('scaleBarHeight') / 100,
+						scaleSize: stores.settings.get('autoScale') ? 0 : (stores.settings.get('scaleSize') === '' ? 0 : stores.settings.get('scaleSize')),
+						scaleBarHeight: stores.settings.get('autoHeight') ? 0 : (stores.settings.get('scaleBarHeight') / 100),
 						scaleBarTop: stores.settings.get('scaleBarTop'),
 						pixelSizeConstant: stores.settings.get('pixelSizeConstant')
 				}).then(({uuid}) => {
@@ -126,7 +128,7 @@ const actions = CreateActions([
 					scaleColor: stores.settings.get('scaleColor'),
 					belowColor: stores.settings.get('belowColor'),
 					scaleSize: stores.settings.get('autoScale') ? 0 : (stores.settings.get('scaleSize') !== '' ? stores.settings.get('scaleSize') : 0),
-					scaleBarHeight: stores.settings.get('scaleBarHeight')/100,
+					scaleBarHeight: stores.settings.get('autoHeight') ? 0 : (stores.settings.get('scaleBarHeight') / 100),
 					scaleBarTop: stores.settings.get('scaleBarTop'),
 					pixelSizeConstant: stores.settings.get('pixelSizeConstant')
 				};
@@ -182,8 +184,6 @@ const actions = CreateActions([
 				if (xpos > -500) {
 					if (document.styleSheets[0].cssRules[0].selectorText === '.app')
 						document.styleSheets[0].deleteRule(0);
-
-					console.log(`.app {grid-template-columns: ${sidebarWidth}px 1fr ${Math.abs(xpos)}px !important }`);
 
 					stores.general.set('optionsWidth', Math.abs(xpos));
 					document.styleSheets[0].insertRule(`.app {grid-template-columns: ${sidebarWidth}px 1fr ${Math.abs(xpos)}px !important }`)
