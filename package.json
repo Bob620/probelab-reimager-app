@@ -8,7 +8,7 @@
     "start": "electron .",
     "build": "node build.js",
     "build-prod": "node build.js production",
-    "rebuild": "electron-rebuild -f -w canvas",
+    "rebuild": "electron-rebuild -f",
     "test": "echo \"Error: no test specified\" && exit 1",
     "package": "rm -fr ./bin/unpackaged && npm run build-prod && node package.js && cd ./bin/unpackaged && npm install --production && cd ../.. && electron-packager ./bin/unpackaged --out ./bin --overwrite",
     "win-package": "del /F /Q \"./bin/unpackaged\" && npm run build-prod && node package.js && cd ./bin/unpackaged && npm install --production && cd ../.. && electron-packager ./bin/unpackaged --out ./bin --overwrite"
@@ -54,6 +54,6 @@
   },
   "dependencies": {
     "canvas": "^2.5.0",
-    "thermo-reimager": "^4.0.7"
+    "thermo-reimager": "github:bob620/thermo-reimager#remote-canvas"
   }
 }
