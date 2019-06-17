@@ -12,6 +12,7 @@ app.on('ready', async () => {
 		window = createWindow();
 
 	const comms = new Communications(window);
+	child.comms = comms;
 
 	child.onCanvas(data => {
 		comms.sendMessage('canvas', data);

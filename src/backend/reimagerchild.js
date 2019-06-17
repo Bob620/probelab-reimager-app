@@ -8,7 +8,8 @@ module.exports = class ReimagerChild {
 			process: undefined,
 			toRun: [],
 			waitingList: new Map(),
-			ready: false
+			ready: false,
+			comms: undefined
 		};
 
 		this.respawn();
@@ -54,6 +55,8 @@ module.exports = class ReimagerChild {
 					}
 					break;
 				case 'debug':
+					if (this.data.comms)
+						this.data.comms.sendMessage('debug', data);
 					break;
 				case 'ready':
 					this.data.ready = true;
@@ -70,6 +73,10 @@ module.exports = class ReimagerChild {
 		this.data.process.on('exit', () => {
 			this.data.ready = false;
 		});
+	}
+
+	set comms(comms) {
+		this.data.comms = comms;
 	}
 
 	onCanvas(cb) {

@@ -37,7 +37,7 @@ process.on('message', async ({type, data, uuid}) => {
 				thermos = processDirectory(data.uri);
 				const tempThermos = processDirectory(`${data.uri}~temp/`);
 
-				for (const thermo of Object.keys(tempThermos))
+				for (const uuid of Object.keys(tempThermos))
 					thermos[uuid] = tempThermos[uuid];
 
 				process.send({type: 'resolve', data: Object.values(thermos).reduce((thermos, thermo) => {thermos[thermo.data.uuid] = thermo.serialize(); return thermos}, {}), uuid});
