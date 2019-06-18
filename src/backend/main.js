@@ -18,6 +18,10 @@ app.on('ready', async () => {
 		comms.sendMessage('canvas', data);
 	});
 
+	child.onMessage('directoryUpdate', async () => {
+		comms.sendMessage( 'processDirectory', { images: await child.sendMessage('processDirectory', {}) }, false);
+	});
+
 	comms.onMessage('canvas', data => {
 		child.sendMessage('canvas', data, false);
 	});

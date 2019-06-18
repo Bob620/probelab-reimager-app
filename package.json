@@ -49,10 +49,10 @@
     "react-svg": "^10.0.6",
     "scssify": "^3.0.1",
     "uglify-js": "^3.4.9",
-    "uglifyify": "^5.0.1",
-    "uuid": "latest"
+    "uglifyify": "^5.0.1"
   },
   "dependencies": {
+    "uuid": "latest",
     "canvas": "^2.5.0",
     "thermo-reimager": "github:bob620/thermo-reimager#remote-canvas"
   }

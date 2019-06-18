@@ -1,13 +1,12 @@
 const fs = require('fs');
 const { PointShoot, ExtractedMap, CanvasRoot, constants, NodeCanvas } = require('thermo-reimager');
-const Canvas = require('canvas');
 
 const generateUUID = require('../generateuuid.js');
-//const Comms = require('./childComms');
+const canvas = new CanvasRoot(new NodeCanvas(require('canvas')));
 
-//const comms = new Comms(process);
-const canvas = new CanvasRoot(new NodeCanvas(Canvas));
-
+let dirWatcher = undefined;
+let dirTempWatcher = undefined;
+let workingDir = '';
 let thermos = {};
 let safebox = {};
 let image = undefined;
@@ -34,8 +33,21 @@ process.on('message', async ({type, data, uuid}) => {
 				safebox[data.uuid] = undefined;
 				break;
 			case 'processDirectory':
-				thermos = processDirectory(data.uri);
-				const tempThermos = processDirectory(`${data.uri}~temp/`);
+				workingDir = data.uri ? data.uri : workingDir;
+				thermos = processDirectory(workingDir);
+				const tempThermos = processDirectory(`${workingDir}~temp/`);
+
+				if (dirWatcher)
+					dirWatcher.close();
+				if (dirTempWatcher)
+					dirTempWatcher.close();
+
+				dirWatcher = fs.watch(workingDir, () => {
+					process.send({type: 'directoryUpdate'});
+				});
+				dirTempWatcher = fs.watch(`${workingDir}~temp/`, () => {
+					process.send({type: 'directoryUpdate'});
+				});
 
 				for (const uuid of Object.keys(tempThermos))
 					thermos[uuid] = tempThermos[uuid];
@@ -49,7 +61,7 @@ process.on('message', async ({type, data, uuid}) => {
 
 				imageUuid = data.uuid;
 				image = await addScale(thermo, data);
-				process.send({type: 'resolve', data: {uuid: imageUuid}, uuid});
+				process.send({type: 'resolve', data: {uuid: imageUuid, image}, uuid});
 				break;
 			case 'writeImage':
 				thermo = thermos[data.uuid];
@@ -144,6 +156,8 @@ async function addScale(thermo, data) {
 			backgroundOpacity: data.backgroundOpacity ? data.backgroundOpacity : constants.scale.background.AUTOOPACITY,
 			font: data.font ? data.font : constants.fonts.OPENSANS
 		});
+
+		return await thermo.toUrl({png: {quality: 100}});
 	} catch(err) {
 		console.warn(err);
 	}

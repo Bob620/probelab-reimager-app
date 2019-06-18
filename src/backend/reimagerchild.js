@@ -6,6 +6,7 @@ module.exports = class ReimagerChild {
 	constructor() {
 		this.data = {
 			process: undefined,
+			onMessage: new Map(),
 			toRun: [],
 			waitingList: new Map(),
 			ready: false,
@@ -63,6 +64,12 @@ module.exports = class ReimagerChild {
 					for (const message of this.data.toRun)
 						this.data.process.send(message);
 					this.data.toRun = [];
+					break;
+				default:
+					const messageHandle = this.data.onMessage.get(type);
+					if (messageHandle)
+						messageHandle(data);
+					break;
 			}
 		});
 
@@ -87,6 +94,11 @@ module.exports = class ReimagerChild {
 		if (type)
 			return Array.from(this.data.waitingList.values()).filter(({waitType}) => type === waitType).length > 0;
 		return false;
+	}
+
+	onMessage(type, cb) {
+		if (typeof cb === 'function')
+			this.data.onMessage.set(type, cb);
 	}
 
 	sendMessage(type, data) {

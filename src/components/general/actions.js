@@ -1,11 +1,11 @@
 import { CreateActions } from 'bakadux';
 import Communications from './communications';
-import RemoteCanvas from './remotecanvas';
-
-import generalStore from './store.js'
 
 const comms = new Communications();
-const canvas = new RemoteCanvas(comms, generalStore);
+
+comms.onMessage('updateDirectory', ({images}) => {
+	actions.updateDirImages(images);
+});
 
 const actions = CreateActions([
 	{
@@ -72,8 +72,10 @@ const actions = CreateActions([
 	{
 		actionType: 'selectImage',
 		func: ({stores}, uuid) => {
-			if (Object.keys(stores.general.get('images')).includes(uuid) || Array.from(stores.general.get('safebox').keys()).includes(uuid))
+			if (Object.keys(stores.general.get('images')).includes(uuid) || Array.from(stores.general.get('safebox').keys()).includes(uuid)) {
 				stores.general.set('selectedUuid', uuid);
+				stores.general.set('selectedImage', undefined);
+			}
 		}
 	},
 	{
@@ -95,7 +97,9 @@ const actions = CreateActions([
 						scaleBarHeight: stores.settings.get('autoHeight') ? 0 : (stores.settings.get('scaleBarHeight') / 100),
 						scaleBarTop: stores.settings.get('scaleBarTop'),
 						pixelSizeConstant: stores.settings.get('pixelSizeConstant')
-				}).then(({uuid}) => {
+				}).then(({uuid, image}) => {
+					if (stores.general.get('selectedUuid') === uuid)
+						stores.general.set('selectedImage', image);
 					actions.navigateHome();
 				});
 		}

@@ -5,7 +5,7 @@ module.exports = () => {
 		minWidth: 1000,
 		minHeight: 800,
 		backgroundColor: '#4b6584',
-		width: 1000,
+		width: 1100,
 		height: 800,
 		title: 'Probelab Reimager',
 		webPreferences: {nodeIntegration: true}

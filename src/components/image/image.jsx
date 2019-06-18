@@ -15,6 +15,8 @@ class Image extends Component {
 	}
 
 	render() {
+		const image = generalStore.get('selectedImage');
+
 		return (
 			<section id='main'>
 				<div className='colors'>
@@ -67,7 +69,7 @@ class Image extends Component {
 					</div>
 				</div>
 				<div className='image'>
-					<canvas id='image-canvas' />
+					{ image ? <img src={image} /> : (generalStore.get('selectedUuid') !== undefined ? <div className='loading'><span>Loading</span><div /><div /><div /></div> : <div />) }
 				</div>
 			</section>
 		);

@@ -6,6 +6,7 @@ module.exports = new Store('general', {
 	images: {},
 	safebox: new Map(),
 	selectedUuid: undefined,
+	selectedImage: undefined,
 	sidebarWidth: 300,
 	optionsWidth: 300,
 	interactable: true
