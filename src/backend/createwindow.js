@@ -2,7 +2,7 @@ const {BrowserWindow} = require('electron');
 
 module.exports = () => {
 	let window = new BrowserWindow({
-		minWidth: 1000,
+		minWidth: 1100,
 		minHeight: 800,
 		backgroundColor: '#4b6584',
 		width: 1100,

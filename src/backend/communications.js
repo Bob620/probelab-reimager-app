@@ -31,7 +31,7 @@ module.exports = class {
 					sender.send(ipcChannel, {
 						uuid,
 						type: 'reject',
-						data: err.stack,
+						data: err``,
 					});
 				}
 			}

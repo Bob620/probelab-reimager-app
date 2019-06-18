@@ -59,6 +59,8 @@ const actions = CreateActions([
 					const selectedUuid = stores.general.get('selectedUuid');
 					if (selectedUuid)
 						actions.selectImage(selectedUuid);
+				}).catch(err => {
+					console.log(err);
 				});
 			}
 		}
@@ -184,7 +186,7 @@ const actions = CreateActions([
 			const xpos = event.screenX - window.innerWidth;
 			const sidebarWidth = stores.general.get('sidebarWidth');
 
-			if (xpos < -160) // Smaller wraps Export button text
+			if (xpos < -220) // Smaller wraps button text
 				if (xpos > -500) {
 					if (document.styleSheets[0].cssRules[0].selectorText === '.app')
 						document.styleSheets[0].deleteRule(0);

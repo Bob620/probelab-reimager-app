@@ -4,6 +4,7 @@ module.exports = new Store('settings', {
 	scalePosition: 5,
 	scaleColor: 'auto',
 	belowColor: 'auto',
+	pointColor: 'red',
 	scaleSize: 0,
 	autoScale: true,
 	scaleBarHeight: 0,

@@ -33,26 +33,41 @@ process.on('message', async ({type, data, uuid}) => {
 				safebox[data.uuid] = undefined;
 				break;
 			case 'processDirectory':
-				workingDir = data.uri ? data.uri : workingDir;
-				thermos = processDirectory(workingDir);
-				const tempThermos = processDirectory(`${workingDir}~temp/`);
+				if (data && data.uri && workingDir !== data.uri) {
+					workingDir = data.uri ? data.uri : workingDir;
+					if (dirWatcher)
+						dirWatcher.close();
+					if (dirTempWatcher)
+						dirTempWatcher.close();
 
-				if (dirWatcher)
-					dirWatcher.close();
-				if (dirTempWatcher)
-					dirTempWatcher.close();
+					try {
+						fs.accessSync(workingDir);
+						dirWatcher = fs.watch(workingDir, () => {
+							process.send({type: 'directoryUpdate'});
+						});
 
-				dirWatcher = fs.watch(workingDir, () => {
-					process.send({type: 'directoryUpdate'});
-				});
-				dirTempWatcher = fs.watch(`${workingDir}~temp/`, () => {
-					process.send({type: 'directoryUpdate'});
-				});
+						fs.accessSync(`${workingDir}~temp/`);
+						dirTempWatcher = fs.watch(`${workingDir}~temp/`, () => {
+							process.send({type: 'directoryUpdate'});
+						});
+					} catch(err) {}
+				}
 
-				for (const uuid of Object.keys(tempThermos))
-					thermos[uuid] = tempThermos[uuid];
+				try {
+					fs.accessSync(workingDir);
+					thermos = processDirectory(workingDir);
+					try {
+						fs.accessSync(`${workingDir}~temp/`);
+						const tempThermos = processDirectory(`${workingDir}~temp/`);
 
-				process.send({type: 'resolve', data: Object.values(thermos).reduce((thermos, thermo) => {thermos[thermo.data.uuid] = thermo.serialize(); return thermos}, {}), uuid});
+						for (const uuid of Object.keys(tempThermos))
+							thermos[uuid] = tempThermos[uuid];
+					} catch(err) {}
+
+					process.send({type: 'resolve', data: Object.values(thermos).reduce((thermos, thermo) => {thermos[thermo.data.uuid] = thermo.serialize(); return thermos}, {}), uuid});
+				} catch(err) {
+					process.send({type: 'reject', data: err.stack, uuid});
+				}
 				break;
 			case 'addScale':
 				thermo = thermos[data.uuid];

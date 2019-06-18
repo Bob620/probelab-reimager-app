@@ -54,6 +54,12 @@ export default CreateActions([
 		}
 	},
 	{
+		actionType: 'changePointColor',
+		func: ({stores}, {target}) => {
+			stores.settings.set('pointColor', target.value);
+		}
+	},
+	{
 		actionType: 'changeScaleSize',
 		func: ({stores}, {target}) => {
 			const num = parseInt(target.value);
