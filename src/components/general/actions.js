@@ -107,6 +107,7 @@ const actions = CreateActions([
 					scaleBarHeight: stores.settings.get('autoHeight') ? 0 : (stores.settings.get('scaleBarHeight') / 100),
 					scaleBarTop: stores.settings.get('scaleBarTop'),
 					pixelSizeConstant: stores.settings.get('pixelSizeConstant'),
+					backgroundOpacity: stores.settings.get('autoBackgroundOpacity') ? 0 : stores.settings.get('backgroundOpacity'),
 					pointType: stores.settings.get('pointType'),
 					textColor: stores.settings.get('pointColor'),
 					pointSize: stores.settings.get('autoPointFontSize') ? 0 : (stores.settings.get('pointFontSize') / 2),
@@ -139,10 +140,11 @@ const actions = CreateActions([
 					scaleBarHeight: image.settings.scaleBarHeight/100,
 					scaleBarTop: image.settings.scaleBarTop,
 					pixelSizeConstant: image.settings.pixelSizeConstant,
+					backgroundOpacity: image.settings.autoBackgroundOpacity ? 0 : image.settings.backgroundOpacity,
 					pointType: image.settings.pointType,
 					textColor: image.settings.pointColor,
-					pointSize: stores.settings.autoPointFontSize ? 0 : (stores.settings.pointFontSize / 2),
-					pointFontSize: stores.settings.autoPointFontSize ? 0 : stores.settings.pointFontSize,
+					pointSize: image.settings.autoPointFontSize ? 0 : (image.settings.pointFontSize / 2),
+					pointFontSize: image.settings.autoPointFontSize ? 0 : image.settings.pointFontSize,
 					points: image.settings.activePoints.filter(name => image.points[name] !== undefined).map(name => image.points[name])
 				};
 			else
@@ -156,6 +158,7 @@ const actions = CreateActions([
 					scaleBarHeight: stores.settings.get('autoHeight') ? 0 : (stores.settings.get('scaleBarHeight') / 100),
 					scaleBarTop: stores.settings.get('scaleBarTop'),
 					pixelSizeConstant: stores.settings.get('pixelSizeConstant'),
+					backgroundOpacity: stores.settings.get('autoBackgroundOpacity') ? 0 : stores.settings.get('backgroundOpacity'),
 					pointType: stores.settings.get('pointType'),
 					textColor: stores.settings.get('pointColor'),
 					pointSize: stores.settings.get('autoPointFontSize') ? 0 : (stores.settings.get('pointFontSize') / 2),
