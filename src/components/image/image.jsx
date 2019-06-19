@@ -15,23 +15,29 @@ class Image extends Component {
 	}
 
 	render() {
-		const image = generalStore.get('selectedImage');
+		const imageDataUrl = generalStore.get('selectedImage');
+		const selectedUuid = generalStore.get('selectedUuid');
+		let image = generalStore.get('images')[selectedUuid];
+		image = image !== undefined ? image : generalStore.get('safebox').get(selectedUuid);
 
 		return (
-			<section id='main'>
-				<div className='colors'>
-					<div onClick={generalActions.navigateSettings}
-						 className='refresh selectable'>
-						<p>Settings</p>
-					</div>
-					<div onClick={generalActions.loadImage.bind(undefined, false)}
-						 className='refresh selectable'>
-						<p>Refresh Image</p>
-					</div>
-				</div>
+			<section id='main' className='image'>
 				<div className='image'>
-					{ image ? <img src={image} /> : (generalStore.get('selectedUuid') !== undefined ? <div className='loading'><span>Loading</span><div /><div /><div /></div> : <div />) }
+					{ imageDataUrl ? <img src={imageDataUrl} /> : (selectedUuid !== undefined ? <div className='loading'><span>Loading</span><div /><div /><div /></div> : <div />) }
 				</div>
+				{
+					image !== undefined && image.image.width !== undefined ?
+						<div className='image-info'>
+							<div>
+								<p>Image Width: {image.image.width}px</p>
+								<p>Image Height: {image.image.height}px</p>
+							</div>
+							<div>
+								<p>Output Width: {image.output.width}px</p>
+								<p>Output Height: {image.output.height}px</p>
+							</div>
+						</div> : <div/>
+				}
 			</section>
 		);
 	}

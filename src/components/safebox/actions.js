@@ -8,7 +8,7 @@ export default CreateActions([
 			let imageUuid = '';
 
 			if (image) {
-				imageUuid = image.data.uuid;
+				imageUuid = image.uuid;
 			} else {
 				image = stores.general.get('safebox').get(fromUuid);
 				imageUuid = image.imageUuid;
@@ -21,10 +21,15 @@ export default CreateActions([
 					settings[key] = stores.settings.get(key);
 
 				actions.saveImage(fromUuid, {
+					uri: image.uri,
+					magnification: image.magnification,
+					image: image.image,
+					output: image.output,
+					points: image.points,
 					settingUuid: JSON.stringify(settings),
 					imageUuid,
 					fromUuid,
-					name: (' ' + ((image.data && image.data.name) ? image.data.name : image.name)).slice(1),
+					name: (' ' + image.name).slice(1),
 					settings: JSON.parse(JSON.stringify(settings)),
 					workingDir: (' ' + stores.general.get('workingDir')).slice(1)
 				}, callback);

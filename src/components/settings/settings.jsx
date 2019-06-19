@@ -16,7 +16,7 @@ class Settings extends Component {
 
 	render() {
 		return (
-			<section id='main'>
+			<section id='main' className='settings'>
 				<div className='colors'>
 					<div className='scale selectable'>
 						<p onClick={settingActions.toggleAutoPixelSizeConstant}>Pixel Size Constant: </p>

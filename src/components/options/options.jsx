@@ -16,10 +16,12 @@ class Options extends Component {
 	}
 
 	render() {
+		const selectedUuid = generalStore.get('selectedUuid');
 		const currentPos = settingStore.get('scalePosition');
-		const belowColor = settingStore.get('belowColor');
 		const interactable = generalStore.get('interactable');
-		const image = generalStore.get('images')[generalStore.get('selectedUuid')];
+		let image = generalStore.get('images')[selectedUuid];
+		image = image === undefined ? generalStore.get('safebox').get(selectedUuid) : image;
+		const activePoints = settingStore.get('activePoints');
 
 		return (
 			<section id='options'>
@@ -81,7 +83,7 @@ class Options extends Component {
 								</select>
 							</div>
 							<div className='colorOptions'>
-								<p>Below Color</p>
+								<p>Background Color</p>
 								<select value={settingStore.get('belowColor')} onChange={settingActions.changeBelowColor}>
 									<option value='auto'>Auto</option>
 									<option value='white'>White</option>
@@ -97,6 +99,20 @@ class Options extends Component {
 									<option value='black'>Black</option>
 								</select>
 							</div>
+							<div className='colorOptions'>
+								<p>Point Color</p>
+								<select value={settingStore.get('pointType')} onChange={settingActions.changePointType}>
+									<option value='thermo'>Thermo-Like</option>
+									<option value='thermoCircle'>Thermo-Round</option>
+									<option value='circle'>Circle</option>
+									<option value='cross'>Cross</option>
+								</select>
+							</div>
+							<ToggleableScale min='0' max='100' maxLength='3' valueName='backgroundOpacity' autoName='autoBackgroundOpacity' text='Background Opacity: '
+											 toggleAuto={settingActions.toggleAutoBackgroundOpacity}
+											 changeFromAuto={settingActions.changeFromAutoBackgroundOpacity}
+											 onChange={settingActions.changeBackgroundOpacity}
+							/>
 						</div>
 						<div>
 							<div onClick={() => settingActions.toggleBarLocation()} className='scale selectable'>
@@ -106,34 +122,66 @@ class Options extends Component {
 										<p>Above</p> : <p>Below</p>
 								}
 							</div>
-							<div className='scale selectable'>
-								<p onClick={() => settingActions.toggleAutoScale()}>Scale(µm): </p>
-								{
-									settingStore.get('autoScale') ?
-										<input onClick={() => settingActions.toggleAutoScale()} onChange={settingActions.changeFromAutoScale} type='text' value='Auto'/> :
-										<input type='number' maxLength='8' min='0' max='10000000' value={settingStore.get('scaleSize')} onChange={settingActions.changeScaleSize} />
-								}
-							</div>
-							<div className='scale selectable'>
-								<p onClick={() => settingActions.toggleAutoScaleHeight()}>Scale Bar Height(%): </p>
-								{
-									settingStore.get('autoHeight') ?
-										<input onClick={() => settingActions.toggleAutoScaleHeight()} onChange={settingActions.changeFromAutoHeight} type='text' value='Auto'/> :
-										<input type='number' maxLength='3' min='0' max='100' value={settingStore.get('scaleBarHeight')} onChange={settingActions.changeScaleBarHeight} />
-								}
-							</div>
+							<ToggleableScale min='0' max='10000000' maxLength='8' valueName='scaleSize' autoName='autoScale' text='Scale(µm): '
+											 toggleAuto={settingActions.toggleAutoScale}
+											 changeFromAuto={settingActions.changeFromAutoScale}
+											 onChange={settingActions.changeScaleSize}
+							/>
+							<ToggleableScale min='0' max='100' maxLength='3' valueName='scaleBarHeight' autoName='autoHeight' text='Scale Bar Height(%): '
+											 toggleAuto={settingActions.toggleAutoScaleHeight}
+											 changeFromAuto={settingActions.changeFromAutoHeight}
+											 onChange={settingActions.changeScaleBarHeight}
+							/>
+							<ToggleableScale min='0' max='100' maxLength='3' valueName='pointFontSize' autoName='autoPointFontSize' text='Point Font Size: '
+											 toggleAuto={settingActions.toggleAutoPointFontSize}
+											 changeFromAuto={settingActions.changeFromAutoPointFontSize}
+											 onChange={settingActions.changePointFontSize}
+							/>
 						</div>
 					</div>
 					<div className='points'>
 						<ul>
 							{
-								image && image.data.points && Object.values(image.data.points).map(point => <li key={point.name} ><p>{point.name}</p></li>)
+								image && image.points && Object.values(image.points).map(point =>
+									<li key={point.name}
+										className={activePoints.includes(point.name) ? 'div-selected' : ''}
+										onClick={activePoints.includes(point.name) ? settingActions.removePoint.bind(undefined, point.name) :
+											settingActions.addPoint.bind(undefined, point.name)} >
+										<div><div /></div>
+										<p>{point.name}</p>
+									</li>)
 							}
 						</ul>
 					</div>
 				</div>
 			</section>
 		);
+	}
+}
+
+class ToggleableScale extends Component {
+	constructor(props) {
+		super(props);
+	}
+
+	render() {
+		const isAuto = settingStore.get(this.props.autoName);
+
+		return <div className='scale selectable'>
+			<p onClick={() => this.props.toggleAuto()}>{this.props.text}</p>
+			{
+				<input onClick={(event) => {if (isAuto) {
+					this.props.toggleAuto();
+					event.persist();
+					setTimeout(() => event.target.select(), 10)
+				}}}
+					   onChange={isAuto ? this.props.changeFromAuto : this.props.onChange}
+					   type={isAuto ? 'text' : 'number'}
+					   value={isAuto ? 'Auto' : settingStore.get(this.props.valueName)}
+					   maxLength={this.props.maxLength} min={this.props.min} max={this.props.max}
+				/>
+			}
+		</div>
 	}
 }
 

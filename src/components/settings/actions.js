@@ -34,6 +34,18 @@ export default CreateActions([
 		}
 	},
 	{
+		actionType: 'toggleAutoPointFontSize',
+		func: ({stores}, force=undefined) => {
+			stores.settings.set('autoPointFontSize', force !== undefined ? force : !stores.settings.get('autoPointFontSize'));
+		}
+	},
+	{
+		actionType: 'toggleAutoBackgroundOpacity',
+		func: ({stores}, force=undefined) => {
+			stores.settings.set('autoBackgroundOpacity', force !== undefined ? force : !stores.settings.get('autoBackgroundOpacity'));
+		}
+	},
+	{
 		actionType: 'setScalePosition',
 		func: ({stores}, pos=0) => {
 			const oldPos = stores.settings.get('scalePosition');
@@ -57,6 +69,12 @@ export default CreateActions([
 		actionType: 'changePointColor',
 		func: ({stores}, {target}) => {
 			stores.settings.set('pointColor', target.value);
+		}
+	},
+	{
+		actionType: 'changePointType',
+		func: ({stores}, {target}) => {
+			stores.settings.set('pointType', target.value);
 		}
 	},
 	{
@@ -111,8 +129,42 @@ export default CreateActions([
 		}
 	},
 	{
+		actionType: 'changePointFontSize',
+		func: ({stores}, {target}) => {
+			const num = parseInt(target.value === '0' ? '0' : target.value.replace(/^0+/g, ''));
+			if (!isNaN(num))
+				if (0 <= num)
+					if (num <= 100)
+						stores.settings.set('pointFontSize', num);
+					else
+						stores.settings.set('pointFontSize', 100);
+				else
+					stores.settings.set('pointFontSize', 0);
+
+			if (target.value === '')
+				stores.settings.set('pointFontSize', '');
+		}
+	},
+	{
+		actionType: 'changeBackgroundOpacity',
+		func: ({stores}, {target}) => {
+			const num = parseInt(target.value === '0' ? '0' : target.value.replace(/^0+/g, ''));
+			if (!isNaN(num))
+				if (0 <= num)
+					if (num <= 100)
+						stores.settings.set('backgroundOpacity', num);
+					else
+						stores.settings.set('backgroundOpacity', 100);
+				else
+					stores.settings.set('backgroundOpacity', 0);
+
+			if (target.value === '')
+				stores.settings.set('backgroundOpacity', '');
+		}
+	},
+	{
 		actionType: 'changeFromAutoScale',
-		func: ({actions, stores}) => {
+		func: ({actions, stores}, event) => {
 			actions.changeScaleSize(event);
 			stores.settings.set('autoScale', false);
 		}
@@ -131,4 +183,39 @@ export default CreateActions([
 			stores.settings.set('autoPixelSizeConstant', false);
 		}
 	},
+	{
+		actionType: 'changeFromAutoPointFontSize',
+		func: ({actions, stores}, event) => {
+			actions.changePointFontSize(event);
+			stores.settings.set('autoPointFontSize', false);
+		}
+	},
+	{
+		actionType: 'changeFromAutoBackgroundOpacity',
+		func: ({actions, stores}, event) => {
+			actions.changeBackgroundOpacity(event);
+			stores.settings.set('autoBackgroundOpacity', false);
+		}
+	},
+	{
+		actionType: 'addPoint',
+		func: ({stores, actions}, pointName) => {
+			let points = stores.settings.get('activePoints');
+
+			if (!points.includes(pointName))
+				points.push(pointName);
+			actions.navigateHome();
+		}
+	},
+	{
+		actionType: 'removePoint',
+		func: ({stores, actions}, pointName) => {
+			let points = stores.settings.get('activePoints');
+			const pointPos = points.indexOf(pointName);
+
+			if (pointPos !== -1)
+				points.splice(pointPos, 1);
+			actions.navigateHome();
+		}
+	}
 ]);

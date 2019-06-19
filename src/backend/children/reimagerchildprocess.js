@@ -1,5 +1,5 @@
 const fs = require('fs');
-const { PointShoot, ExtractedMap, CanvasRoot, constants, NodeCanvas } = require('thermo-reimager');
+const { PointShoot, ExtractedMap, CanvasRoot, constants, NodeCanvas, calculations } = require('thermo-reimager');
 
 const generateUUID = require('../generateuuid.js');
 const canvas = new CanvasRoot(new NodeCanvas(require('canvas')));
@@ -15,6 +15,7 @@ let thermo = undefined;
 
 process.on('message', async ({type, data, uuid}) => {
 	try {
+		let serial;
 		switch(type) {
 			case 'canvas':
 				if (data.type === 'init')
@@ -64,19 +65,31 @@ process.on('message', async ({type, data, uuid}) => {
 							thermos[uuid] = tempThermos[uuid];
 					} catch(err) {}
 
-					process.send({type: 'resolve', data: Object.values(thermos).reduce((thermos, thermo) => {thermos[thermo.data.uuid] = thermo.serialize(); return thermos}, {}), uuid});
+					process.send({type: 'resolve', data: Object.values(thermos).reduce((thermos, thermo) => {
+						thermos[thermo.data.uuid] = thermo.serialize();
+						thermos[thermo.data.uuid].uuid = thermo.data.uuid;
+						return thermos
+					}, {}), uuid});
 				} catch(err) {
 					process.send({type: 'reject', data: err.stack, uuid});
 				}
 				break;
 			case 'addScale':
+				imageUuid = data.uuid;
 				thermo = thermos[data.uuid];
 				if (thermo === undefined)
 					thermo = safebox[data.uuid];
 
-				imageUuid = data.uuid;
-				image = await addScale(thermo, data);
-				process.send({type: 'resolve', data: {uuid: imageUuid, image}, uuid});
+				if (imageUuid === data.uuid) {
+					image = await addScale(thermo, data, data.points);
+					serial = thermo.serialize();
+					serial.uuid = thermo.data.uuid;
+					if (imageUuid === data.uuid)
+						process.send({type: 'resolve', data: {uuid: data.uuid, image, thermo: serial}, uuid});
+					else
+						process.send({type: 'reject', data: {uuid: data.uuid}, uuid});
+				} else
+					process.send({type: 'reject', data: {uuid: data.uuid}, uuid});
 				break;
 			case 'writeImage':
 				thermo = thermos[data.uuid];
@@ -84,7 +97,9 @@ process.on('message', async ({type, data, uuid}) => {
 					thermo = safebox[data.uuid];
 
 				await writeImage(thermo, data);
-				process.send({type: 'resolve', data: {uuid: data.uuid}, uuid});
+				serial = thermo.serialize();
+				serial.uuid = thermo.data.uuid;
+				process.send({type: 'resolve', data: {uuid: data.uuid, thermo: serial}, uuid});
 				break;
 		}
 	} catch (err) {
@@ -93,7 +108,7 @@ process.on('message', async ({type, data, uuid}) => {
 });
 
 async function writeImage(thermo, data) {
-	switch(data.scaleColor) {
+	switch (data.scaleColor) {
 		default:
 		case 'auto':
 			data.scaleColor = constants.colors.AUTO;
@@ -106,7 +121,7 @@ async function writeImage(thermo, data) {
 			break;
 	}
 
-	switch(data.belowColor) {
+	switch (data.belowColor) {
 		default:
 		case 'auto':
 			data.belowColor = constants.colors.AUTO;
@@ -119,21 +134,47 @@ async function writeImage(thermo, data) {
 			break;
 	}
 
-	if (thermo.data.image)
-		await thermo.writeImage(data);
-	else
-		await thermo.createWrite(data.scaleType, {
-			scaleSize: data.scaleSize ? data.scaleSize : 0,
-			scaleBarHeight: data.scaleBarHeight ? data.scaleBarHeight : constants.scale.AUTOSIZE,
-			scaleBarTop: data.scaleBarTop ? data.scaleBarTop : constants.scale.SCALEBARTOP,
-			pixelSizeConstant: data.pixelSizeConstant ? data.pixelSizeConstant : constants.PIXELSIZECONSTANT,
-			backgroundOpacity: data.backgroundOpacity ? data.backgroundOpacity : constants.scale.background.AUTOOPACITY,
-			font: data.font ? data.font : constants.fonts.OPENSANS,
-			uri: data.uri
-		});
+	switch(data.pointType) {
+		default:
+		case 'thermo':
+			data.pointType = constants.point.types.THERMOINSTANT;
+			break;
+		case 'thermoCircle':
+			data.pointType = constants.point.types.THERMOINSTANTROUND;
+			break;
+		case 'circle':
+			data.pointType = constants.point.types.CIRCLE;
+			break;
+		case 'cross':
+			data.pointType = constants.point.types.CROSS;
+			break;
+	}
+
+	await thermo.createWrite(data.scaleType, {
+		scaleSize: data.scaleSize ? data.scaleSize : 0,
+		scaleBarHeight: data.scaleBarHeight ? data.scaleBarHeight : constants.scale.AUTOSIZE,
+		scaleBarTop: data.scaleBarTop ? data.scaleBarTop : constants.scale.SCALEBARTOP,
+		pixelSizeConstant: data.pixelSizeConstant ? data.pixelSizeConstant : constants.PIXELSIZECONSTANT,
+		backgroundOpacity: data.backgroundOpacity ? data.backgroundOpacity : constants.scale.background.AUTOOPACITY,
+		font: data.font ? data.font : constants.fonts.OPENSANS,
+		uri: data.uri,
+		pointType: data.pointType,
+		textColor: data.textColor ? constants.colors[data.textColor] : constants.colors.red,
+		pointSize: data.pointSize ? data.pointSize : constants.point.AUTOSIZE,
+		pointFontSize: data.pointFontSize ? data.pointFontSize : constants.point.AUTOSIZE,
+		pointFont: data.pointFont ? data.pointFont : constants.fonts.OPENSANS
+	}, data.points.map(point => {
+		const [x, y] = calculations.pointToXY(point, thermo.data.scale.imageWidth, thermo.data.scale.imageHeight);
+		const test = {
+			x, y,
+			name: point.name.match(/pt(\d.+)psmsa/miu)[1].slice(0, -1)
+		};
+		process.send({type: 'debug', data: test});
+		return test;
+	}));
 }
 
-async function addScale(thermo, data) {
+async function addScale(thermo, data, points=[]) {
 	try {
 		switch(data.scaleColor) {
 			default:
@@ -161,6 +202,22 @@ async function addScale(thermo, data) {
 				break;
 		}
 
+		switch(data.pointType) {
+			default:
+			case 'thermo':
+				data.pointType = constants.point.types.THERMOINSTANT;
+				break;
+			case 'thermoCircle':
+				data.pointType = constants.point.types.THERMOINSTANTROUND;
+				break;
+			case 'circle':
+				data.pointType = constants.point.types.CIRCLE;
+				break;
+			case 'cross':
+				data.pointType = constants.point.types.CROSS;
+				break;
+		}
+
 		await thermo.addScale(data.scaleType, {
 			scaleSize: data.scaleSize ? data.scaleSize : 0,
 			scaleColor: data.scaleColor,
@@ -171,6 +228,16 @@ async function addScale(thermo, data) {
 			backgroundOpacity: data.backgroundOpacity ? data.backgroundOpacity : constants.scale.background.AUTOOPACITY,
 			font: data.font ? data.font : constants.fonts.OPENSANS
 		});
+
+		for (const point of points)
+			if (point && point.values)
+				await thermo.addPoint(...calculations.pointToXY(point, thermo.data.scale.imageWidth, thermo.data.scale.imageHeight), point.name.match(/pt(\d.+)psmsa/miu)[1].slice(0, -1), {
+					pointType: data.pointType,
+					textColor: data.textColor ? constants.colors[data.textColor] : constants.colors.red,
+					pointSize: data.pointSize ? data.pointSize : constants.point.AUTOSIZE,
+					pointFontSize: data.pointFontSize ? data.pointFontSize : constants.point.AUTOSIZE,
+					pointFont: data.pointFont ? data.pointFont : constants.fonts.OPENSANS
+				});
 
 		return await thermo.toUrl({png: {quality: 100}});
 	} catch(err) {
@@ -196,18 +263,6 @@ function processDirectory(dirUri) {
 			}
 		}).filter(i => i).reduce((items, item) => {
 			item.data.uuid = item.data.name;
-			item.serialize = function() {
-				return {
-					data: {
-						uri: this.data.uri,
-						name: this.data.name,
-						uuid: this.data.uuid,
-						points: this.data.points,
-						files: this.data.files
-					}
-				}
-			}.bind(item);
-
 			items[item.data.uuid] = item;
 			return items;
 		}, {});
