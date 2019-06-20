@@ -45,9 +45,7 @@ app.on('ready', async () => {
 					},
 					async path => {
 						data.uri = path;
-						await child.sendMessage('writeImage', data);
-
-						resolve({uuid: data.uuid});
+						resolve(await child.sendMessage('writeImage', data));
 					}
 				);
 			} catch(err) {

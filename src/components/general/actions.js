@@ -116,7 +116,7 @@ const actions = CreateActions([
 				}).then(({uuid, image, thermo}) => {
 					if (stores.general.get('selectedUuid') === uuid)
 						stores.general.set('selectedImage', image);
-					stores.general.get('images')[uuid] = thermo;
+					//stores.general.get('images')[uuid] = thermo;
 					actions.navigateHome();
 				}).catch(() => {});
 		}
@@ -168,7 +168,7 @@ const actions = CreateActions([
 
 			if (selectedUuid)
 				comms.sendMessage('writeImage', data).then(({uuid, thermo}) => {
-					stores.general.get('images')[uuid] = thermo;
+					//stores.general.get('images')[uuid] = thermo;
 					actions.navigateHome();
 					if (typeof callback === 'function')
 						callback();
