@@ -100,7 +100,7 @@ class Options extends Component {
 								</select>
 							</div>
 							<div className='colorOptions'>
-								<p>Point Color</p>
+								<p>Point Marker</p>
 								<select value={settingStore.get('pointType')} onChange={settingActions.changePointType}>
 									<option value='thermo'>Thermo-Like</option>
 									<option value='thermoCircle'>Thermo-Round</option>
