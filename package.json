@@ -10,8 +10,8 @@
     "build-prod": "node build.js production",
     "rebuild": "electron-rebuild -f",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "package": "rm -fr ./bin/unpackaged && npm run build-prod && node package.js && cd ./bin/unpackaged && npm install --production && cd ../.. && electron-packager ./bin/unpackaged --out ./bin --overwrite",
-    "win-package": "del /F /Q \"./bin/unpackaged\" && npm run build-prod && node package.js && cd ./bin/unpackaged && npm install --production && cd ../.. && electron-packager ./bin/unpackaged --out ./bin --overwrite"
+    "package": "rm -fr ./bin/unpackaged && npm run build-prod && node package.js && cd ./bin/unpackaged && npm install --production && npm run rebuild && cd ../.. && electron-packager ./bin/unpackaged --out ./bin --overwrite",
+    "win-package": "del /F /Q \"./bin/unpackaged\" && npm run build-prod && node package.js && cd ./bin/unpackaged && npm install --production && npm run rebuild && cd ../.. && electron-packager ./bin/unpackaged --out ./bin --overwrite"
   },
   "browserify": {
     "transform": [
