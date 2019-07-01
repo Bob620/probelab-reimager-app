@@ -1,4 +1,4 @@
-import generateUuid from './generateUuid.js';
+import generateUuid from './generateuuid.js';
 const { ipcRenderer } = window.require('electron');
 
 ipcRenderer.on('debug', (event, arg) => {
