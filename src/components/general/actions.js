@@ -48,7 +48,7 @@ const actions = CreateActions([
 		actionType: 'setWorkingDirectory',
 		func: ({stores}, event) => {
 			let dir = event;
-			if (typeof event === 'object')
+			if (typeof event === 'object' && event.target.files[0])
 				dir = event.target.files[0].path;
 			if (dir) {
 				stores.general.set('selectedUuid', undefined);
@@ -75,6 +75,10 @@ const actions = CreateActions([
 		actionType: 'selectImage',
 		func: ({stores}, uuid) => {
 			if (Object.keys(stores.general.get('images')).includes(uuid) || Array.from(stores.general.get('safebox').keys()).includes(uuid)) {
+				let image = stores.general.get('images')[uuid];
+				image = image !== undefined ? image : stores.general.get('safebox').get(uuid);
+
+				stores.settings.set('activePoints', stores.settings.get('activePoints').filter(name => image.points[name] !== undefined));
 				stores.general.set('selectedUuid', uuid);
 				stores.general.set('selectedImage', undefined);
 			}
@@ -84,26 +88,37 @@ const actions = CreateActions([
 		actionType: 'loadImage',
 		func: ({stores}, uuid=false) => {
 			const oldUuid = stores.general.get('selectedUuid');
+			const selectedUuid = uuid ? uuid : oldUuid;
+
+			let image = stores.general.get('images')[selectedUuid];
+			image = image !== undefined ? image : stores.general.get('safebox').get(selectedUuid);
 
 			if (uuid)
 				actions.selectImage(uuid);
 
 			if (oldUuid || uuid)
 				comms.sendMessage('loadImage', {
-						oldUuid: (uuid && oldUuid) ? oldUuid : '',
-						uuid: uuid ? uuid : oldUuid,
-						scaleType: stores.settings.get('scalePosition'),
-						scaleColor: stores.settings.get('scaleColor'),
-						belowColor: stores.settings.get('belowColor'),
-						scaleSize: stores.settings.get('autoScale') ? 0 : (stores.settings.get('scaleSize') === '' ? 0 : stores.settings.get('scaleSize')),
-						scaleBarHeight: stores.settings.get('autoHeight') ? 0 : (stores.settings.get('scaleBarHeight') / 100),
-						scaleBarTop: stores.settings.get('scaleBarTop'),
-						pixelSizeConstant: stores.settings.get('pixelSizeConstant')
-				}).then(({uuid, image}) => {
+					oldUuid: (uuid && oldUuid) ? oldUuid : '',
+					uuid: uuid ? uuid : oldUuid,
+					scaleType: stores.settings.get('scalePosition'),
+					scaleColor: stores.settings.get('scaleColor'),
+					belowColor: stores.settings.get('belowColor'),
+					scaleSize: stores.settings.get('autoScale') ? 0 : (stores.settings.get('scaleSize') === '' ? 0 : stores.settings.get('scaleSize')),
+					scaleBarHeight: stores.settings.get('autoHeight') ? 0 : (stores.settings.get('scaleBarHeight') / 100),
+					scaleBarTop: stores.settings.get('scaleBarTop'),
+					pixelSizeConstant: stores.settings.get('pixelSizeConstant'),
+					backgroundOpacity: stores.settings.get('autoBackgroundOpacity') ? 0 : stores.settings.get('backgroundOpacity'),
+					pointType: stores.settings.get('pointType'),
+					textColor: stores.settings.get('pointColor'),
+					pointSize: stores.settings.get('autoPointFontSize') ? 0 : (stores.settings.get('pointFontSize') / 2),
+					pointFontSize: stores.settings.get('autoPointFontSize') ? 0 : stores.settings.get('pointFontSize'),
+					points: stores.settings.get('activePoints').filter(name => image.points[name] !== undefined).map(name => image.points[name])
+				}).then(({uuid, image, thermo}) => {
 					if (stores.general.get('selectedUuid') === uuid)
 						stores.general.set('selectedImage', image);
+					//stores.general.get('images')[uuid] = thermo;
 					actions.navigateHome();
-				});
+				}).catch(() => {});
 		}
 	},
 	{
@@ -114,7 +129,7 @@ const actions = CreateActions([
 			image = image !== undefined ? image : stores.general.get('safebox').get(selectedUuid);
 			let data = {};
 
-			if (image.name)
+			if (image.fromUuid)
 				data = {
 					name: image.name,
 					uuid: selectedUuid,
@@ -124,11 +139,17 @@ const actions = CreateActions([
 					scaleSize: image.settings.autoScale ? 0 : (image.settings.scaleSize !== '' ? image.settings.scaleSize : 0),
 					scaleBarHeight: image.settings.scaleBarHeight/100,
 					scaleBarTop: image.settings.scaleBarTop,
-					pixelSizeConstant: image.settings.pixelSizeConstant
+					pixelSizeConstant: image.settings.pixelSizeConstant,
+					backgroundOpacity: image.settings.autoBackgroundOpacity ? 0 : image.settings.backgroundOpacity,
+					pointType: image.settings.pointType,
+					textColor: image.settings.pointColor,
+					pointSize: image.settings.autoPointFontSize ? 0 : (image.settings.pointFontSize / 2),
+					pointFontSize: image.settings.autoPointFontSize ? 0 : image.settings.pointFontSize,
+					points: image.settings.activePoints.filter(name => image.points[name] !== undefined).map(name => image.points[name])
 				};
 			else
 				data = {
-					name: image.data.name,
+					name: image.name,
 					uuid: selectedUuid,
 					scaleType: stores.settings.get('scalePosition'),
 					scaleColor: stores.settings.get('scaleColor'),
@@ -136,11 +157,18 @@ const actions = CreateActions([
 					scaleSize: stores.settings.get('autoScale') ? 0 : (stores.settings.get('scaleSize') !== '' ? stores.settings.get('scaleSize') : 0),
 					scaleBarHeight: stores.settings.get('autoHeight') ? 0 : (stores.settings.get('scaleBarHeight') / 100),
 					scaleBarTop: stores.settings.get('scaleBarTop'),
-					pixelSizeConstant: stores.settings.get('pixelSizeConstant')
+					pixelSizeConstant: stores.settings.get('pixelSizeConstant'),
+					backgroundOpacity: stores.settings.get('autoBackgroundOpacity') ? 0 : stores.settings.get('backgroundOpacity'),
+					pointType: stores.settings.get('pointType'),
+					textColor: stores.settings.get('pointColor'),
+					pointSize: stores.settings.get('autoPointFontSize') ? 0 : (stores.settings.get('pointFontSize') / 2),
+					pointFontSize: stores.settings.get('autoPointFontSize') ? 0 : stores.settings.get('pointFontSize'),
+					points: stores.settings.get('activePoints').filter(name => image.points[name] !== undefined).map(name => image.points[name])
 				};
 
 			if (selectedUuid)
-				comms.sendMessage('writeImage', data).then(({image, uuid}) => {
+				comms.sendMessage('writeImage', data).then(({uuid, thermo}) => {
+					//stores.general.get('images')[uuid] = thermo;
 					actions.navigateHome();
 					if (typeof callback === 'function')
 						callback();
@@ -186,7 +214,7 @@ const actions = CreateActions([
 			const xpos = event.screenX - window.innerWidth;
 			const sidebarWidth = stores.general.get('sidebarWidth');
 
-			if (xpos < -220) // Smaller wraps button text
+			if (xpos < -272) // Smaller wraps button text
 				if (xpos > -500) {
 					if (document.styleSheets[0].cssRules[0].selectorText === '.app')
 						document.styleSheets[0].deleteRule(0);

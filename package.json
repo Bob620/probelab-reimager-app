@@ -10,8 +10,10 @@
     "build-prod": "node build.js production",
     "rebuild": "electron-rebuild -f",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "package": "rm -fr ./bin/unpackaged && npm run build-prod && node package.js && cd ./bin/unpackaged && npm install --production && cd ../.. && electron-packager ./bin/unpackaged --out ./bin --overwrite",
-    "win-package": "del /F /Q \"./bin/unpackaged\" && npm run build-prod && node package.js && cd ./bin/unpackaged && npm install --production && cd ../.. && electron-packager ./bin/unpackaged --out ./bin --overwrite"
+    "package": "rm -fr ./bin/unpackaged && npm run build-prod && node package.js && cd ./bin/unpackaged && npm install --production && npm run rebuild && cd ../.. && electron-packager ./bin/unpackaged --out ./bin --overwrite",
+    "win-package": "del /F /Q \"./bin/unpackaged\" && npm run build-prod && node package.js && cd ./bin/unpackaged && npm install --production && npm run rebuild && cd ../.. && electron-packager ./bin/unpackaged --out ./bin --overwrite",
+    "package-all": "rm -fr ./bin/unpackaged && npm run build-prod && node package.js && cd ./bin/unpackaged && npm install --production && npm run rebuild && cd ../.. && electron-packager --all ./bin/unpackaged --out ./bin --overwrite",
+    "win-package-all": "del /F /Q \"./bin/unpackaged\" && npm run build-prod && node package.js && cd ./bin/unpackaged && npm install --production && npm run rebuild && cd ../.. && electron-packager --all ./bin/unpackaged --out ./bin --overwrite"
   },
   "browserify": {
     "transform": [
@@ -52,8 +54,10 @@
     "uglifyify": "^5.0.1"
   },
   "dependencies": {
-    "uuid": "latest",
     "canvas": "^2.5.0",
-    "thermo-reimager": "github:bob620/thermo-reimager#remote-canvas"
+    "env-paths": "^2.2.0",
+    "luxon": "^1.16.0",
+    "thermo-reimager": "github:bob620/thermo-reimager#remote-canvas",
+    "uuid": "latest"
   }
 }

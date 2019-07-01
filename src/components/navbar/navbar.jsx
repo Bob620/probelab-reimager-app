@@ -34,6 +34,14 @@ class Navbar extends Component {
 						 className={'selectable'}>
 						<p>Export Image</p>
 					</div>
+					<div onClick={generalActions.navigateSettings}
+						 className='refresh selectable'>
+						<p>Settings</p>
+					</div>
+					<div onClick={generalActions.loadImage.bind(undefined, false)}
+						 className='refresh selectable'>
+						<p>Refresh Image</p>
+					</div>
 				</div>
 			</section>
 		);

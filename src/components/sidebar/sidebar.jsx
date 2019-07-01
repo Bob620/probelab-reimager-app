@@ -30,12 +30,12 @@ class Sidebar extends Component {
 						<input onChange={generalActions.setWorkingDirectory} type="file" webkitdirectory="true" />
 					</div>
 					<ul className='current-dir'>{
-						Object.values(images).sort((one, two) => one.data.name < two.data.name ? -1 : 1).map(image =>
-							<li className={`${interactable ? 'selectable' : ''} ${image.data.uuid === selectedUuid ? 'selected' : ''}`}
-								key={image.data.uuid}
-								onClick={image.data.uuid === selectedUuid || !interactable ? () => {} : generalActions.loadImage.bind(undefined, image.data.uuid)}
+						Object.values(images).sort((one, two) => one.name < two.name ? -1 : 1).map(image =>
+							<li className={`${interactable ? 'selectable' : ''} ${image.uuid === selectedUuid ? 'selected' : ''}`}
+								key={image.uuid}
+								onClick={image.uuid === selectedUuid || !interactable ? () => {} : generalActions.loadImage.bind(undefined, image.uuid)}
 							>
-								<p>{image.data.name}</p>
+								<p>{image.name}</p>
 							</li>
 						)
 					}</ul>
