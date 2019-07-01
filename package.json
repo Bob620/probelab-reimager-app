@@ -31,6 +31,38 @@
       ]
     ]
   },
+  "build": {
+    "appId": "net.probelab.reimager",
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64",
+            "ia32"
+          ]
+        }
+      ]
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "deb",
+          "arch": [
+            "x64",
+            "ia32"
+          ]
+        },
+        {
+          "target": "snap",
+          "arch": [
+            "x64",
+            "ia32"
+          ]
+        }
+      ]
+    }
+  },
   "author": "Bob620",
   "license": "MIT",
   "devDependencies": {
@@ -43,6 +75,7 @@
     "browserify": "^16.2.3",
     "browserify-css": "^0.15.0",
     "electron": "^4.0.5",
+    "electron-builder": "^20.44.4",
     "electron-packager": "^13.1.0",
     "electron-rebuild": "^1.8.5",
     "envify": "^4.1.0",
