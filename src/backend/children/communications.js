@@ -47,7 +47,7 @@ module.exports = class {
 			const callbacks = this.data.uuidCallbacks.get(uuid);
 			if (callbacks)
 				callbacks.push({resolve, reject});
-			this.data.messageChannel.send('message', {type, data, uuid});
+			this.data.messageChannel.send({type, data, uuid});
 		});
 	}
 };
