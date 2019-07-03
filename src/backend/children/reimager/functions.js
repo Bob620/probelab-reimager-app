@@ -12,19 +12,16 @@ const Functions = {
 					const files = fs.readdirSync(dirUri + dir.name + '/', {withFileTypes: true});
 
 					return files.filter(file => file.isFile()).map(file => {
-						file.uri = uri + file.name;
-						return Functions.createThermo.bind(undefined, file, canvas);
+						file.uri = dirUri + dir.name + '/' + file.name;
+						return Functions.createThermo(file, canvas);
 					});
 				}
-			}).filter(i => i).reduce((items, item) => {
-				items[item.data.uuid] = item;
-				return items;
-			}, {});
+			}).filter(i => i);
 		} catch(err) {
-			return {};
+			return [];
 		}
 	},
-	createThermo: (file, canvas) => {
+	createThermo: (file, canvas, uuid=undefined) => {
 		if (file.isFile()) {
 			let thermo;
 
@@ -38,7 +35,7 @@ const Functions = {
 				thermo.data.uuid = uuid ? uuid : thermo.data.name;
 				thermo.uuidSerialize = () => {
 					let serial = thermo.serialize();
-					serial.uuid = this.data.uuid;
+					serial.uuid = thermo.data.uuid;
 					return serial;
 				};
 

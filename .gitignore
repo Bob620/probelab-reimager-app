@@ -1,6 +1,7 @@
 .idea
 
 bin
+dist
 node_modules
 
 assets/react

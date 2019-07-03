@@ -3,22 +3,22 @@ const EventEmitter = require('events');
 
 const tempFolder = '~temp';
 
-module.exports = class extends EventEmitter {
+module.exports = class {
 	constructor(uri) {
 		uri = uri.endsWith('/') ? uri : uri + '/';
-		super();
 
 		this.data = {
 			uri,
 			tempUri: uri + tempFolder + '/',
+			listeners: new Map(),
 			mainWatch: fs.watch(uri, {
 				persistent: false
-			}, this.watchMainHandle),
+			}, this.watchMainHandle.bind(this)),
 			tempWatch: this.tryWatchTemp(),
 			mainWatching: true,
 			tempWatching: false,
-			mainFiles: new Files(),
-			tempFiles: new Files()
+			mainFiles: new Files(uri),
+			tempFiles: new Files(uri)
 		};
 
 		fs.readdir(this.data.uri, {withFileTypes: true}, (err, files) => {
@@ -31,13 +31,26 @@ module.exports = class extends EventEmitter {
 		});
 
 		fs.readdir(this.data.tempUri, {withFileTypes: true}, (err, files) => {
-			if (err) throw err;
-
-			for (const file of files) {
-				file.uri = this.data.uri + file.name;
-				this.data.mainFiles.toggleFile(file.name, file);
-			}
+			if (files)
+				for (const file of files) {
+					file.uri = this.data.uri + file.name;
+					this.data.mainFiles.toggleFile(file.name, file);
+				}
 		});
+	}
+
+	on(event, listener) {
+		const listeners = this.data.listeners.get(event);
+		if (listeners)
+			listeners.push(listener);
+		else
+			this.data.listeners.set(event, [listener]);
+	}
+
+	emit(event, data) {
+		const listeners = this.data.listeners.get(event);
+		for (const listener of listeners)
+			listener(data);
 	}
 
 	get(filename) {
@@ -52,7 +65,7 @@ module.exports = class extends EventEmitter {
 			if (!this.data.tempWatching) {
 				this.data.tempWatch = fs.watch(this.data.tempUri, {
 					persistent: false
-				}, this.watchTempHandle);
+				}, this.watchTempHandle.bind(this));
 				this.data.tempWatching = true;
 				return this.data.tempWatch;
 			}
@@ -124,7 +137,11 @@ class Files {
 			return false;
 		}
 
-		this.data.files.set(filename, stat ? stat : fs.statSync(this.data.uri + filename));
+		try {
+			this.data.files.set(filename, stat ? stat : fs.statSync(this.data.uri + filename));
+		} catch(err) {
+			return false;
+		}
 		return true;
 	}
 

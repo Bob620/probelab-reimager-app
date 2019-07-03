@@ -1,5 +1,5 @@
 {
-  "name": "thermo_reimager_app",
+  "name": "probelab-reimager-app",
   "productName": "Probelab Reimager",
   "version": "2.4.0-pre",
   "description": "Visual UI for Probelab Reimager using Electron",
@@ -32,14 +32,26 @@
     ]
   },
   "build": {
+    "icon": "./assets/svg/atom-1.ico",
     "appId": "net.probelab.reimager",
     "win": {
       "target": [
         {
           "target": "nsis",
           "arch": [
-            "x64",
-            "ia32"
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "msi",
+          "arch": [
+            "x64"
           ]
         }
       ]
@@ -49,21 +61,20 @@
         {
           "target": "deb",
           "arch": [
-            "x64",
-            "ia32"
+            "x64"
           ]
         },
         {
           "target": "snap",
           "arch": [
-            "x64",
-            "ia32"
+            "x64"
           ]
         }
       ]
     }
   },
   "author": "Bob620",
+  "email": "bruder.kraft225@gmail.com",
   "license": "MIT",
   "devDependencies": {
     "babel-core": "^6.26.3",

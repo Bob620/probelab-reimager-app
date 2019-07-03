@@ -1,3 +1,5 @@
+const fs = require('fs');
+
 const { CanvasRoot, NodeCanvas } = require('thermo-reimager');
 
 const ThermoWatcher = require('../thermowatcher.js');
@@ -12,14 +14,16 @@ class Child {
 			canvas
 		};
 
-		this.data.comms.on('canvas', this.canvas);
-		this.data.comms.on('watchDir', this.watchDir);
-		this.data.comms.on('unwatchDir', this.unwatchDir);
-		this.data.comms.on('getDir', this.getDir);
-		this.data.comms.on('processImage', this.processImage);
-		this.data.comms.on('writeImage', this.writeImage);
+		this.data.comms.on('canvas', this.canvas.bind(this));
+		this.data.comms.on('getDir', this.getDir.bind(this));
+		this.data.comms.on('processImage', this.processImage.bind(this));
+		this.data.comms.on('unwatchDir', this.unwatchDir.bind(this));
+		this.data.comms.on('watchDir', this.watchDir.bind(this));
+		this.data.comms.on('writeImage', this.writeImage.bind(this));
 
-		this.data.comms.send('ready');
+		canvas.init().then(() => {
+			this.data.comms.send('ready');
+		});
 	}
 
 	async canvas({command, data}) {
@@ -27,40 +31,46 @@ class Child {
 	}
 
 	async getDir({uri}) {
-		return (await Functions.getDir(uri, this.data.canvas)).map(thermo => thermo.uuidSerialize());
+		const test = (await Functions.getDir(uri, this.data.canvas));
+		return test.map(thermo => thermo.uuidSerialize());
 	}
 
 	async processImage({uri, uuid, operations, settings}, returnThermo=false) {
 		const splitUri = uri.split('/');
 		const watcher = this.data.watchedDirs.get(splitUri.slice(0, -1).join('/'));
+		const filename = splitUri[splitUri.length - 1];
 		let file = undefined;
 
 		if (watcher)
-			file = watcher.get(splitUri[splitUri.length - 1]);
+			file = watcher.get(filename);
 
 		if (file === undefined) {
 			file = fs.statSync(uri);
 			file.uri = uri;
+			file.name = filename;
 		}
 
 		const thermo = await Functions.createThermo(file, this.data.canvas, uuid);
 		if (thermo === undefined) throw {code: 0, message: 'No Thermo found'};
 
-		for (const operation of operations)
-			await thermo[operation](settings);
+		for (const {command, args} of operations)
+			await thermo[command](...args, settings);
 
 		if (returnThermo)
 			return thermo;
 
 		return {
 			serial: thermo.uuidSerialize(),
-			image: await thermo.toUrl()
+			image: await thermo.toUrl(settings)
 		};
 	}
 
-	async writeImage({uri, uuid, operations, settings}) {
-		const thermo = await this.processImage({uri, uuid, operations, settings}, true);
-		await thermo.write(settings);
+	async unwatchDir({uri}) {
+		const watcher = this.data.watchedDirs.get(uri);
+		if (watcher) {
+			watcher.unwatch();
+			this.data.watchedDirs.delete(uri);
+		}
 	}
 
 	async watchDir({uri}) {
@@ -77,12 +87,9 @@ class Child {
 		}
 	}
 
-	async unwatchDir({uri}) {
-		const watcher = this.data.watchedDirs.get(uri);
-		if (watcher) {
-			watcher.unwatch();
-			this.data.watchedDirs.delete(uri);
-		}
+	async writeImage({uri, uuid, operations, settings}) {
+		const thermo = await this.processImage({uri, uuid, operations, settings}, true);
+		await thermo.write(settings);
 	}
 }
 
