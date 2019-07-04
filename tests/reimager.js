@@ -63,7 +63,7 @@ outsideComm.send({
 	type: 'getDir',
 	uuid: generateUuid.v4(),
 	data: {
-		uri: 'C:/Users/EPMA_Castaing/work/thermo imaging/2019-05-29 Test/2019-05-29/'
+		uri: '../../thermo-reimager/tests/data/'
 	}
 });
 
@@ -109,7 +109,7 @@ setTimeout(() => {
 			type: 'processImage',
 			uuid: generateUuid.v4(),
 			data: {
-				uri: 'C:/Users/EPMA_Castaing/work/thermo imaging/2019-05-29 Test/2019-05-29/1024(1).PS.EDS/1024(1).p_s',
+				uri: '../../thermo-reimager/tests/data/1024(1).PS.EDS/1024(1).p_s',
 				operations: [{
 					command: 'addScale',
 					args: []
@@ -121,6 +121,6 @@ setTimeout(() => {
 					png: {}
 				}
 			}
-		})
+		});
 	}, 10);
 }, 10);

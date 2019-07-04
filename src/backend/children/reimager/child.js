@@ -3,11 +3,11 @@ const fs = require('fs');
 const { CanvasRoot, NodeCanvas } = require('thermo-reimager');
 
 const ThermoWatcher = require('../thermowatcher.js');
-const Communications = require('../communications.js');
+const Communications = require('../../communications.js');
 const Functions = require('./functions.js');
 
 class Child {
-	constructor(canvas, comms=undefined) {
+	constructor(canvas, comms=process) {
 		this.data = {
 			watchedDirs: new Map(),
 			comms: new Communications(comms),
@@ -31,8 +31,7 @@ class Child {
 	}
 
 	async getDir({uri}) {
-		const test = (await Functions.getDir(uri, this.data.canvas));
-		return test.map(thermo => thermo.uuidSerialize());
+		return (await Functions.getDir(uri, this.data.canvas)).map(thermo => thermo.uuidSerialize());
 	}
 
 	async processImage({uri, uuid, operations, settings}, returnThermo=false) {
@@ -60,7 +59,7 @@ class Child {
 			return thermo;
 
 		return {
-			serial: thermo.uuidSerialize(),
+			data: thermo.uuidSerialize(),
 			image: await thermo.toUrl(settings)
 		};
 	}
