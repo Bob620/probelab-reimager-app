@@ -10,11 +10,14 @@ module.exports = class {
 
 	on(channel, listener) {
 		if (typeof listener === 'function')
-			this.data.ipc.on(channel, listener);
+			this.data.ipc.on(channel, ({sender}, data) => {
+				listener(data, sender ? {send: (type, data=[], uuid) => {
+					sender.send('message', {type, data, uuid});
+				}} : undefined);
+			});
 	}
 
 	send(data) {
 		return this.data.window.send('message', data);
 	}
-
-}
+};

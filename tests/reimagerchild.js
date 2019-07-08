@@ -41,12 +41,14 @@ reimager.on('ready', async () => {
 				for (const file of fs.readdirSync('./test'))
 					fs.unlinkSync('./test/' + file);
 				fs.rmdirSync('./test');
-			} catch (err) {
-			}
+			} catch (err) {}
 
 			console.log(await reimager.send('processImage', {
 				uri: '../../thermo-reimager/tests/data/1024(1).PS.EDS/1024(1).p_s',
 				operations: [{
+					command: 'addLayer',
+					args: [{name: 'base'}]
+				},{
 					command: 'addScale',
 					args: []
 				},{

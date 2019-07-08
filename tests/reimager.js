@@ -111,11 +111,14 @@ setTimeout(() => {
 			data: {
 				uri: '../../thermo-reimager/tests/data/1024(1).PS.EDS/1024(1).p_s',
 				operations: [{
+					command: 'addLayer',
+					args: [{name: 'base'}]
+				},{
 					command: 'addScale',
 					args: []
 				},{
 					command: 'addPoint',
-					args: [100, 100, 'test']
+					args: [{values:[100, 100, 200, 200], name:'test'}]
 				}],
 				settings: {
 					png: {}

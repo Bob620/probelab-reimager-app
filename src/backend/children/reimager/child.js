@@ -31,7 +31,7 @@ class Child {
 	}
 
 	async getDir({uri}) {
-		return (await Functions.getDir(uri, this.data.canvas)).map(thermo => thermo.uuidSerialize());
+		return (await Functions.getDir(uri, this.data.canvas)).map(thermo => thermo.serialize());
 	}
 
 	async processImage({uri, uuid, operations, settings}, returnThermo=false) {
@@ -59,7 +59,7 @@ class Child {
 			return thermo;
 
 		return {
-			data: thermo.uuidSerialize(),
+			data: thermo.serialize(),
 			image: await thermo.toUrl(settings)
 		};
 	}

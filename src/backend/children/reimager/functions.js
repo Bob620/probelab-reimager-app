@@ -1,27 +1,27 @@
 const fs = require('fs');
 const fsPromise = fs.promises;
-const { PointShoot, ExtractedMap, constants } = require('thermo-reimager');
+const { PointShoot, ExtractedMap, constants, calculations } = require('thermo-reimager');
 
 const Functions = {
 	getDir: async (dirUri, canvas) => {
 		try {
 			const directory = await fsPromise.readdir(dirUri, {withFileTypes: true});
 
-			return directory.flatMap(dir => {
+			return (await Promise.all(directory.map(dir => {
 				if (dir.isDirectory()) {
 					const files = fs.readdirSync(dirUri + dir.name + '/', {withFileTypes: true});
 
-					return files.filter(file => file.isFile()).map(file => {
+					return Promise.all(files.filter(file => file.isFile()).map(file => {
 						file.uri = dirUri + dir.name + '/' + file.name;
 						return Functions.createThermo(file, canvas);
-					});
+					}));
 				}
-			}).filter(i => i);
+			}))).flat().filter(i => i);
 		} catch(err) {
 			return [];
 		}
 	},
-	createThermo: (file, canvas, uuid=undefined) => {
+	createThermo: async (file, canvas, uuid=undefined) => {
 		if (file.isFile()) {
 			let thermo;
 
@@ -32,13 +32,8 @@ const Functions = {
 				thermo = new ExtractedMap(file, canvas);
 
 			if (thermo) {
-				thermo.data.uuid = uuid ? uuid : thermo.data.name;
-				thermo.uuidSerialize = () => {
-					let serial = thermo.serialize();
-					serial.uuid = thermo.data.uuid;
-					return serial;
-				};
-
+				await thermo.init();
+				thermo.data.uuid = uuid ? uuid : thermo.data.uuid;
 				return thermo;
 			}
 		}

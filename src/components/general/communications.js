@@ -1,60 +1,70 @@
-import generateUuid from './generateuuid.js';
-const { ipcRenderer } = window.require('electron');
-
-ipcRenderer.on('debug', (event, arg) => {
-	console.log(arg);
-});
-
-const ipcChannel = 'data';
+import generateUUID from './generateuuid.js';
 
 module.exports = class {
-	constructor() {
+	constructor(messageChannel={on: () => {}, send: () => {}}) {
 		this.data = {
-			ipc: ipcRenderer,
-			awaiting: new Map(),
-			onMessage: new Map()
+			messageChannel,
+			messageCallbacks: new Map(),
+			uuidCallbacks: new Map()
 		};
 
-		this.data.ipc.on(ipcChannel, ({sender}, {type, data, uuid}) => {
-			const waiting = this.data.awaiting.get(uuid);
-			const onMessage = this.data.onMessage.get(type);
-			if (waiting)
-				if (type === 'resolve')
-					waiting.resolve(data);
-				else
-					waiting.reject(data);
-			else if (onMessage) {
-				onMessage(data).then(sendData => {
-					sender.send(ipcChannel, {
-						uuid,
-						type: 'resolve',
-						data: sendData,
-					});
-				}).catch(err => {
-					sender.send(ipcChannel, {
-						uuid,
-						type: 'reject',
-						data: err,
-					});
-				});
-			}
+		this.setMessageChannel();
+	}
+
+	setMessageChannel(messageChannel=this.data.messageChannel) {
+		this.data.messageChannel = messageChannel;
+
+		for (const {reject} of this.data.uuidCallbacks.values())
+			reject({code: 1, message: 'Message channel changed'});
+
+		this.data.uuidCallbacks = new Map();
+
+		this.data.messageChannel.on('message', ({type, data, uuid}) => {
+			if (type === 'reject') {
+				const callbacks = this.data.uuidCallbacks.get(uuid);
+				this.data.uuidCallbacks.delete(uuid);
+				if (callbacks)
+					for (const callback of callbacks)
+						callback.reject(data);
+			} else if (type === 'resolve') {
+				const callbacks = this.data.uuidCallbacks.get(uuid);
+				this.data.uuidCallbacks.delete(uuid);
+				if (callbacks)
+					for (const callback of callbacks)
+						callback.resolve(data);
+			} else
+				try {
+					const callbacks = this.data.messageCallbacks.get(type);
+					if (callbacks)
+						Promise.all(callbacks.map(callback => callback(data))).then(data => {
+							this.send('resolve', data.flat().filter(i => i), uuid);
+						}).catch(err => {
+							this.send('reject', err.stack, uuid);
+						});
+				} catch(err) {
+					this.send('reject', err.stack, uuid);
+				}
 		});
 	}
 
-	onMessage(type, func) {
-		if (typeof func === 'function')
-			this.data.onMessage.set(type, func);
-		return this;
+	on(type, callback) {
+		if (typeof callback === 'function') {
+			const callbacks = this.data.messageCallbacks.get(type);
+			if (callbacks)
+				callbacks.push(callback);
+			else
+				this.data.messageCallbacks.set(type, [callback]);
+		}
 	}
 
-	sendMessage(type, data, willReturn=true) {
-		const uuid = generateUuid.v4();
-		if (willReturn)
-			return new Promise((resolve, reject) => {
-				this.data.awaiting.set(uuid, {resolve, reject, type});
-				this.data.ipc.send(ipcChannel, {type, data, uuid});
-			});
-		else
-			this.data.ipc.send(ipcChannel, {type, data, uuid});
+	send(type, data={}, uuid=generateUUID.v4()) {
+		return new Promise((resolve, reject) => {
+			const callbacks = this.data.uuidCallbacks.get(uuid);
+			if (callbacks)
+				callbacks.push({resolve, reject});
+			else
+				this.data.uuidCallbacks.set(uuid, [{resolve, reject}]);
+			this.data.messageChannel.send({type, data, uuid});
+		});
 	}
 };

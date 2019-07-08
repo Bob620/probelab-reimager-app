@@ -17,5 +17,6 @@ module.exports = new Store('settings', {
 	scaleBarTop: true,
 	pixelSizeConstant: 0,
 	autoPixelSizeConstant: true,
-	activePoints: []
+	activePoints: [],
+	activeLayers: ['base']
 });

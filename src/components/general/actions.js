@@ -1,9 +1,11 @@
 import { CreateActions } from 'bakadux';
 import Communications from './communications';
+const { ipcRenderer } = window.require('electron');
+import IPC from './ipc';
 
-const comms = new Communications();
+const comms = new Communications(new IPC(ipcRenderer));
 
-comms.onMessage('updateDirectory', ({images}) => {
+comms.on('updateDirectory', ({images}) => {
 	actions.updateDirImages(images);
 });
 
@@ -12,7 +14,7 @@ const actions = CreateActions([
 		actionType: 'saveImage',
 		func: ({stores}, uuid, data, callback=undefined) => {
 			if (uuid)
-				comms.sendMessage('saveImage', {
+				comms.send('saveImage', {
 					uuid
 				}).then(({uuid: newUuid}) => {
 					data.uuid = newUuid;
@@ -27,7 +29,7 @@ const actions = CreateActions([
 		actionType: 'deleteImage',
 		func: ({stores}, uuid) => {
 			if (uuid)
-				comms.sendMessage('removeImage', {
+				comms.send('removeImage', {
 					uuid
 				}, false);
 		}
@@ -54,7 +56,7 @@ const actions = CreateActions([
 				stores.general.set('selectedUuid', undefined);
 				stores.general.set('workingDir', dir);
 
-				comms.sendMessage('processDirectory', { dir }).then(({images}) => {
+				comms.send('processDirectory', { dir }).then(([{images}]) => {
 					actions.updateDirImages(images);
 					const selectedUuid = stores.general.get('selectedUuid');
 					if (selectedUuid)
@@ -68,7 +70,10 @@ const actions = CreateActions([
 	{
 		actionType: 'updateDirImages',
 		func: ({stores}, images) => {
-			stores.general.set('images', images);
+			stores.general.set('images', images.reduce((images, image) => {
+				images[image.uuid] = image;
+				return images;
+			}, {}));
 		}
 	},
 	{
@@ -97,26 +102,29 @@ const actions = CreateActions([
 				actions.selectImage(uuid);
 
 			if (oldUuid || uuid)
-				comms.sendMessage('loadImage', {
+				comms.send('loadImage', {
 					oldUuid: (uuid && oldUuid) ? oldUuid : '',
 					uuid: uuid ? uuid : oldUuid,
+					settings: {
+						scaleColor: stores.settings.get('scaleColor'),
+						belowColor: stores.settings.get('belowColor'),
+						scaleSize: stores.settings.get('autoScale') ? 0 : (stores.settings.get('scaleSize') === '' ? 0 : stores.settings.get('scaleSize')),
+						scaleBarHeight: stores.settings.get('autoHeight') ? 0 : (stores.settings.get('scaleBarHeight') / 100),
+						scaleBarTop: stores.settings.get('scaleBarTop'),
+						pixelSizeConstant: stores.settings.get('pixelSizeConstant'),
+						backgroundOpacity: stores.settings.get('autoBackgroundOpacity') ? 0 : stores.settings.get('backgroundOpacity'),
+						pointType: stores.settings.get('pointType'),
+						textColor: stores.settings.get('pointColor'),
+						pointSize: stores.settings.get('autoPointFontSize') ? 0 : (stores.settings.get('pointFontSize') / 2),
+						pointFontSize: stores.settings.get('autoPointFontSize') ? 0 : stores.settings.get('pointFontSize'),
+					},
 					scaleType: stores.settings.get('scalePosition'),
-					scaleColor: stores.settings.get('scaleColor'),
-					belowColor: stores.settings.get('belowColor'),
-					scaleSize: stores.settings.get('autoScale') ? 0 : (stores.settings.get('scaleSize') === '' ? 0 : stores.settings.get('scaleSize')),
-					scaleBarHeight: stores.settings.get('autoHeight') ? 0 : (stores.settings.get('scaleBarHeight') / 100),
-					scaleBarTop: stores.settings.get('scaleBarTop'),
-					pixelSizeConstant: stores.settings.get('pixelSizeConstant'),
-					backgroundOpacity: stores.settings.get('autoBackgroundOpacity') ? 0 : stores.settings.get('backgroundOpacity'),
-					pointType: stores.settings.get('pointType'),
-					textColor: stores.settings.get('pointColor'),
-					pointSize: stores.settings.get('autoPointFontSize') ? 0 : (stores.settings.get('pointFontSize') / 2),
-					pointFontSize: stores.settings.get('autoPointFontSize') ? 0 : stores.settings.get('pointFontSize'),
-					points: stores.settings.get('activePoints').filter(name => image.points[name] !== undefined).map(name => image.points[name])
-				}).then(({uuid, image, thermo}) => {
+					points: stores.settings.get('activePoints').filter(name => image.points[name] !== undefined).map(name => image.points[name]),
+					layers: stores.settings.get('activeLayers').filter(name => image.layers[name] !== undefined).map(name => image.layers[name])
+				}).then(([{uuid, image, data}]) => {
 					if (stores.general.get('selectedUuid') === uuid)
 						stores.general.set('selectedImage', image);
-					//stores.general.get('images')[uuid] = thermo;
+					//stores.general.get('images')[uuid] = data;
 					actions.navigateHome();
 				}).catch(() => {});
 		}
@@ -167,7 +175,7 @@ const actions = CreateActions([
 				};
 
 			if (selectedUuid)
-				comms.sendMessage('writeImage', data).then(({uuid, thermo}) => {
+				comms.send('writeImage', data).then(({uuid, thermo}) => {
 					//stores.general.get('images')[uuid] = thermo;
 					actions.navigateHome();
 					if (typeof callback === 'function')

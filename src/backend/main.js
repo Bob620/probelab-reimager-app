@@ -8,16 +8,16 @@ const { app, dialog } = require('electron');
 let window = null;
 const reimager = new ChildSpawn('reimager');
 
+let uuidMap = {};
+
 app.on('ready', async () => {
 	if (window === null)
 		window = createWindow();
 
 	const comms = new Communications(new IPC(window));
 
-	reimager.on('directoryUpdate', async () => {
-		comms.send( 'processDirectory', {
-			images: await child.send('processDirectory', {})
-		});
+	reimager.on('dirUpdate', async () => {
+
 	});
 
 	comms.on('canvas', data => {
@@ -46,7 +46,7 @@ app.on('ready', async () => {
 					},
 					async path => {
 						let extension = path.split('.').pop();
-						extension = extension === 'tif' ? 'tif' : (extension === 'jpg' ? 'jpeg' : extension);
+						extension = extension === 'tif' ? 'tiff' : (extension === 'jpg' ? 'jpeg' : extension);
 
 						resolve(await reimager.send('writeImage', {
 							uri: '',
@@ -73,21 +73,36 @@ app.on('ready', async () => {
 	});
 
 	comms.on('loadImage', async data => {
-		return await reimager.send('processImage', {
-			uri: '',
-			operations: [
-				{
-					command: 'addScale',
-					args: []
-				},{
-					command: 'addPoint',
-					args: []
-				}
-			],
-			settings: {
-				png: {}
-			}
+		const image = uuidMap[data.uuid];
+
+		let operations = [];
+
+		operations.push({
+			command: 'addLayer',
+			args: [{name: 'base'}]
 		});
+
+		for (const point of data.points)
+			operations.push({
+				command: 'addPoint',
+				args: [point.x, point.y, point.name]
+			});
+
+		operations.push({
+			command: 'addScale',
+			args: [data.scaleType]
+		});
+
+		data.settings.png = {};
+
+		let [thermo] = await reimager.send('processImage', {
+			uri: image.entryFile,
+			operations,
+			settings: data.settings
+		});
+
+		thermo.uuid = data.uuid;
+		return thermo;
 	});
 
 	comms.on('processDirectory', async data => {
@@ -95,8 +110,15 @@ app.on('ready', async () => {
 		if (!dirUri.endsWith('/'))
 			dirUri = dirUri + '/';
 
+		const images = await reimager.send('getDir', {uri: dirUri});
+
+		uuidMap = images.reduce((images, image) => {
+			images[image.uuid] = image;
+			return images;
+		}, {});
+
 		return {
-			images: await reimager.send('getDir', {uri: dirUri})
+			images
 		};
 	});
 });

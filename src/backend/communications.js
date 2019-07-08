@@ -19,7 +19,7 @@ module.exports = class {
 
 		this.data.uuidCallbacks = new Map();
 
-		this.data.messageChannel.on('message', async ({type, data, uuid}) => {
+		this.data.messageChannel.on('message', async ({type, data, uuid}, sender=undefined) => {
 			if (type === 'reject') {
 				const callbacks = this.data.uuidCallbacks.get(uuid);
 				this.data.uuidCallbacks.delete(uuid);
@@ -36,9 +36,15 @@ module.exports = class {
 				try {
 					const callbacks = this.data.messageCallbacks.get(type);
 					if (callbacks)
-						this.send('resolve', (await Promise.all(callbacks.map(callback => callback(data)))).flat(), uuid);
+						if (sender)
+							sender.send('resolve', (await Promise.all(callbacks.map(callback => callback(data)))).flat().filter(i => i), uuid);
+						else
+							this.send('resolve', (await Promise.all(callbacks.map(callback => callback(data)))).flat().filter(i => i), uuid);
 				} catch(err) {
-					this.send('reject', err.stack, uuid);
+					if (sender)
+						sender.send('reject', err.stack, uuid);
+					else
+						this.send('reject', err.stack, uuid);
 				}
 		});
 	}
