@@ -114,16 +114,20 @@ setTimeout(() => {
 					command: 'addLayer',
 					args: [{name: 'base'}]
 				},{
-					command: 'addScale',
-					args: []
-				},{
 					command: 'addPoint',
-					args: [{values:[100, 100, 200, 200], name:'test'}]
+					args: [100, 100, 'test']
+				},{
+					command: 'addScale',
+					args: [5]
 				}],
 				settings: {
 					png: {}
 				}
 			}
 		});
+
+		setTimeout(() => {
+			process.exit(0);
+		}, 1000);
 	}, 10);
 }, 10);

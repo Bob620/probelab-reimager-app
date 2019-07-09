@@ -36,36 +36,36 @@ app.on('ready', async () => {
 		return new Promise((resolve, reject) => {
 			try {
 				dialog.showSaveDialog({
-						defaultPath: data.name + '.tif',
-						filters: [
-							{
-								name: 'Images',
-								extensions: ['jpg', 'png', 'tif']
-							}
-						]
-					},
-					async path => {
-						let extension = path.split('.').pop();
-						extension = extension === 'tif' ? 'tiff' : (extension === 'jpg' ? 'jpeg' : extension);
+					defaultPath: data.name + '.tif',
+					filters: [
+						{
+							name: 'Images',
+							extensions: ['jpg', 'png', 'tif']
+						}
+					]
+				},
+				async path => {
+					let extension = path.split('.').pop();
+					extension = extension === 'tif' ? 'tiff' : (extension === 'jpg' ? 'jpeg' : extension);
 
-						resolve(await reimager.send('writeImage', {
-							uri: '',
-							operations: [
-								{
-									command: 'addScale',
-									args: []
-								},{
-									command: 'addPoint',
-									args: []
-								}
-							],
-							settings: {
-								[extension]: {},
-								uri: path
-							}
-						}));
-					}
-				);
+					resolve(await reimager.send('writeImage', {
+						uri: '',
+						operations: [{
+							command: 'addLayer',
+							args: [{name: 'base'}]
+							},{
+								command: 'addPoint',
+								args: []
+							},{
+							command: 'addScale',
+							args: []
+						}],
+						settings: {
+							[extension]: {},
+							uri: path
+						}
+					}));
+				});
 			} catch(err) {
 				reject(err);
 			}
@@ -98,7 +98,7 @@ app.on('ready', async () => {
 		let [thermo] = await reimager.send('processImage', {
 			uri: image.entryFile,
 			operations,
-			settings: data.settings
+			settings: {png: {}}
 		});
 
 		thermo.uuid = data.uuid;
