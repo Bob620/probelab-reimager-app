@@ -1,0 +1,28 @@
+{
+  "settings": {
+    "BASELAYER": "base",
+    "scalePositions": {
+      "UPPERLEFT": "ul",
+      "UPPERRIGHT": "ur",
+      "LOWERLEFT": "ll",
+      "LOWERRIGHT": "lr",
+      "LOWERCENTER": "lc",
+      "BELOWLEFT": "bl",
+      "BELOWRIGHT": "br",
+      "BELOWCENTER": "bc"
+    },
+    "pointTypes": {
+      "THERMOLIKE": "thermo",
+      "THERMOROUND": "round",
+      "CROSS": "cross",
+      "CIRCLE": "circle"
+    },
+    "colors": {
+      "AUTO": "auto",
+      "WHITE": "white",
+      "BLACK": "black",
+      "RED": "red",
+      "ORANGE": "orange"
+    }
+  }
+}

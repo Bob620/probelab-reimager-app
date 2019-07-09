@@ -35,6 +35,14 @@ class Child {
 	}
 
 	async processImage({uri, uuid, operations, settings}, returnThermo=false) {
+		settings = Functions.sanitizeSettings(settings);
+
+		for (let i = 0; i < operations.length; i++) {
+			const {command, args} = operations[i];
+			if (command === 'addScale')
+				operations[i].args[0] = Functions.sanitizePosition(args[0]);
+		}
+
 		const splitUri = uri.split('/');
 		const watcher = this.data.watchedDirs.get(splitUri.slice(0, -1).join('/'));
 		const filename = splitUri[splitUri.length - 1];
@@ -88,6 +96,8 @@ class Child {
 
 	async writeImage({uri, uuid, operations, settings}) {
 		const thermo = await this.processImage({uri, uuid, operations, settings}, true);
+
+		settings = Functions.sanitizeSettings(settings);
 		await thermo.write(settings);
 	}
 }

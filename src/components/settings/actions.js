@@ -5,6 +5,7 @@ export default CreateActions([
 		actionType: 'setSettings',
 		func: ({stores}, newSettings) => {
 			newSettings = JSON.parse(JSON.stringify(newSettings));
+
 			for (const key of Object.keys(newSettings))
 				stores.settings.set(key, newSettings[key]);
 		}
@@ -199,11 +200,12 @@ export default CreateActions([
 	},
 	{
 		actionType: 'addPoint',
-		func: ({stores, actions}, pointName) => {
+		func: ({stores, actions}, point) => {
 			let points = stores.settings.get('activePoints');
+			let pointNames = points.map(point => point.name);
 
-			if (!points.includes(pointName))
-				points.push(pointName);
+			if (!pointNames.includes(point.name))
+				points.push(point);
 			actions.navigateHome();
 		}
 	},
@@ -211,7 +213,8 @@ export default CreateActions([
 		actionType: 'removePoint',
 		func: ({stores, actions}, pointName) => {
 			let points = stores.settings.get('activePoints');
-			const pointPos = points.indexOf(pointName);
+			let pointNames = points.map(point => point.name);
+			const pointPos = pointNames.indexOf(pointName);
 
 			if (pointPos !== -1)
 				points.splice(pointPos, 1);

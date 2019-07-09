@@ -121,13 +121,33 @@ setTimeout(() => {
 					args: [5]
 				}],
 				settings: {
-					png: {}
+					png: {},
+					activeLayers: [{
+						name: 'base'
+					}],
+					activePoints: [],
+					autoBackgroundOpacity: false,
+					autoHeight: false,
+					autoPixelSizeConstant: true,
+					autoPointFontSize: false,
+					autoScale: true,
+					backgroundOpacity: 70,
+					belowColor: 'white',
+					pixelSizeConstant: 0,
+					pointColor: 'orange',
+					pointFontSize: 100,
+					pointType: 'round',
+					scaleBarHeight: 100,
+					scaleBarTop: true,
+					scaleColor: 'white',
+					scalePosition: 'bc',
+					scaleSize: 0
 				}
 			}
 		});
 
 		setTimeout(() => {
 			process.exit(0);
-		}, 1000);
+		}, 5000);
 	}, 10);
 }, 10);

@@ -17,7 +17,7 @@ class Image extends Component {
 	render() {
 		const imageDataUrl = generalStore.get('selectedImage');
 		const selectedUuid = generalStore.get('selectedUuid');
-		let image = generalStore.get('images')[selectedUuid];
+		let image = generalStore.get('images').get(selectedUuid);
 		image = image !== undefined ? image : generalStore.get('safebox').get(selectedUuid);
 
 		return (
@@ -33,8 +33,8 @@ class Image extends Component {
 								<p>Image Height: {image.image.height}px</p>
 							</div>
 							<div>
-								<p>Output Width: {image.output.width}px</p>
-								<p>Output Height: {image.output.height}px</p>
+								<p>Output Width: {image.output.width ? image.output.width : image.image.width}px</p>
+								<p>Output Height: {image.output.height ? image.output.height : image.image.height}px</p>
 							</div>
 						</div> : <div/>
 				}

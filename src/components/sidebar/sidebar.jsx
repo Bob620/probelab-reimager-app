@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import ReactSVG from 'react-svg';
 
 import '../general/common.scss'
 import './sidebar.scss'
@@ -20,7 +19,7 @@ class Sidebar extends Component {
 	render() {
 		let selectedUuid = generalStore.get('selectedUuid');
 		const safebox = Array.from(generalStore.get('safebox').values());
-		const images = generalStore.get('images');
+		const images = Array.from(generalStore.get('images').values());
 		const interactable = generalStore.get('interactable');
 
 		return (
@@ -30,7 +29,7 @@ class Sidebar extends Component {
 						<input onChange={generalActions.setWorkingDirectory} type="file" webkitdirectory="true" />
 					</div>
 					<ul className='current-dir'>{
-						Object.values(images).sort((one, two) => one.name < two.name ? -1 : 1).map(image =>
+						images.sort((one, two) => one.name < two.name ? -1 : 1).map(image =>
 							<li className={`${interactable ? 'selectable' : ''} ${image.uuid === selectedUuid ? 'selected' : ''}`}
 								key={image.uuid}
 								onClick={image.uuid === selectedUuid || !interactable ? () => {} : generalActions.loadImage.bind(undefined, image.uuid)}

@@ -4,35 +4,20 @@ export default CreateActions([
 	{
 		actionType: 'addImage',
 		func: ({actions, stores}, fromUuid, callback=undefined) => {
-			let image = stores.general.get('images')[fromUuid];
-			let imageUuid = '';
+			const settingStore = stores.settings;
+			const generalStore = stores.general;
+
+			let image = generalStore.get('images').get(fromUuid);
+			image = image ? image : generalStore.get('safebox').get(fromUuid);
 
 			if (image) {
-				imageUuid = image.uuid;
-			} else {
-				image = stores.general.get('safebox').get(fromUuid);
-				imageUuid = image.imageUuid;
-			}
+				let data = JSON.parse(JSON.stringify(image));
+				data.settings = {};
 
-			if (image) {
-				let settings = {};
+				for (const key of settingStore.getKeys())
+					data.settings[key] = JSON.parse(JSON.stringify(settingStore.get(key)));
 
-				for (const key of stores.settings.getKeys())
-					settings[key] = stores.settings.get(key);
-
-				actions.saveImage(fromUuid, {
-					uri: image.uri,
-					magnification: image.magnification,
-					image: image.image,
-					output: image.output,
-					points: image.points,
-					settingUuid: JSON.stringify(settings),
-					imageUuid,
-					fromUuid,
-					name: (' ' + image.name).slice(1),
-					settings: JSON.parse(JSON.stringify(settings)),
-					workingDir: (' ' + stores.general.get('workingDir')).slice(1)
-				}, callback);
+				actions.saveImage(fromUuid, data, callback);
 			}
 		}
 	},
@@ -41,30 +26,27 @@ export default CreateActions([
 		func: ({actions, stores}, uuid) => {
 			let image = stores.general.get('safebox').get(uuid);
 
-			if (image) {
-				let settings = {};
-
-				for (const key of stores.settings.getKeys())
-					settings[key] = stores.settings.get(key);
-
+			if (image)
 				actions.addImage(uuid, newUuid => {
 					actions.removeImage(undefined, uuid);
 					actions.loadImage(newUuid);
 				});
-			}
 		}
 	},
 	{
 		actionType: 'removeImage',
 		func: ({actions, stores}, event, uuid) => {
+			const generalStore = stores.general;
+
 			if (event)
 				event.preventDefault();
-			stores.general.get('safebox').delete(uuid);
+
+			generalStore.get('safebox').delete(uuid);
 			actions.deleteImage(uuid);
 
-			if (stores.general.get('selectedUuid') === uuid) {
-				stores.general.set('selectedImage', undefined);
-				stores.general.set('selectedUuid', undefined);
+			if (generalStore.get('selectedUuid') === uuid) {
+				generalStore.set('selectedImage', undefined);
+				generalStore.set('selectedUuid', undefined);
 			} else
 				actions.navigateHome();
 		}

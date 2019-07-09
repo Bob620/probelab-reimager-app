@@ -2,13 +2,15 @@ const createWindow = require('./createwindow.js');
 const ChildSpawn = require('./childspawn.js');
 const IPC = require('./ipc.js');
 const Communications = require('./communications.js');
+const GenerateUuid = require('./generateuuid.js');
 
 const { app, dialog } = require('electron');
 
 let window = null;
 const reimager = new ChildSpawn('reimager');
 
-let uuidMap = {};
+let uuidMap = new Map();
+let imageMap = new Map();
 
 app.on('ready', async () => {
 	if (window === null)
@@ -25,7 +27,14 @@ app.on('ready', async () => {
 	});
 
 	comms.on('saveImage', async data => {
+		const uuid = GenerateUuid.v4();
 
+		const oldThermo = uuidMap.get(data.uuid);
+		oldThermo.uuid = uuid;
+
+		uuidMap.set(uuid, oldThermo);
+
+		return {uuid};
 	});
 
 	comms.on('removeImage', async data => {
@@ -47,23 +56,14 @@ app.on('ready', async () => {
 				async path => {
 					let extension = path.split('.').pop();
 					extension = extension === 'tif' ? 'tiff' : (extension === 'jpg' ? 'jpeg' : extension);
+					data.settings[extension] =  {};
+
+					const image = uuidMap.get(data.imageUuid);
 
 					resolve(await reimager.send('writeImage', {
-						uri: '',
-						operations: [{
-							command: 'addLayer',
-							args: [{name: 'base'}]
-							},{
-								command: 'addPoint',
-								args: []
-							},{
-							command: 'addScale',
-							args: []
-						}],
-						settings: {
-							[extension]: {},
-							uri: path
-						}
+						uri: image.entryFile,
+						operations: createOperations(data.settings),
+						settings: data.settings
 					}));
 				});
 			} catch(err) {
@@ -73,36 +73,29 @@ app.on('ready', async () => {
 	});
 
 	comms.on('loadImage', async data => {
-		const image = uuidMap[data.uuid];
+		const imageKey = createSettingKey(data);
+		const testThermo = imageMap.get(imageKey);
 
-		let operations = [];
+		if (!testThermo) {
+			const image = uuidMap.get(data.imageUuid);
+			data.settings.png = {};
 
-		operations.push({
-			command: 'addLayer',
-			args: [{name: 'base'}]
-		});
-
-		for (const point of data.points)
-			operations.push({
-				command: 'addPoint',
-				args: [point.x, point.y, point.name]
+			let [thermo] = await reimager.send('processImage', {
+				uri: image.entryFile,
+				operations: createOperations(data.settings),
+				settings: data.settings
 			});
 
-		operations.push({
-			command: 'addScale',
-			args: [data.scaleType]
-		});
+			thermo.uuid = data.uuid;
 
-		data.settings.png = {};
+			imageMap.set(imageKey, thermo);
 
-		let [thermo] = await reimager.send('processImage', {
-			uri: image.entryFile,
-			operations,
-			settings: {png: {}}
-		});
+			return thermo;
+		}
 
-		thermo.uuid = data.uuid;
-		return thermo;
+		testThermo.imageUuid = testThermo.uuid;
+		testThermo.uuid = data.uuid;
+		return testThermo;
 	});
 
 	comms.on('processDirectory', async data => {
@@ -110,15 +103,15 @@ app.on('ready', async () => {
 		if (!dirUri.endsWith('/'))
 			dirUri = dirUri + '/';
 
-		const images = await reimager.send('getDir', {uri: dirUri});
+		const thermos = await reimager.send('getDir', {uri: dirUri});
 
-		uuidMap = images.reduce((images, image) => {
-			images[image.uuid] = image;
-			return images;
-		}, {});
+		for (const thermo of thermos) {
+			thermo.imageUuid = thermo.uuid;
+			uuidMap.set(thermo.uuid, thermo);
+		}
 
 		return {
-			images
+			thermos
 		};
 	});
 });
@@ -137,3 +130,32 @@ app.on('activate', () => {
 	if (window === null)
 		window = createWindow();
 });
+
+function createOperations(settings) {
+	let operations = [];
+
+	for (const layer of settings.activeLayers)
+		operations.push({
+			command: 'addLayer',
+			args: [layer]
+		});
+
+	for (const point of settings.activePoints)
+		operations.push({
+			command: 'addPoint',
+			args: [point.x, point.y, point.name]
+		});
+
+	operations.push({
+		command: 'addScale',
+		args: [settings.scalePosition]
+	});
+
+	return operations;
+}
+
+function createSettingKey(settings) {
+	settings = JSON.parse(JSON.stringify(settings));
+	delete settings.uuid;
+	return JSON.stringify(settings);
+}

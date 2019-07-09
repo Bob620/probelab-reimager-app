@@ -17,7 +17,6 @@ class Navbar extends Component {
 	}
 
 	render() {
-		const currentPos = settingStore.get('scalePosition');
 		return (
 			<section id='navbar'>
 				<h1>Probelab ReImager</h1>

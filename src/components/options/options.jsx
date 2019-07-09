@@ -3,6 +3,8 @@ import React, { Component } from 'react';
 import '../general/common.scss'
 import './options.scss'
 
+import constants from '../../../constants.json';
+
 import history from '../general/history.js';
 import generalActions from '../general/actions.js'
 import settingActions from '../settings/actions';
@@ -19,55 +21,56 @@ class Options extends Component {
 		const selectedUuid = generalStore.get('selectedUuid');
 		const currentPos = settingStore.get('scalePosition');
 		const interactable = generalStore.get('interactable');
-		let image = generalStore.get('images')[selectedUuid];
-		image = image === undefined ? generalStore.get('safebox').get(selectedUuid) : image;
+		let image = generalStore.get('images').get(selectedUuid);
+		image = image ? image : generalStore.get('safebox').get(selectedUuid);
 		const activePoints = settingStore.get('activePoints');
+		const activePointNames = activePoints.map(point => point.name);
 
 		return (
 			<section id='options'>
-				<div className='expand' draggable='true' onDrag={generalActions.moveOptions}></div>
+				<div className='expand' draggable='true' onDrag={generalActions.moveOptions} />
 				<div className='content'>
 					<div className='positions'>
-						<div className={`ul ${interactable ? 'selectable' : ''} ${currentPos === 3 ? 'selected' : ''}`}
-							 onClick={interactable ? settingActions.setScalePosition.bind(undefined, 3) : () => {}}
+						<div className={`ul ${interactable ? 'selectable' : ''} ${currentPos === constants.settings.scalePositions.UPPERLEFT ? 'selected' : ''}`}
+							 onClick={interactable ? settingActions.setScalePosition.bind(undefined, constants.settings.scalePositions.UPPERLEFT) : () => {}}
 						>
 							<p>Upper Left</p>
 						</div>
-						<div className={`ur ${interactable ? 'selectable' : ''} ${currentPos === 4 ? 'selected' : ''}`}
-							 onClick={interactable ? settingActions.setScalePosition.bind(undefined, 4) : () => {}}
+						<div className={`ur ${interactable ? 'selectable' : ''} ${currentPos === constants.settings.scalePositions.UPPERRIGHT ? 'selected' : ''}`}
+							 onClick={interactable ? settingActions.setScalePosition.bind(undefined, constants.settings.scalePositions.UPPERRIGHT) : () => {}}
 						>
 							<p>Upper Right</p>
 						</div>
-						<div className={`ll ${interactable ? 'selectable' : ''} ${currentPos === 1 ? 'selected' : ''}`}
-							 onClick={interactable ? settingActions.setScalePosition.bind(undefined, 1) : () => {}}
+						<div className={`ll ${interactable ? 'selectable' : ''} ${currentPos === constants.settings.scalePositions.LOWERLEFT ? 'selected' : ''}`}
+							 onClick={interactable ? settingActions.setScalePosition.bind(undefined, constants.settings.scalePositions.LOWERLEFT) : () => {}}
 						>
 							<p>Lower Left</p>
 						</div>
-						<div className={`lc ${interactable ? 'selectable' : ''} ${currentPos === 5 ? 'selected' : ''}`}
-							 onClick={interactable ? settingActions.setScalePosition.bind(undefined, 5) : () => {}}
+						<div className={`lc ${interactable ? 'selectable' : ''} ${currentPos === constants.settings.scalePositions.LOWERCENTER ? 'selected' : ''}`}
+							 onClick={interactable ? settingActions.setScalePosition.bind(undefined, constants.settings.scalePositions.LOWERCENTER) : () => {}}
 						>
 							<p>Lower Center</p>
 						</div>
-						<div className={`lr ${interactable ? 'selectable' : ''} ${currentPos === 2 ? 'selected' : ''}`}
-							 onClick={interactable ? settingActions.setScalePosition.bind(undefined, 2) : () => {}}
+						<div className={`lr ${interactable ? 'selectable' : ''} ${currentPos === constants.settings.scalePositions.LOWERRIGHT ? 'selected' : ''}`}
+							 onClick={interactable ? settingActions.setScalePosition.bind(undefined, constants.settings.scalePositions.LOWERRIGHT) : () => {}}
 						>
 							<p>Lower Right</p>
 						</div>
-						<span className='filler-area'></span>
-						<span className='filler-left'></span>
-						<span className='filler-right'></span>
-						<div className={`bl ${interactable ? 'selectable' : ''} ${currentPos === 0 ? 'selected' : ''}`}
-							 onClick={interactable ? settingActions.setScalePosition.bind(undefined, 0) : () => {}}
+						<span className='filler-area'/>
+						<span className='filler-left'/>
+						<span className='filler-right'/>
+						<div className={`bl ${interactable ? 'selectable' : ''} ${currentPos === constants.settings.scalePositions.BELOWLEFT ? 'selected' : ''}`}
+							 onClick={interactable ? settingActions.setScalePosition.bind(undefined, constants.settings.scalePositions.BELOWLEFT) : () => {}}
 						>
 							<p>Below Left</p>
 						</div>
-						<div className={`bc ${interactable ? 'selectable' : ''} ${currentPos === 7 ? 'selected' : ''}`}
-							 onClick={interactable ? settingActions.setScalePosition.bind(undefined, 7) : () => {}}
+						<div className={`bc ${interactable ? 'selectable' : ''} ${currentPos === constants.settings.scalePositions.BELOWCENTER ? 'selected' : ''}`}
+							 onClick={interactable ? settingActions.setScalePosition.bind(undefined, constants.settings.scalePositions.BELOWCENTER) : () => {}}
 						>
 							<p>Below Center</p>
 						</div>
-						<div className={`br ${interactable ? 'selectable' : ''} ${currentPos === 6 ? 'selected' : ''}`}
-							 onClick={interactable ? settingActions.setScalePosition.bind(undefined, 6) : () => {}}
+						<div className={`br ${interactable ? 'selectable' : ''} ${currentPos === constants.settings.scalePositions.BELOWRIGHT ? 'selected' : ''}`}
+							 onClick={interactable ? settingActions.setScalePosition.bind(undefined, constants.settings.scalePositions.BELOWRIGHT) : () => {}}
 						>
 							<p>Below Right</p>
 						</div>
@@ -77,35 +80,35 @@ class Options extends Component {
 							<div className='colorOptions'>
 								<p>Font Color</p>
 								<select value={settingStore.get('scaleColor')} onChange={settingActions.changeScaleColor}>
-									<option value='auto'>Auto</option>
-									<option value='white'>White</option>
-									<option value='black'>Black</option>
+									<option value={constants.settings.colors.AUTO}>Auto</option>
+									<option value={constants.settings.colors.WHITE}>White</option>
+									<option value={constants.settings.colors.BLACK}>Black</option>
 								</select>
 							</div>
 							<div className='colorOptions'>
 								<p>Background Color</p>
 								<select value={settingStore.get('belowColor')} onChange={settingActions.changeBelowColor}>
-									<option value='auto'>Auto</option>
-									<option value='white'>White</option>
-									<option value='black'>Black</option>
+									<option value={constants.settings.colors.AUTO}>Auto</option>
+									<option value={constants.settings.colors.WHITE}>White</option>
+									<option value={constants.settings.colors.BLACK}>Black</option>
 								</select>
 							</div>
 							<div className='colorOptions'>
 								<p>Point Color</p>
 								<select value={settingStore.get('pointColor')} onChange={settingActions.changePointColor}>
-									<option value='red'>Red</option>
-									<option value='orange'>Orange</option>
-									<option value='white'>White</option>
-									<option value='black'>Black</option>
+									<option value={constants.settings.colors.RED}>Red</option>
+									<option value={constants.settings.colors.ORANGE}>Orange</option>
+									<option value={constants.settings.colors.WHITE}>White</option>
+									<option value={constants.settings.colors.BLACK}>Black</option>
 								</select>
 							</div>
 							<div className='colorOptions'>
 								<p>Point Marker</p>
 								<select value={settingStore.get('pointType')} onChange={settingActions.changePointType}>
-									<option value='thermo'>Thermo-Like</option>
-									<option value='thermoCircle'>Thermo-Round</option>
-									<option value='circle'>Circle</option>
-									<option value='cross'>Cross</option>
+									<option value={constants.settings.pointTypes.THERMOLIKE}>Thermo-Like</option>
+									<option value={constants.settings.pointTypes.THERMOROUND}>Thermo-Round</option>
+									<option value={constants.settings.pointTypes.CIRCLE}>Circle</option>
+									<option value={constants.settings.pointTypes.CROSS}>Cross</option>
 								</select>
 							</div>
 							<ToggleableScale min='0' max='100' maxLength='3' valueName='backgroundOpacity' autoName='autoBackgroundOpacity' text='Background Opacity: '
@@ -144,9 +147,9 @@ class Options extends Component {
 							{
 								image && image.points && Object.values(image.points).map(point =>
 									<li key={point.name}
-										className={activePoints.includes(point.name) ? 'div-selected' : ''}
-										onClick={activePoints.includes(point.name) ? settingActions.removePoint.bind(undefined, point.name) :
-											settingActions.addPoint.bind(undefined, point.name)} >
+										className={activePointNames.includes(point.name) ? 'div-selected' : ''}
+										onClick={activePointNames.includes(point.name) ? settingActions.removePoint.bind(undefined, point.name) :
+											settingActions.addPoint.bind(undefined, point)} >
 										<div><div /></div>
 										<p>{point.name}</p>
 									</li>)

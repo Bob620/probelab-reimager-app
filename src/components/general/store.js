@@ -3,7 +3,7 @@ import { Store } from 'bakadux';
 module.exports = new Store('general', {
 	page: 'landing',
 	workingDir: '',
-	images: {},
+	images: new Map(),
 	safebox: new Map(),
 	selectedUuid: undefined,
 	selectedImage: undefined,
