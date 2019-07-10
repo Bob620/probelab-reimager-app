@@ -8,10 +8,18 @@ module.exports = () => {
 		width: 1100,
 		height: 800,
 		title: 'Probelab Reimager',
-		webPreferences: {nodeIntegration: true}
+		webPreferences: {
+			nodeIntegration: true,
+			enableRemoteModule: false
+		},
+		show: false,
 	});
 
 	window.loadFile('./assets/index.html');
+
+	window.once('ready-to-show', () => {
+		window.show();
+	});
 
 	// Emitted when the window is closed.
 	window.on('closed', function () {

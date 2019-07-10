@@ -106,7 +106,7 @@ setTimeout(() => {
 		}
 
 		outsideComm.send({
-			type: 'processImage',
+			type: 'writeImage',
 			uuid: generateUuid.v4(),
 			data: {
 				uri: '../../thermo-reimager/tests/data/1024(1).PS.EDS/1024(1).p_s',
@@ -121,7 +121,7 @@ setTimeout(() => {
 					args: [5]
 				}],
 				settings: {
-					png: {},
+					uri: 'C:\\Users\\EPMA_Castaing\\Downloads\\SPMM323(2).jpeg',
 					activeLayers: [{
 						name: 'base'
 					}],
@@ -138,7 +138,7 @@ setTimeout(() => {
 					pointFontSize: 100,
 					pointType: 'round',
 					scaleBarHeight: 100,
-					scaleBarTop: true,
+					scaleBarPosition: 'above',
 					scaleColor: 'white',
 					scalePosition: 'bc',
 					scaleSize: 0
@@ -147,7 +147,7 @@ setTimeout(() => {
 		});
 
 		setTimeout(() => {
-			process.exit(0);
+			process.exit(1);
 		}, 5000);
 	}, 10);
 }, 10);

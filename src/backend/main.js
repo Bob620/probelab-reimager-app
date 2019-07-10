@@ -4,7 +4,7 @@ const IPC = require('./ipc.js');
 const Communications = require('./communications.js');
 const GenerateUuid = require('./generateuuid.js');
 
-const { app, dialog } = require('electron');
+const { app, dialog, shell } = require('electron');
 
 let window = null;
 const reimager = new ChildSpawn('reimager');
@@ -43,28 +43,48 @@ app.on('ready', async () => {
 
 	comms.on('writeImage', data => {
 		return new Promise((resolve, reject) => {
+			const image = uuidMap.get(data.imageUuid);
 			try {
 				dialog.showSaveDialog({
-					defaultPath: data.name + '.tif',
+					defaultPath: image.name + '.tif',
 					filters: [
 						{
 							name: 'Images',
-							extensions: ['jpg', 'png', 'tif']
+							extensions: ['tif', 'jpg', 'png', 'webp']
+						},
+						{
+							name: 'TIFF',
+							extensions: ['tif']
+						},
+						{
+							name: 'JPEG',
+							extensions: ['jpg']
+						},
+						{
+							name: 'PNG',
+							extensions: ['png']
+						},
+						{
+							name: 'WebP',
+							extensions: ['webp']
 						}
+
 					]
 				},
 				async path => {
-					let extension = path.split('.').pop();
-					extension = extension === 'tif' ? 'tiff' : (extension === 'jpg' ? 'jpeg' : extension);
-					data.settings[extension] =  {};
+					if (path) {
+						let extension = path.split('.').pop();
+						extension = extension === 'tif' ? 'tiff' : (extension === 'jpg' ? 'jpeg' : extension);
+						data.settings[extension] = {};
+						data.settings.uri = path;
 
-					const image = uuidMap.get(data.imageUuid);
-
-					resolve(await reimager.send('writeImage', {
-						uri: image.entryFile,
-						operations: createOperations(data.settings),
-						settings: data.settings
-					}));
+						resolve(await reimager.send('writeImage', {
+							uri: image.entryFile,
+							operations: createOperations(data.settings),
+							settings: data.settings
+						}));
+					} else
+						resolve();
 				});
 			} catch(err) {
 				reject(err);
@@ -129,6 +149,19 @@ app.on('activate', () => {
 	// dock icon is clicked and there are no other windows open.
 	if (window === null)
 		window = createWindow();
+});
+
+app.on('web-contents-created', (event, contents) => {
+	contents.on('new-window', async (event, navigationUrl) => {
+		// In this example, we'll ask the operating system
+		// to open this event's url in the default browser.
+		event.preventDefault();
+		await shell.openExternal(navigationUrl)
+	});
+
+	contents.on('will-navigate', (event, navigationUrl) => {
+		event.preventDefault();
+	});
 });
 
 function createOperations(settings) {

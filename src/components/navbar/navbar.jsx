@@ -21,18 +21,6 @@ class Navbar extends Component {
 			<section id='navbar'>
 				<h1>Probelab ReImager</h1>
 				<div>
-					<div onClick={safeboxActions.addImage.bind(undefined, generalStore.get('selectedUuid'))}
-						 className={'selectable'}>
-						<p>Store</p>
-					</div>
-					<div onClick={safeboxActions.updateImage.bind(undefined, generalStore.get('selectedUuid'))}
-						 className={'selectable'}>
-						<p>Update</p>
-					</div>
-					<div onClick={generalActions.writeSelectedImage.bind(undefined, undefined)}
-						 className={'selectable'}>
-						<p>Export Image</p>
-					</div>
 					<div onClick={generalActions.navigateSettings}
 						 className='refresh selectable'>
 						<p>Settings</p>

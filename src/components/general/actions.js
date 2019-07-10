@@ -131,7 +131,9 @@ const actions = CreateActions([
 	{
 		actionType: 'writeSelectedImage',
 		func: ({stores}, override=undefined, callback=() => {}) => {
-			const selectedUuid = override ? override.uuid : stores.general.get('selectedUuid');
+			const generalStore = stores.general;
+
+			const selectedUuid = override ? override.uuid : generalStore.get('selectedUuid');
 
 			if (selectedUuid) {
 				const settingStore = override ? override : stores.settings;
@@ -169,6 +171,12 @@ const actions = CreateActions([
 		}
 	},
 	{
+		actionType: 'changeOptionsList',
+		func: ({stores}, value) => {
+			stores.general.set('optionsList', value);
+		}
+	},
+	{
 		actionType: 'moveSidebar',
 		func: ({stores}, event) => {
 			event.preventDefault();
@@ -176,7 +184,7 @@ const actions = CreateActions([
 			const xpos = event.screenX;
 			const optionsWidth = stores.general.get('optionsWidth');
 
-			if (xpos > 160) // Smaller wraps Export button text
+			if (xpos > 205) // Smaller wraps Export button text
 				if (xpos < 500) {
 					if (document.styleSheets[0].cssRules[0].selectorText === '.app')
 						document.styleSheets[0].deleteRule(0);

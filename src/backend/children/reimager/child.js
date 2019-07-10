@@ -96,9 +96,7 @@ class Child {
 
 	async writeImage({uri, uuid, operations, settings}) {
 		const thermo = await this.processImage({uri, uuid, operations, settings}, true);
-
-		settings = Functions.sanitizeSettings(settings);
-		await thermo.write(settings);
+		await thermo.write(Functions.sanitizeSettings(settings));
 	}
 }
 

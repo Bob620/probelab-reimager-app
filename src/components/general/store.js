@@ -1,5 +1,7 @@
 import { Store } from 'bakadux';
 
+import constants from '../../../constants.json';
+
 module.exports = new Store('general', {
 	page: 'landing',
 	workingDir: '',
@@ -9,5 +11,6 @@ module.exports = new Store('general', {
 	selectedImage: undefined,
 	sidebarWidth: 300,
 	optionsWidth: 300,
-	interactable: true
+	interactable: true,
+	optionsList: constants.optionsLists.POINTS
 });

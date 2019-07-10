@@ -55,7 +55,7 @@ const Functions = {
 		}
 	},
 	sanitizeSettings: inputSettings => {
-		return {
+		const settings = {
 			scaleColor: Functions.sanitizeColor(inputSettings.scaleColor),
 			belowColor: Functions.sanitizeColor(inputSettings.belowColor),
 			textColor: Functions.sanitizeColor(inputSettings.pointColor),
@@ -65,13 +65,21 @@ const Functions = {
 			pointSize: inputSettings.autoPointFontSize ? 0 : (inputSettings.pointFontSize / 2),
 			scaleSize: inputSettings.autoScale ? 0 : inputSettings.scaleSize,
 			scaleBarHeight: inputSettings.autoHeight ? 0 : (inputSettings.scaleBarHeight / 100),
-			scaleBarTop: true,
+			scaleBarTop: inputSettings.scaleBarPosition === appConstants.settings.scaleBarPositions.ABOVE,
 			pixelSizeConstant: inputSettings.autoPixelSizeConstant ? 0 : inputSettings.pixelSizeConstant,
-			png: inputSettings.png ? inputSettings.png : undefined,
-			jpeg: inputSettings.jpeg ? inputSettings.jpeg : undefined,
-			tiff: inputSettings.tiff ? inputSettings.tiff : undefined,
-			webp: inputSettings.webp ? inputSettings.webp : undefined
-		}
+			uri: inputSettings.uri
+		};
+
+		if (inputSettings.png)
+			settings.png = inputSettings.png;
+		if(inputSettings.jpeg)
+			settings.jpeg = inputSettings.jpeg;
+		if (inputSettings.tiff)
+			settings.tiff = inputSettings.tiff;
+		if (inputSettings.webp)
+			settings.webp = inputSettings.webp;
+
+		return settings;
 	},
 	getDir: async (dirUri, canvas) => {
 		try {

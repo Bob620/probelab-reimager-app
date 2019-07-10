@@ -23,6 +23,15 @@
       "BLACK": "black",
       "RED": "red",
       "ORANGE": "orange"
+    },
+    "scaleBarPositions": {
+      "ABOVE": "above",
+      "BELOW": "below",
+      "INLINE": "inline"
     }
+  },
+  "optionsLists": {
+    "POINTS": "points",
+    "LAYERS": "layers"
   }
 }

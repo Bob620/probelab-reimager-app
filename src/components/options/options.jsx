@@ -25,6 +25,7 @@ class Options extends Component {
 		image = image ? image : generalStore.get('safebox').get(selectedUuid);
 		const activePoints = settingStore.get('activePoints');
 		const activePointNames = activePoints.map(point => point.name);
+		const optionsList = generalStore.get('optionsList');
 
 		return (
 			<section id='options'>
@@ -111,19 +112,19 @@ class Options extends Component {
 									<option value={constants.settings.pointTypes.CROSS}>Cross</option>
 								</select>
 							</div>
-							<ToggleableScale min='0' max='100' maxLength='3' valueName='backgroundOpacity' autoName='autoBackgroundOpacity' text='Background Opacity: '
-											 toggleAuto={settingActions.toggleAutoBackgroundOpacity}
-											 changeFromAuto={settingActions.changeFromAutoBackgroundOpacity}
-											 onChange={settingActions.changeBackgroundOpacity}
+							<ToggleableScale min='0' max='100' maxLength='3' valueName='pointFontSize' autoName='autoPointFontSize' text='Point Font Size: '
+											 toggleAuto={settingActions.toggleAutoPointFontSize}
+											 changeFromAuto={settingActions.changeFromAutoPointFontSize}
+											 onChange={settingActions.changePointFontSize}
 							/>
 						</div>
 						<div>
-							<div onClick={() => settingActions.toggleBarLocation()} className='scale selectable'>
-								<p>Scale Bar: </p>
-								{
-									settingStore.get('scaleBarTop') ?
-										<p>Above</p> : <p>Below</p>
-								}
+							<div className='colorOptions'>
+								<p>Scale Bar</p>
+								<select value={settingStore.get('scaleBarPosition')} onChange={e => settingActions.changeBarPosition(undefined, e)}>
+									<option value={constants.settings.scaleBarPositions.ABOVE}>Above</option>
+									<option value={constants.settings.scaleBarPositions.BELOW}>Below</option>
+								</select>
 							</div>
 							<ToggleableScale min='0' max='10000000' maxLength='8' valueName='scaleSize' autoName='autoScale' text='Scale(µm): '
 											 toggleAuto={settingActions.toggleAutoScale}
@@ -135,24 +136,39 @@ class Options extends Component {
 											 changeFromAuto={settingActions.changeFromAutoHeight}
 											 onChange={settingActions.changeScaleBarHeight}
 							/>
-							<ToggleableScale min='0' max='100' maxLength='3' valueName='pointFontSize' autoName='autoPointFontSize' text='Point Font Size: '
-											 toggleAuto={settingActions.toggleAutoPointFontSize}
-											 changeFromAuto={settingActions.changeFromAutoPointFontSize}
-											 onChange={settingActions.changePointFontSize}
+							<ToggleableScale min='0' max='100' maxLength='3' valueName='backgroundOpacity' autoName='autoBackgroundOpacity' text='Background Opacity: '
+											 toggleAuto={settingActions.toggleAutoBackgroundOpacity}
+											 changeFromAuto={settingActions.changeFromAutoBackgroundOpacity}
+											 onChange={settingActions.changeBackgroundOpacity}
 							/>
 						</div>
 					</div>
-					<div className='points'>
+					<div className='list-switcher'>
+						<div className={`selectable ${optionsList === constants.optionsLists.POINTS ? 'selected' : ''}`}
+							 onClick={() => {generalActions.changeOptionsList(constants.optionsLists.POINTS)}}>
+							<p>Points</p>
+						</div>
+						<div className={`selectable ${optionsList === constants.optionsLists.LAYERS ? 'selected' : ''}`}
+							 onClick={() => {generalActions.changeOptionsList(constants.optionsLists.LAYERS)}}>
+							<p>Maps</p>
+						</div>
+					</div>
+					<div className='options-list'>
 						<ul>
 							{
-								image && image.points && Object.values(image.points).map(point =>
-									<li key={point.name}
-										className={activePointNames.includes(point.name) ? 'div-selected' : ''}
-										onClick={activePointNames.includes(point.name) ? settingActions.removePoint.bind(undefined, point.name) :
-											settingActions.addPoint.bind(undefined, point)} >
-										<div><div /></div>
-										<p>{point.name}</p>
-									</li>)
+								optionsList === constants.optionsLists.POINTS ?
+									image && image.points && Object.values(image.points).map(point =>
+										<li key={point.name}
+											className={activePointNames.includes(point.name) ? 'div-selected' : ''}
+											onClick={activePointNames.includes(point.name) ? settingActions.removePoint.bind(undefined, point.name) :
+												settingActions.addPoint.bind(undefined, point)} >
+											<div><div /></div>
+											<p>{point.name}</p>
+										</li>)
+									: (optionsList === constants.optionsLists.LAYERS ?
+										<div />
+								: <div />
+									)
 							}
 						</ul>
 					</div>

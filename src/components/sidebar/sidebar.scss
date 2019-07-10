@@ -17,6 +17,8 @@
   > .content {
     width: 100%;
     overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
 
     > .input {
       height: 40px;
@@ -24,6 +26,7 @@
       display: flex;
       flex-direction: row;
       align-items: center;
+      flex-shrink: 0;
 
       > input {
         width: 100%;
@@ -39,17 +42,41 @@
       align-items: center;
       justify-content: center;
       cursor: pointer;
+      flex-shrink: 0;
     }
 
     > .current-dir {
-      height: calc(70% - 42px);
-      border-bottom-style: solid;
-      border-bottom-width: 2px;
-      border-bottom-color: white;
+      height: calc(55% - 42px);
+      flex-shrink: 0;
+    }
+
+    > .imageFunctions {
+      height: 54px;
+      width: 100%;
+      display: flex;
+      flex-direction: row;
+      justify-content: space-around;
+      align-items: center;
+      flex-shrink: 0;
+
+      > div {
+        width: calc(33% - 4px);
+        text-align: center;
+        border-left-width: 2px;
+        border-top-width: 2px;
+        border-bottom-width: 2px;
+        border-right-width: 0;
+        border-color: white;
+        border-style: solid;
+        flex-grow: 1;
+      }
     }
 
     > .safebox {
-      height: calc(30% - 40px);
+      border-bottom-width: 2px;
+      border-bottom-style: solid;
+      border-bottom-color: white;
+      flex-grow: 1;
     }
 
     > ul {
@@ -73,11 +100,22 @@
           white-space: nowrap;
           width: min-content;
           flex-shrink: 1;
+          flex-grow: 1;
           overflow-x: hidden;
         }
 
         span {
-          margin-right: 15px;
+          margin: 5px;
+
+          p {
+            margin: 0 !important;
+            padding: 5px;
+            border-radius: 2px;
+
+            &:hover {
+              background-color: #eb3b5a;
+            }
+          }
         }
       }
     }

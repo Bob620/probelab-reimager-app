@@ -33,6 +33,7 @@
       border-color: white;
       border-style: solid;
       border-width: 2px;
+      margin-top: 10px;
 
       > .filler-area {
         grid-area: f;
@@ -118,7 +119,7 @@
       display: flex;
       flex-direction: row;
       justify-content: space-around;
-      height: 300px;
+      height: 270px;
       padding: 2px;
       flex-shrink: 0;
 
@@ -165,7 +166,30 @@
       }
     }
 
-    > .points {
+    > .list-switcher {
+      height: 30px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: row;
+
+      > div {
+        height: 100%;
+        flex-grow: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-color: white;
+        border-style: solid;
+        border-width: 2px;
+        border-left-width: 0;
+
+        > p {
+          margin: 0;
+        }
+      }
+    }
+
+    > .options-list {
       flex-grow: 1;
       overflow-y: scroll;
 

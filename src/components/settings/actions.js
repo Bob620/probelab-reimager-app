@@ -23,9 +23,9 @@ export default CreateActions([
 		}
 	},
 	{
-		actionType: 'toggleBarLocation',
-		func: ({stores}, force=undefined) => {
-			stores.settings.set('scaleBarTop', force !== undefined ? force : !stores.settings.get('scaleBarTop'));
+		actionType: 'changeBarPosition',
+		func: ({stores}, force=undefined, {target}) => {
+			stores.settings.set('scaleBarPosition', force !== undefined ? force : target.value);
 		}
 	},
 	{
