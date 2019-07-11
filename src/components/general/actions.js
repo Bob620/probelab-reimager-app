@@ -2,6 +2,8 @@ import { CreateActions } from 'bakadux';
 import Communications from './communications';
 const { ipcRenderer } = window.require('electron');
 import IPC from './ipc';
+import GenerateUuid from './generateuuid.js';
+import constants from '../../../constants';
 
 const comms = new Communications(new IPC(ipcRenderer));
 
@@ -51,10 +53,13 @@ const actions = CreateActions([
 		actionType: 'setWorkingDirectory',
 		func: ({stores}, event) => {
 			const generalStore = stores.general;
+			let dir;
 
-			let dir = event;
-			if (typeof event === 'object' && event.target.files[0])
+			if (typeof event === 'string')
+				dir = event;
+			else if (event.target.files[0])
 				dir = event.target.files[0].path;
+
 			if (dir) {
 				generalStore.set('selectedUuid', undefined);
 				generalStore.set('workingDir', dir);
@@ -75,6 +80,23 @@ const actions = CreateActions([
 		actionType: 'updateDirImages',
 		func: ({stores}, thermos) => {
 			stores.general.set('images', thermos.reduce((thermos, thermo) => {
+				thermo.points = Object.values(thermo.points).reduce((points, point) => {
+					const uuid = GenerateUuid.v4();
+					point.uuid = uuid;
+					points.set(uuid, point);
+					return points;
+				}, new Map());
+
+				thermo.baseLayer = thermo.layers[constants.settings.BASELAYER];
+				thermo.baseLayer.name = thermo.baseLayer.element;
+				thermo.layers = Object.values(thermo.layers).reduce((layers, layer) => {
+					const uuid = GenerateUuid.v4();
+					layer.uuid = uuid;
+					layer.name = layer.element;
+					layers.set(uuid, layer);
+					return layers;
+				}, new Map());
+
 				thermos.set(thermo.uuid, thermo);
 				return thermos;
 			}, new Map()));
@@ -98,12 +120,15 @@ const actions = CreateActions([
 	},
 	{
 		actionType: 'loadImage',
-		func: ({stores}, uuid=false) => {
+		func: ({stores}, uuid=false, activeOverride=false) => {
 			const settingStore = stores.settings;
 			const generalStore = stores.general;
+			let overwrite = false;
 
 			if (!uuid)
 				uuid = generalStore.get('selectedUuid');
+			else if (!activeOverride)
+				overwrite = true;
 
 			let image = generalStore.get('images').get(uuid);
 			image = image ? image : generalStore.get('safebox').get(uuid);
@@ -119,6 +144,13 @@ const actions = CreateActions([
 			for (const key of settingStore.getKeys())
 				data.settings[key] = settingStore.get(key);
 
+			if (overwrite) {
+				data.settings.activePoints = [];
+				data.settings.activeLayers = [image.baseLayer];
+				settingStore.set('activePoints', []);
+				settingStore.set('activeLayers', [image.baseLayer]);
+			}
+
 			comms.send('loadImage', data).then(([{uuid, image, data}]) => {
 				if (generalStore.get('selectedUuid') === uuid)
 					generalStore.set('selectedImage', image);
@@ -126,7 +158,6 @@ const actions = CreateActions([
 				actions.navigateHome();
 			}).catch(() => {});
 		}
-
 	},
 	{
 		actionType: 'writeSelectedImage',

@@ -24,7 +24,9 @@ class Options extends Component {
 		let image = generalStore.get('images').get(selectedUuid);
 		image = image ? image : generalStore.get('safebox').get(selectedUuid);
 		const activePoints = settingStore.get('activePoints');
-		const activePointNames = activePoints.map(point => point.name);
+		const activePointNames = activePoints.map(point => point.uuid);
+		const activeLayers = settingStore.get('activeLayers');
+		const activeLayerUuids = activeLayers.map(layer => layer.uuid);
 		const optionsList = generalStore.get('optionsList');
 
 		return (
@@ -157,16 +159,23 @@ class Options extends Component {
 						<ul>
 							{
 								optionsList === constants.optionsLists.POINTS ?
-									image && image.points && Object.values(image.points).map(point =>
-										<li key={point.name}
-											className={activePointNames.includes(point.name) ? 'div-selected' : ''}
-											onClick={activePointNames.includes(point.name) ? settingActions.removePoint.bind(undefined, point.name) :
+									image && Array.from(image.points.values()).map(point =>
+										<li key={point.uuid}
+											className={activePointNames.includes(point.uuid) ? 'div-selected' : ''}
+											onClick={activePointNames.includes(point.uuid) ? settingActions.removePoint.bind(undefined, point.uuid) :
 												settingActions.addPoint.bind(undefined, point)} >
 											<div><div /></div>
 											<p>{point.name}</p>
 										</li>)
 									: (optionsList === constants.optionsLists.LAYERS ?
-										<div />
+										image && Array.from(image.layers.values()).map(layer =>
+											<li key={layer.uuid}
+												className={activeLayerUuids.includes(layer.uuid) ? 'div-selected' : ''}
+												onClick={activeLayerUuids.includes(layer.uuid) ? settingActions.removeLayer.bind(undefined, layer.uuid) :
+													settingActions.addLayer.bind(undefined, layer)} >
+												<div><div /></div>
+												<p>{layer.name}</p>
+											</li>)
 								: <div />
 									)
 							}

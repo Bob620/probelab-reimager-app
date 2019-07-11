@@ -9,8 +9,10 @@ const { app, dialog, shell } = require('electron');
 let window = null;
 const reimager = new ChildSpawn('reimager');
 
-let uuidMap = new Map();
 let imageMap = new Map();
+
+let uuidMap = new Map();
+let savedMap = new Map();
 
 app.on('ready', async () => {
 	if (window === null)
@@ -29,7 +31,10 @@ app.on('ready', async () => {
 	comms.on('saveImage', async data => {
 		const uuid = GenerateUuid.v4();
 
-		const oldThermo = uuidMap.get(data.uuid);
+		let oldThermo = uuidMap.get(data.uuid);
+		oldThermo = oldThermo ? oldThermo : savedMap.get(data.uuid);
+
+		oldThermo = JSON.parse(JSON.stringify(oldThermo));
 		oldThermo.uuid = uuid;
 
 		uuidMap.set(uuid, oldThermo);
@@ -38,12 +43,13 @@ app.on('ready', async () => {
 	});
 
 	comms.on('removeImage', async data => {
-
+		savedMap.delete(data.imageUuid);
 	});
 
 	comms.on('writeImage', data => {
 		return new Promise((resolve, reject) => {
-			const image = uuidMap.get(data.imageUuid);
+			let image = uuidMap.get(data.imageUuid);
+			image = image ? image : savedMap.get(data.imageUuid);
 			try {
 				dialog.showSaveDialog({
 					defaultPath: image.name + '.tif',
@@ -97,7 +103,9 @@ app.on('ready', async () => {
 		const testThermo = imageMap.get(imageKey);
 
 		if (!testThermo) {
-			const image = uuidMap.get(data.imageUuid);
+			let image = uuidMap.get(data.imageUuid);
+			image = image ? image : savedMap.get(data.imageUuid);
+
 			data.settings.png = {};
 
 			let [thermo] = await reimager.send('processImage', {
@@ -107,6 +115,10 @@ app.on('ready', async () => {
 			});
 
 			thermo.uuid = data.uuid;
+
+			const imageKeys = Array.from(imageMap.keys()).reverse();
+			while (imageMap.size >= 10)
+				imageMap.delete(imageKeys.pop());
 
 			imageMap.set(imageKey, thermo);
 

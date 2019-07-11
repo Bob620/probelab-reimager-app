@@ -32,7 +32,7 @@ class Sidebar extends Component {
 						images.sort((one, two) => one.name < two.name ? -1 : 1).map(image =>
 							<li className={`${interactable ? 'selectable' : ''} ${image.uuid === selectedUuid ? 'selected' : ''}`}
 								key={image.uuid}
-								onClick={image.uuid === selectedUuid || !interactable ? () => {} : generalActions.loadImage.bind(undefined, image.uuid)}
+								onClick={image.uuid === selectedUuid || !interactable ? () => {} : generalActions.loadImage.bind(undefined, image.uuid, false)}
 							>
 								<p>{image.name}</p>
 							</li>
