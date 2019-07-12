@@ -200,21 +200,19 @@ export default CreateActions([
 	},
 	{
 		actionType: 'addPoint',
-		func: ({stores, actions}, point) => {
+		func: ({stores, actions}, uuid) => {
 			let points = stores.settings.get('activePoints');
-			let pointNames = points.map(point => point.uuid);
 
-			if (!pointNames.includes(point.uuid))
-				points.push(point);
+			if (!points.includes(uuid))
+				points.push(uuid);
 			actions.navigateHome();
 		}
 	},
 	{
 		actionType: 'removePoint',
-		func: ({stores, actions}, pointName) => {
+		func: ({stores, actions}, uuid) => {
 			let points = stores.settings.get('activePoints');
-			let pointNames = points.map(point => point.uuid);
-			const pointPos = pointNames.indexOf(pointName);
+			const pointPos = points.indexOf(uuid);
 
 			if (pointPos !== -1)
 				points.splice(pointPos, 1);
@@ -223,24 +221,22 @@ export default CreateActions([
 	},
 	{
 		actionType: 'addLayer',
-		func: ({stores, actions}, layer) => {
-			let points = stores.settings.get('activeLayers');
-			let pointNames = points.map(layer => layer.uuid);
+		func: ({stores, actions}, uuid) => {
+			let layers = stores.settings.get('activeLayers');
 
-			if (!pointNames.includes(layer.uuid))
-				points.push(layer);
+			if (!layers.includes(uuid))
+				layers.push(uuid);
 			actions.navigateHome();
 		}
 	},
 	{
 		actionType: 'removeLayer',
-		func: ({stores, actions}, layerName) => {
-			let points = stores.settings.get('activeLayers');
-			let pointNames = points.map(layer => layer.uuid);
-			const pointPos = pointNames.indexOf(layerName);
+		func: ({stores, actions}, uuid) => {
+			let layers = stores.settings.get('activeLayers');
+			const layerPos = layers.indexOf(uuid);
 
-			if (pointPos !== -1)
-				points.splice(pointPos, 1);
+			if (layerPos !== -1)
+				layers.splice(layerPos, 1);
 			actions.navigateHome();
 		}
 	}

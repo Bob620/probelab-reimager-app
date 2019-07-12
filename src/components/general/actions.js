@@ -146,10 +146,20 @@ const actions = CreateActions([
 
 			if (overwrite) {
 				data.settings.activePoints = [];
-				data.settings.activeLayers = [image.baseLayer];
+				data.settings.activeLayers = [image.baseLayer.uuid];
 				settingStore.set('activePoints', []);
-				settingStore.set('activeLayers', [image.baseLayer]);
+				settingStore.set('activeLayers', [image.baseLayer.uuid]);
 			}
+
+			data.settings.activePoints = data.settings.activePoints.reduce((points, uuid) => {
+				points.push(image.points.get(uuid));
+				return points;
+			}, []);
+			data.settings.activeLayers = data.settings.activeLayers.reduce((layers, uuid) => {
+				if (uuid)
+	 				layers.push(image.layers.get(uuid));
+				return layers;
+			}, []);
 
 			comms.send('loadImage', data).then(([{uuid, image, data}]) => {
 				if (generalStore.get('selectedUuid') === uuid)
@@ -180,6 +190,9 @@ const actions = CreateActions([
 
 				for (const key of settingStore.getKeys())
 					data.settings[key] = settingStore.get(key);
+
+				data.settings.activePoints = [];
+				data.settings.activeLayers = [image.baseLayer];
 
 				comms.send('writeImage', data).then(() => {
 					if (typeof callback === 'function')

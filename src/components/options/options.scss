@@ -200,7 +200,6 @@
 
         > li {
           display: flex;
-          cursor: pointer;
           justify-content: space-around;
           align-items: center;
 
@@ -219,6 +218,13 @@
             }
           }
 
+          > p {
+            margin: 0.7em;
+          }
+        }
+
+        > .point {
+          cursor: pointer;
           &.div-selected {
             > div {
               > div {
@@ -232,6 +238,32 @@
               > div {
                 background-color: $hover-color !important;
               }
+            }
+          }
+        }
+
+        > .layer {
+          cursor: -webkit-grab;
+
+          &:active {
+            cursor: -webkit-grabbing;
+          }
+
+          &.div-selected {
+            > div {
+              > div {
+                background-color: $selected-color;
+              }
+            }
+          }
+
+          > div {
+            cursor: pointer;
+          }
+
+          > div:hover {
+            > div {
+              background-color: $hover-color !important;
             }
           }
         }

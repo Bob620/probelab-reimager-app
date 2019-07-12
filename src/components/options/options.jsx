@@ -3,13 +3,15 @@ import React, { Component } from 'react';
 import '../general/common.scss'
 import './options.scss'
 
+import OptionsList from './optionslist.jsx';
+
 import constants from '../../../constants.json';
 
 import history from '../general/history.js';
 import generalActions from '../general/actions.js'
-import settingActions from '../settings/actions';
-import generalStore from '../general/store';
-import settingStore from '../settings/store';
+import settingActions from '../settings/actions.js';
+import generalStore from '../general/store.js';
+import settingStore from '../settings/store.js';
 
 class Options extends Component {
 	constructor(props) {
@@ -18,15 +20,8 @@ class Options extends Component {
 	}
 
 	render() {
-		const selectedUuid = generalStore.get('selectedUuid');
 		const currentPos = settingStore.get('scalePosition');
 		const interactable = generalStore.get('interactable');
-		let image = generalStore.get('images').get(selectedUuid);
-		image = image ? image : generalStore.get('safebox').get(selectedUuid);
-		const activePoints = settingStore.get('activePoints');
-		const activePointNames = activePoints.map(point => point.uuid);
-		const activeLayers = settingStore.get('activeLayers');
-		const activeLayerUuids = activeLayers.map(layer => layer.uuid);
 		const optionsList = generalStore.get('optionsList');
 
 		return (
@@ -155,32 +150,7 @@ class Options extends Component {
 							<p>Maps</p>
 						</div>
 					</div>
-					<div className='options-list'>
-						<ul>
-							{
-								optionsList === constants.optionsLists.POINTS ?
-									image && Array.from(image.points.values()).map(point =>
-										<li key={point.uuid}
-											className={activePointNames.includes(point.uuid) ? 'div-selected' : ''}
-											onClick={activePointNames.includes(point.uuid) ? settingActions.removePoint.bind(undefined, point.uuid) :
-												settingActions.addPoint.bind(undefined, point)} >
-											<div><div /></div>
-											<p>{point.name}</p>
-										</li>)
-									: (optionsList === constants.optionsLists.LAYERS ?
-										image && Array.from(image.layers.values()).map(layer =>
-											<li key={layer.uuid}
-												className={activeLayerUuids.includes(layer.uuid) ? 'div-selected' : ''}
-												onClick={activeLayerUuids.includes(layer.uuid) ? settingActions.removeLayer.bind(undefined, layer.uuid) :
-													settingActions.addLayer.bind(undefined, layer)} >
-												<div><div /></div>
-												<p>{layer.name}</p>
-											</li>)
-								: <div />
-									)
-							}
-						</ul>
-					</div>
+					<OptionsList />
 				</div>
 			</section>
 		);

@@ -51,7 +51,7 @@
     }
 
     > .imageFunctions {
-      height: 54px;
+      height: 35px;
       width: 100%;
       display: flex;
       flex-direction: row;
@@ -60,7 +60,11 @@
       flex-shrink: 0;
 
       > div {
+        height: 35px;
         width: calc(33% - 4px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
         text-align: center;
         border-left-width: 2px;
         border-top-width: 2px;
