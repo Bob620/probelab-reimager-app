@@ -13,5 +13,6 @@ module.exports = new Store('general', {
 	optionsWidth: 300,
 	interactable: true,
 	optionsList: constants.optionsLists.POINTS,
-	layerOrder: [constants.settings.BASELAYER]
+	layerOrder: [constants.settings.BASELAYER],
+	layers: []
 });

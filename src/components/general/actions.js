@@ -115,6 +115,8 @@ const actions = CreateActions([
 				//settingStore.set('activePoints', settingStore.get('activePoints').filter(name => image.points[name] !== undefined));
 				generalStore.set('selectedUuid', uuid);
 				generalStore.set('selectedImage', undefined);
+
+				generalStore.set('layers', sortLayers(Array.from(image.layers.values()), generalStore.get('layerOrder')));
 			}
 		}
 	},
@@ -257,5 +259,20 @@ const actions = CreateActions([
 		}
 	}
 ]);
+
+function sortLayers(layers, order) {
+	let outputLayers = [];
+	for (let i = 0; i < order.length; i ++)
+		outputLayers.push(undefined);
+
+	return layers.reduce((layers, layer) => {
+		const position = order.indexOf(layer.element);
+		if (position !== -1)
+			layers[position] = layer;
+		else
+			layers.push(layer);
+		return layers;
+	}, outputLayers);
+}
 
 module.exports = actions;

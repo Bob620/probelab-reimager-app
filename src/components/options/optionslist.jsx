@@ -12,12 +12,32 @@ module.exports = class OptionsList extends Component {
 	constructor(props) {
 		super(props);
 
+		this.state = {
+			image: '',
+			dragging: {
+				element: '',
+				index: -1
+			},
+			layers: generalStore.get('layers')
+		}
 	}
 
-	render() {
+	componentWillUpdate(nextProps, nextState, nextContext) {
 		const selectedUuid = generalStore.get('selectedUuid');
 		let image = generalStore.get('images').get(selectedUuid);
 		image = image ? image : generalStore.get('safebox').get(selectedUuid);
+
+		if (image && image.uuid !== this.state.image)
+			this.setState({
+				image: image.uuid,
+				layers: generalStore.get('layers')
+			});
+	}
+
+	render() {
+		let image = generalStore.get('images').get(this.state.image);
+		image = image ? image : generalStore.get('safebox').get(this.state.image);
+
 		const activePoints = settingStore.get('activePoints');
 		const activeLayers = settingStore.get('activeLayers');
 		const optionsList = generalStore.get('optionsList');
@@ -38,8 +58,29 @@ module.exports = class OptionsList extends Component {
 									<p>Point {point.name}</p>
 								</li>)
 							: (optionsList === constants.optionsLists.LAYERS ?
-							image && sortLayers(Array.from(image.layers.values())).filter(i => i).map(layer =>
+							image && this.state.layers.filter(i => i).map((layer, index) =>
 								<li key={layer.uuid}
+									draggable="true"
+									onDragStart={e => {
+										this.setState({
+											dragging: layer
+										});
+									}}
+									onDragEnd={e => {
+										this.setState({
+											dragging: ''
+										});
+									}}
+									onDragOver={e => {
+										const otherIndex = this.state.layers.indexOf(this.state.dragging);
+										if (otherIndex !== -1) {
+											this.state.layers[otherIndex] = layer;
+											this.state.layers[index] = this.state.dragging;
+											this.setState({
+												layers: this.state.layers
+											});
+										}
+									}}
 									className={activeLayers.includes(layer.uuid) ? 'div-selected layer' : 'layer'}>
 									<div
 										onClick={activeLayers.includes(layer.uuid) ? settingActions.removeLayer.bind(undefined, layer.uuid) :
@@ -56,9 +97,8 @@ module.exports = class OptionsList extends Component {
 	}
 };
 
-function sortLayers(layers) {
+function sortLayers(layers, order) {
 	let outputLayers = [];
-	const order = generalStore.get('layerOrder');
 	for (let i = 0; i < order.length; i ++)
 		outputLayers.push(undefined);
 
