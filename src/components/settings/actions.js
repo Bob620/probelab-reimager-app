@@ -221,22 +221,51 @@ export default CreateActions([
 	},
 	{
 		actionType: 'addLayer',
-		func: ({stores, actions}, uuid) => {
+		func: ({stores, actions}, element) => {
 			let layers = stores.settings.get('activeLayers');
 
-			if (!layers.includes(uuid))
-				layers.push(uuid);
+			if (!layers.includes(element))
+				layers.push(element);
 			actions.navigateHome();
 		}
 	},
 	{
 		actionType: 'removeLayer',
-		func: ({stores, actions}, uuid) => {
+		func: ({stores, actions}, element) => {
 			let layers = stores.settings.get('activeLayers');
-			const layerPos = layers.indexOf(uuid);
+			const layerPos = layers.indexOf(element);
 
 			if (layerPos !== -1)
 				layers.splice(layerPos, 1);
+			actions.navigateHome();
+		}
+	},
+	{
+		actionType: 'colorLayer',
+		func: ({stores, actions}, element, color) => {
+			let layers = stores.settings.get('layerColors');
+			layers[element] = color;
+
+			actions.navigateHome();
+		}
+	},
+	{
+		actionType: 'selectAllPoints',
+		func: ({stores, actions}, imageUuid) => {
+			const generalStore = stores.general;
+			const settingStore = stores.settings;
+
+			let image = generalStore.get('images').get(imageUuid);
+			image = image ? image : generalStore.get('safebox').get(imageUuid);
+
+			settingStore.set('activePoints', Array.from(image.points.keys()));
+			actions.navigateHome();
+		}
+	},
+	{
+		actionType: 'deselectAllPoints',
+		func: ({stores, actions}) => {
+			stores.settings.set('activePoints', []);
 			actions.navigateHome();
 		}
 	}

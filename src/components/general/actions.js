@@ -90,10 +90,9 @@ const actions = CreateActions([
 				thermo.baseLayer = thermo.layers[constants.settings.BASELAYER];
 				thermo.baseLayer.name = thermo.baseLayer.element;
 				thermo.layers = Object.values(thermo.layers).reduce((layers, layer) => {
-					const uuid = GenerateUuid.v4();
-					layer.uuid = uuid;
+					layer.uuid = GenerateUuid.v4();
 					layer.name = layer.element;
-					layers.set(uuid, layer);
+					layers.set(layer.element, layer);
 					return layers;
 				}, new Map());
 
@@ -107,6 +106,7 @@ const actions = CreateActions([
 		func: ({stores}, uuid) => {
 			//const settingStore = stores.settings;
 			const generalStore = stores.general;
+			const settingStore = stores.settings;
 
 			let image = generalStore.get('images').get(uuid);
 			image = image ? image : generalStore.get('safebox').get(uuid);
@@ -116,7 +116,12 @@ const actions = CreateActions([
 				generalStore.set('selectedUuid', uuid);
 				generalStore.set('selectedImage', undefined);
 
-				generalStore.set('layers', sortLayers(Array.from(image.layers.values()), generalStore.get('layerOrder')));
+				settingStore.set('layers', sortLayers(Array.from(image.layers.values()), settingStore.get('layerOrder')));
+
+				if (image.points.size === 0)
+					generalStore.set('optionsList', constants.optionsLists.LAYERS);
+				else
+					generalStore.set('optionsList', constants.optionsLists.POINTS);
 			}
 		}
 	},
@@ -144,24 +149,28 @@ const actions = CreateActions([
 			};
 
 			for (const key of settingStore.getKeys())
-				data.settings[key] = settingStore.get(key);
+				data.settings[key] = JSON.parse(JSON.stringify(settingStore.get(key)));
 
 			if (overwrite) {
 				data.settings.activePoints = [];
-				data.settings.activeLayers = [image.baseLayer.uuid];
 				settingStore.set('activePoints', []);
-				settingStore.set('activeLayers', [image.baseLayer.uuid]);
 			}
 
 			data.settings.activePoints = data.settings.activePoints.reduce((points, uuid) => {
 				points.push(image.points.get(uuid));
 				return points;
 			}, []);
-			data.settings.activeLayers = data.settings.activeLayers.reduce((layers, uuid) => {
-				if (uuid)
-	 				layers.push(image.layers.get(uuid));
+
+			const layerColors = settingStore.get('layerColors');
+			data.settings.activeLayers = sortLayers(data.settings.activeLayers.reduce((layers, element) => {
+				if (element && image.layers.has(element)) {
+					let layer = JSON.parse(JSON.stringify(image.layers.get(element)));
+					if (layerColors[element])
+						layer.color = layerColors[element];
+					layers.push(layer);
+				}
 				return layers;
-			}, []);
+			}, []), data.settings.layerOrder).reverse();
 
 			comms.send('loadImage', data).then(([{uuid, image, data}]) => {
 				if (generalStore.get('selectedUuid') === uuid)
@@ -174,6 +183,7 @@ const actions = CreateActions([
 	{
 		actionType: 'writeSelectedImage',
 		func: ({stores}, override=undefined, callback=() => {}) => {
+			const settingStore = stores.settings;
 			const generalStore = stores.general;
 
 			const selectedUuid = override ? override.uuid : generalStore.get('selectedUuid');
@@ -191,10 +201,18 @@ const actions = CreateActions([
 				};
 
 				for (const key of settingStore.getKeys())
-					data.settings[key] = settingStore.get(key);
+					data.settings[key] = JSON.parse(JSON.stringify(settingStore.get(key)));
 
-				data.settings.activePoints = [];
-				data.settings.activeLayers = [image.baseLayer];
+				data.settings.activePoints = data.settings.activePoints.reduce((points, uuid) => {
+					points.push(image.points.get(uuid));
+					return points;
+				}, []);
+
+				data.settings.activeLayers = sortLayers(data.settings.activeLayers.reduce((layers, element) => {
+					if (element && image.layers.has(element))
+						layers.push(image.layers.get(element));
+					return layers;
+				}, []), data.settings.layerOrder).reverse();
 
 				comms.send('writeImage', data).then(() => {
 					if (typeof callback === 'function')
@@ -213,6 +231,24 @@ const actions = CreateActions([
 
 				actions.restoreImage(uuid);
 				actions.writeSelectedImage(undefined, actions.writeSavedImages.bind(undefined, uuids));
+			}
+		}
+	},
+	{
+		actionType: 'writeAllImages',
+		func: ({actions, stores}, uuidList=undefined) => {
+			let uuids = uuidList !== undefined ? uuidList : Array.from(stores.general.get('images').keys());
+
+			const settingStore = stores.settings;
+
+			if (uuids.length > 0) {
+				const uuid = uuids.pop();
+
+				let settings = {uuid};
+				for (const key of settingStore.getKeys())
+					settings[key] = JSON.parse(JSON.stringify(settingStore.get(key)));
+
+				actions.writeSelectedImage(settings, actions.writeAllImages.bind(undefined, uuids));
 			}
 		}
 	},
@@ -265,14 +301,18 @@ function sortLayers(layers, order) {
 	for (let i = 0; i < order.length; i ++)
 		outputLayers.push(undefined);
 
+	let offset = 0;
+
 	return layers.reduce((layers, layer) => {
 		const position = order.indexOf(layer.element);
 		if (position !== -1)
-			layers[position] = layer;
-		else
-			layers.push(layer);
+			layers[position + offset] = layer;
+		else {
+			layers.splice(0, 0, layer);
+			offset++;
+		}
 		return layers;
-	}, outputLayers);
+	}, outputLayers).filter(i => i);
 }
 
 module.exports = actions;

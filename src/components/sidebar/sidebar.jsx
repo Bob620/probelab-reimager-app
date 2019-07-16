@@ -66,9 +66,15 @@ class Sidebar extends Component {
 								</li>
 							)
 					}</ul>
-					<div onClick={interactable ? generalActions.writeSavedImages.bind(undefined, undefined) : () => {}}
-						 className={'export selectable'}>
-						<p>Export Saved Images</p>
+					<div className='export'>
+						<div onClick={interactable ? generalActions.writeSavedImages.bind(undefined, undefined) : () => {}}
+							 className='selectable'>
+							<p>Export Saved</p>
+						</div>
+						<div onClick={interactable ? generalActions.writeAllImages : () => {}}
+							 className='selectable'>
+							<p>Export All</p>
+						</div>
 					</div>
 				</div>
 				<div className='expand' draggable='true' onDrag={generalActions.moveSidebar}></div>

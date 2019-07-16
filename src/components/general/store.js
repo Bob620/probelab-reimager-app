@@ -12,7 +12,5 @@ module.exports = new Store('general', {
 	sidebarWidth: 300,
 	optionsWidth: 300,
 	interactable: true,
-	optionsList: constants.optionsLists.POINTS,
-	layerOrder: [constants.settings.BASELAYER],
-	layers: []
+	optionsList: constants.optionsLists.POINTS
 });

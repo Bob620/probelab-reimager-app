@@ -39,10 +39,23 @@
       width: 100%;
       display: flex;
       flex-direction: row;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      flex-shrink: 0;
+
+      > div {
+        height: 38px;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        flex-shrink: 0;
+        flex-grow: 1;
+        border-top-width: 0;
+        border-bottom-width: 2px;
+        border-left-width: 2px;
+        border-right-width: 0;
+        border-color: white;
+        border-style: solid;
+      }
     }
 
     > .current-dir {
