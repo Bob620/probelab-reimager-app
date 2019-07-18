@@ -20,16 +20,15 @@ class Navbar extends Component {
 		return (
 			<section id='navbar'>
 				<h1>Probelab ReImager</h1>
-				<div>
-					<div onClick={generalActions.navigateSettings}
-						 className='refresh selectable'>
-						<p>Settings</p>
+				{ generalStore.get('page') === 'landing' ?
+					<div>
+						<div onClick={generalActions.loadImage.bind(undefined, false)}
+							 className='refresh selectable'>
+							<p>Refresh Image</p>
+						</div>
 					</div>
-					<div onClick={generalActions.loadImage.bind(undefined, false)}
-						 className='refresh selectable'>
-						<p>Refresh Image</p>
-					</div>
-				</div>
+					: <div />
+				}
 			</section>
 		);
 	}

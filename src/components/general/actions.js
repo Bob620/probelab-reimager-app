@@ -11,6 +11,18 @@ comms.on('updateDirectory', ({images}) => {
 	actions.updateDirImages(images);
 });
 
+comms.on('navigate', ({page}) => {
+	switch(page) {
+		default:
+		case 'home':
+			actions.navigateHome();
+			break;
+		case 'settings':
+			actions.navigateSettings();
+			break;
+	}
+});
+
 const actions = CreateActions([
 	{
 		actionType: 'saveImage',
@@ -143,48 +155,52 @@ const actions = CreateActions([
 			let image = generalStore.get('images').get(uuid);
 			image = image ? image : generalStore.get('safebox').get(uuid);
 
-			actions.selectImage(uuid);
+			if (image) {
+				actions.selectImage(uuid);
 
-			let data = {
-				uuid,
-				imageUuid: image.imageUuid,
-				settings: {}
-			};
+				let data = {
+					uuid,
+					imageUuid: image.imageUuid,
+					settings: {}
+				};
 
-			for (const key of settingStore.getKeys())
-				data.settings[key] = JSON.parse(JSON.stringify(settingStore.get(key)));
+				for (const key of settingStore.getKeys())
+					data.settings[key] = JSON.parse(JSON.stringify(settingStore.get(key)));
 
-			if (overwrite) {
-				data.settings.activePoints = [];
+				if (overwrite) {
+					data.settings.activePoints = [];
 
-				if (settingStore.get('selectAllPoints'))
-					settingStore.set('activePoints', Array.from(image.points.keys()));
-				else
-					settingStore.set('activePoints', []);
-			}
-
-			data.settings.activePoints = (data.settings.selectAllPoints ? Array.from(image.points.keys()) : data.settings.activePoints).reduce((points, uuid) => {
-				points.push(image.points.get(uuid));
-				return points;
-			}, []);
-
-			const layerColors = settingStore.get('layerColors');
-			data.settings.activeLayers = sortLayers(data.settings.activeLayers.reduce((layers, element) => {
-				if (element && image.layers.has(element)) {
-					let layer = JSON.parse(JSON.stringify(image.layers.get(element)));
-					if (layerColors[element])
-						layer.color = layerColors[element];
-					layers.push(layer);
+					if (settingStore.get('selectAllPoints'))
+						settingStore.set('activePoints', Array.from(image.points.keys()));
+					else
+						settingStore.set('activePoints', []);
 				}
-				return layers;
-			}, []), data.settings.layerOrder).reverse();
 
-			comms.send('loadImage', data).then(([{uuid, image, data}]) => {
-				if (generalStore.get('selectedUuid') === uuid)
-					generalStore.set('selectedImage', image);
-				//stores.general.get('images')[uuid] = data;
-				actions.navigateHome();
-			}).catch(() => {});
+				data.settings.activePoints = (data.settings.selectAllPoints ? Array.from(image.points.keys()) : data.settings.activePoints).reduce((points, uuid) => {
+					points.push(image.points.get(uuid));
+					return points;
+				}, []);
+
+				const layerColors = settingStore.get('layerColors');
+				data.settings.activeLayers = sortLayers(data.settings.activeLayers.reduce((layers, element) => {
+					if (element && image.layers.has(element)) {
+						let layer = JSON.parse(JSON.stringify(image.layers.get(element)));
+						layer.opacity = data.settings.layerOpacity === '' ? 100 : data.settings.layerOpacity;
+						if (layerColors[element])
+							layer.color = layerColors[element];
+						layers.push(layer);
+					}
+					return layers;
+				}, []), data.settings.layerOrder).reverse();
+
+				comms.send('loadImage', data).then(([{uuid, image, data}]) => {
+					if (generalStore.get('selectedUuid') === uuid)
+						generalStore.set('selectedImage', image);
+					//stores.general.get('images')[uuid] = data;
+					actions.navigateHome();
+				}).catch(() => {
+				});
+			}
 		}
 	},
 	{
@@ -309,13 +325,14 @@ const actions = CreateActions([
 			const optionsWidth = stores.general.get('optionsWidth');
 
 			if (xpos > 290) // Smaller breaks Export button text
-				if (xpos < 500) {
-					if (document.styleSheets[0].cssRules[0].selectorText === '.app')
-						document.styleSheets[0].deleteRule(0);
+				if (xpos < 500)
+					if (xpos + optionsWidth <= window.innerWidth * .8) {
+						if (document.styleSheets[0].cssRules[0].selectorText === '.app')
+							document.styleSheets[0].deleteRule(0);
 
-					stores.general.set('sidebarWidth', xpos);
-					document.styleSheets[0].insertRule(`.app {grid-template-columns: ${xpos}px 1fr ${optionsWidth}px !important }`)
-				}
+						stores.general.set('sidebarWidth', xpos);
+						document.styleSheets[0].insertRule(`.app {grid-template-columns: ${xpos}px 1fr ${optionsWidth}px !important }`)
+					}
 		}
 	},
 	{
@@ -327,13 +344,14 @@ const actions = CreateActions([
 			const sidebarWidth = stores.general.get('sidebarWidth');
 
 			if (xpos < -272) // Smaller wraps button text
-				if (xpos > -500) {
-					if (document.styleSheets[0].cssRules[0].selectorText === '.app')
-						document.styleSheets[0].deleteRule(0);
+				if (xpos > -500)
+					if (Math.abs(xpos) + sidebarWidth <= window.innerWidth * .75) {
+						if (document.styleSheets[0].cssRules[0].selectorText === '.app')
+							document.styleSheets[0].deleteRule(0);
 
-					stores.general.set('optionsWidth', Math.abs(xpos));
-					document.styleSheets[0].insertRule(`.app {grid-template-columns: ${sidebarWidth}px 1fr ${Math.abs(xpos)}px !important }`)
-				}
+						stores.general.set('optionsWidth', Math.abs(xpos));
+						document.styleSheets[0].insertRule(`.app {grid-template-columns: ${sidebarWidth}px 1fr ${Math.abs(xpos)}px !important }`)
+					}
 		}
 	}
 ]);

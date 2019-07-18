@@ -164,6 +164,23 @@ export default CreateActions([
 		}
 	},
 	{
+		actionType: 'changeLayerOpacity',
+		func: ({stores}, {target}) => {
+			const num = parseInt(target.value === '0' ? '0' : target.value.replace(/^0+/g, ''));
+			if (!isNaN(num))
+				if (0 <= num)
+					if (num <= 100)
+						stores.settings.set('layerOpacity', num/100);
+					else
+						stores.settings.set('layerOpacity', 1);
+				else
+					stores.settings.set('layerOpacity', 0);
+
+			if (target.value === '')
+				stores.settings.set('layerOpacity', '');
+		}
+	},
+	{
 		actionType: 'changeFromAutoScale',
 		func: ({actions, stores}, event) => {
 			actions.changeScaleSize(event);

@@ -1,4 +1,119 @@
-const {BrowserWindow} = require('electron');
+const { BrowserWindow, app, Menu, shell } = require('electron');
+
+const isMac = process.platform === 'darwin';
+
+const template = [
+	// { role: 'appMenu' }
+	...(isMac ? [{
+		label: app.getName(),
+		submenu: [
+			{ role: 'about' },
+			{ type: 'separator' },
+			{ role: 'services' },
+			{ type: 'separator' },
+			{ role: 'hide' },
+			{ role: 'hideothers' },
+			{ role: 'unhide' },
+			{ type: 'separator' },
+			{ role: 'quit' }
+		]
+	}] : []),
+	// { role: 'fileMenu' }
+	{
+		label: 'File',
+		submenu: [
+			isMac ? { role: 'close' } : { role: 'quit' }
+		]
+	},
+	// { role: 'editMenu' }
+/*	{
+		label: 'Edit',
+		submenu: [
+			{ role: 'undo' },
+			{ role: 'redo' },
+			{ type: 'separator' },
+			{ role: 'cut' },
+			{ role: 'copy' },
+			{ role: 'paste' },
+			...(isMac ? [
+				{ role: 'pasteAndMatchStyle' },
+				{ role: 'delete' },
+				{ role: 'selectAll' },
+				{ type: 'separator' },
+				{
+					label: 'Speech',
+					submenu: [
+						{ role: 'startspeaking' },
+						{ role: 'stopspeaking' }
+					]
+				}
+			] : [
+				{ role: 'delete' },
+				{ type: 'separator' },
+				{ role: 'selectAll' }
+			])
+		]
+	},
+*/
+	// { role: 'viewMenu' }
+/*	{
+		label: 'View',
+		submenu: [
+			{ role: 'reload' },
+			{ role: 'forcereload' },
+			{ role: 'toggledevtools' },
+			{ type: 'separator' },
+			{ role: 'resetzoom' },
+			{ role: 'zoomin' },
+			{ role: 'zoomout' },
+			{ type: 'separator' },
+			{ role: 'togglefullscreen' }
+		]
+	},
+*/
+	// { role: 'windowMenu' }
+	{
+		label: 'Window',
+		submenu: [
+			{ role: 'minimize' },
+			{ role: 'zoom' },
+			...(isMac ? [
+				{ type: 'separator' },
+				{ role: 'front' },
+				{ type: 'separator' },
+				{ role: 'window' }
+			] : [
+				{ role: 'close' }
+			])
+		]
+	},
+	{
+		role: 'help',
+		submenu: [
+			{
+				label: 'Settings',
+				click: (menuItem, browserWindow, e) => {
+					browserWindow.send('message', {type: 'navigate', data: {page: 'settings'}, uuid: ''});
+				}
+			},
+			{
+				label: 'Website',
+				click: (menuItem, browserWindow, e) => {
+					shell.openExternal('http://probelab.net');
+				}
+			},
+			{
+				label: 'About',
+				click: (menuItem, browserWindow, e) => {
+					shell.openExternal('http://reimager.probelab.net');
+				}
+			}
+		]
+	}
+];
+
+const menu = Menu.buildFromTemplate(template);
+//Menu.setApplicationMenu(menu);
 
 module.exports = () => {
 	let window = new BrowserWindow({

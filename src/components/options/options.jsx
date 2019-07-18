@@ -28,6 +28,7 @@ class Options extends Component {
 			<section id='options'>
 				<div className='expand' draggable='true' onDrag={generalActions.moveOptions} />
 				<div className='content'>
+					<p>Scale Position</p>
 					<div className='positions'>
 						<div className={`ul ${interactable ? 'selectable' : ''} ${currentPos === constants.settings.scalePositions.UPPERLEFT ? 'selected' : ''}`}
 							 onClick={interactable ? settingActions.setScalePosition.bind(undefined, constants.settings.scalePositions.UPPERLEFT) : () => {}}
@@ -117,7 +118,7 @@ class Options extends Component {
 						</div>
 						<div>
 							<div className='colorOptions'>
-								<p>Scale Bar</p>
+								<p>Scale Type</p>
 								<select value={settingStore.get('scaleBarPosition')} onChange={e => settingActions.changeBarPosition(undefined, e)}>
 									<option value={constants.settings.scaleBarPositions.ABOVE}>Above</option>
 									<option value={constants.settings.scaleBarPositions.BELOW}>Below</option>

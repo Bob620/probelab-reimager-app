@@ -27,6 +27,7 @@ module.exports = new Store('settings', {
 		B: 0,
 		opacity: 1
 	}},
+	layerOpacity: 1,
 	layers: [],
 	selectAllPoints: false,
 	activePoints: [],

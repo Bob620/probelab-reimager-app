@@ -76,9 +76,31 @@ module.exports = class OptionsList extends Component {
 		const activeLayers = settingStore.get('activeLayers');
 		const optionsList = generalStore.get('optionsList');
 		const selectAllPoints = settingStore.get('selectAllPoints');
+		const layerOpacity = settingStore.get('layerOpacity');
 
 		return (
-			<div className='options-list'>
+			<div className={`options-list ${optionsList === constants.optionsLists.POINTS ? 'scroll' : ''}`}>
+				{optionsList === constants.optionsLists.LAYERS &&
+					<div className='color-selector'>
+						<p>Opacity</p>
+						<div className='opacity'>
+							<input onChange={settingActions.changeLayerOpacity}
+								   type='text'
+								   value={layerOpacity === '' ? '' : (layerOpacity * 100)}
+								   maxLength='3' min='0' max='100'
+							/>
+						</div>
+						<p>Colors</p>
+						<div className='colors'>
+							<div />
+							<div />
+							<div />
+							<div />
+							<div />
+							<div />
+						</div>
+					</div>
+				}
 				<ul>
 					{image && optionsList === constants.optionsLists.POINTS &&
 						<li key='selectAll'
@@ -106,6 +128,7 @@ module.exports = class OptionsList extends Component {
 							<li key={layer.element}
 								draggable="true"
 								onDragStart={e => {
+									e.dataTransfer.dropEffect = 'move';
 									this.setState({
 										dragging: layer
 									});
@@ -115,7 +138,11 @@ module.exports = class OptionsList extends Component {
 										dragging: ''
 									});
 								}}
+								onDrop={(e) => {
+									e.preventDefault();
+								}}
 								onDragOver={e => {
+									e.preventDefault();
 									const otherIndex = this.state.layers.indexOf(this.state.dragging);
 									let index = this.state.layers.indexOf(layer);
 									if (otherIndex !== -1 && this.state.dragging !== layer && (otherIndex - 1 === index || otherIndex + 1 === index)) {
