@@ -211,11 +211,14 @@ export default CreateActions([
 	{
 		actionType: 'removePoint',
 		func: ({stores, actions}, uuid) => {
-			let points = stores.settings.get('activePoints');
+			const settingStore = stores.settings;
+			let points = settingStore.get('activePoints');
 			const pointPos = points.indexOf(uuid);
 
-			if (pointPos !== -1)
+			if (pointPos !== -1) {
 				points.splice(pointPos, 1);
+				settingStore.set('selectAllPoints', false);
+			}
 			actions.navigateHome();
 		}
 	},
@@ -258,6 +261,7 @@ export default CreateActions([
 			let image = generalStore.get('images').get(imageUuid);
 			image = image ? image : generalStore.get('safebox').get(imageUuid);
 
+			settingStore.set('selectAllPoints', true);
 			settingStore.set('activePoints', Array.from(image.points.keys()));
 			actions.navigateHome();
 		}
@@ -265,7 +269,9 @@ export default CreateActions([
 	{
 		actionType: 'deselectAllPoints',
 		func: ({stores, actions}) => {
-			stores.settings.set('activePoints', []);
+			const settingStore = stores.settings;
+			settingStore.set('activePoints', []);
+			settingStore.set('selectAllPoints', false);
 			actions.navigateHome();
 		}
 	}

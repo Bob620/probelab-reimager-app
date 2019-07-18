@@ -28,6 +28,7 @@ module.exports = new Store('settings', {
 		opacity: 1
 	}},
 	layers: [],
+	selectAllPoints: false,
 	activePoints: [],
 	activeLayers: [constants.settings.BASELAYER]
 });

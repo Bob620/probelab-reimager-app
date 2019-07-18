@@ -21,6 +21,7 @@ class Sidebar extends Component {
 		const safebox = Array.from(generalStore.get('safebox').values());
 		const images = Array.from(generalStore.get('images').values());
 		const interactable = generalStore.get('interactable');
+		const confirmDeleteSaved = generalStore.get('confirmDeleteSaved');
 
 		return (
 			<section id='sidebar'>
@@ -75,6 +76,16 @@ class Sidebar extends Component {
 							 className='selectable'>
 							<p>Export All</p>
 						</div>
+						{ confirmDeleteSaved !== -1 ?
+							<div onClick={interactable ? generalActions.deleteSaved : () => {}}
+								 className='selectable warning'>
+								<p>Confirm ({confirmDeleteSaved})</p>
+							</div> :
+							<div onClick={interactable ? generalActions.confirmDeleteSaved : () => {}}
+								 className='selectable'>
+								<p>Delete Saved</p>
+							</div>
+						}
 					</div>
 				</div>
 				<div className='expand' draggable='true' onDrag={generalActions.moveSidebar}></div>

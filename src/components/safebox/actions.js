@@ -23,6 +23,7 @@ export default CreateActions([
 				data.settings.activePoints = [];
 
 				data.points = Array.from(image.points.values()).reduce((points, point) => {
+					point = JSON.parse(JSON.stringify(point));
 					const uuid = GenerateUuid.v4();
 					const oldUuid = point.uuid;
 

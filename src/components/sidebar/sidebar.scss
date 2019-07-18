@@ -1,5 +1,13 @@
 @import '../general/colors.scss';
 
+.warning {
+  background-color: #eb3b5a !important;
+
+  &:hover {
+    background-color: #f91640 !important;
+  }
+}
+
 #sidebar {
   overflow: hidden;
   display: flex;
@@ -39,6 +47,7 @@
       width: 100%;
       display: flex;
       flex-direction: row;
+      flex-shrink: 0;
 
       > div {
         height: 38px;
@@ -64,7 +73,7 @@
     }
 
     > .imageFunctions {
-      height: 35px;
+      height: 39px;
       width: 100%;
       display: flex;
       flex-direction: row;

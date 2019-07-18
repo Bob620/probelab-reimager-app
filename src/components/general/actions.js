@@ -118,6 +118,9 @@ const actions = CreateActions([
 
 				settingStore.set('layers', sortLayers(Array.from(image.layers.values()), settingStore.get('layerOrder')));
 
+				if (settingStore.get('selectAllPoints'))
+					settingStore.set('activePoints', Array.from(image.points.keys()));
+
 				if (image.points.size === 0)
 					generalStore.set('optionsList', constants.optionsLists.LAYERS);
 				else
@@ -153,10 +156,14 @@ const actions = CreateActions([
 
 			if (overwrite) {
 				data.settings.activePoints = [];
-				settingStore.set('activePoints', []);
+
+				if (settingStore.get('selectAllPoints'))
+					settingStore.set('activePoints', Array.from(image.points.keys()));
+				else
+					settingStore.set('activePoints', []);
 			}
 
-			data.settings.activePoints = data.settings.activePoints.reduce((points, uuid) => {
+			data.settings.activePoints = (data.settings.selectAllPoints ? Array.from(image.points.keys()) : data.settings.activePoints).reduce((points, uuid) => {
 				points.push(image.points.get(uuid));
 				return points;
 			}, []);
@@ -203,14 +210,19 @@ const actions = CreateActions([
 				for (const key of settingStore.getKeys())
 					data.settings[key] = JSON.parse(JSON.stringify(settingStore.get(key)));
 
-				data.settings.activePoints = data.settings.activePoints.reduce((points, uuid) => {
+				data.settings.activePoints = (data.settings.selectAllPoints ? Array.from(image.points.keys()) : data.settings.activePoints).reduce((points, uuid) => {
 					points.push(image.points.get(uuid));
 					return points;
 				}, []);
 
+				const layerColors = settingStore.get('layerColors');
 				data.settings.activeLayers = sortLayers(data.settings.activeLayers.reduce((layers, element) => {
-					if (element && image.layers.has(element))
-						layers.push(image.layers.get(element));
+					if (element && image.layers.has(element)) {
+						let layer = JSON.parse(JSON.stringify(image.layers.get(element)));
+						if (layerColors[element])
+							layer.color = layerColors[element];
+						layers.push(layer);
+					}
 					return layers;
 				}, []), data.settings.layerOrder).reverse();
 
@@ -259,6 +271,36 @@ const actions = CreateActions([
 		}
 	},
 	{
+		actionType: 'timerHandle',
+		func: ({stores}) => {
+			const generalStore = stores.general;
+			const current = generalStore.get('confirmDeleteSaved');
+
+			if (current > -1) {
+				generalStore.set('confirmDeleteSaved', current - 1);
+				setTimeout(actions.timerHandle, 1000);
+			}
+		}
+	},
+	{
+		actionType: 'confirmDeleteSaved',
+		func: ({stores}) => {
+			const generalStore = stores.general;
+			generalStore.set('confirmDeleteSaved', 3);
+
+			setTimeout(actions.timerHandle, 1000);
+		}
+	},
+	{
+		actionType: 'deleteSaved',
+		func: ({stores}) => {
+			const generalStore = stores.general;
+
+			generalStore.set('safebox', new Map());
+			generalStore.set('confirmDeleteSaved', -1);
+		}
+	},
+	{
 		actionType: 'moveSidebar',
 		func: ({stores}, event) => {
 			event.preventDefault();
@@ -266,7 +308,7 @@ const actions = CreateActions([
 			const xpos = event.screenX;
 			const optionsWidth = stores.general.get('optionsWidth');
 
-			if (xpos > 205) // Smaller wraps Export button text
+			if (xpos > 290) // Smaller breaks Export button text
 				if (xpos < 500) {
 					if (document.styleSheets[0].cssRules[0].selectorText === '.app')
 						document.styleSheets[0].deleteRule(0);

@@ -75,72 +75,72 @@ module.exports = class OptionsList extends Component {
 		const activePoints = settingStore.get('activePoints');
 		const activeLayers = settingStore.get('activeLayers');
 		const optionsList = generalStore.get('optionsList');
+		const selectAllPoints = settingStore.get('selectAllPoints');
 
 		return (
 			<div className='options-list'>
 				<ul>
 					{image && optionsList === constants.optionsLists.POINTS &&
 						<li key='selectAll'
-							className={activePoints.length === image.points.size ? 'div-selected point' : 'point'}
-							onClick={activePoints.length === image.points.size ? settingActions.deselectAllPoints : settingActions.selectAllPoints.bind(undefined, image.uuid)}>
+							className={selectAllPoints ? 'div-selected point' : 'point'}
+							onClick={selectAllPoints ? settingActions.deselectAllPoints : settingActions.selectAllPoints.bind(undefined, image.uuid)}>
 							<div>
 								<div/>
 							</div>
 							<p>Select All</p>
 						</li>
 					}
-					{
-						optionsList === constants.optionsLists.POINTS ?
-							image && Array.from(image.points.values()).map(point =>
-								<li key={point.uuid}
-									className={activePoints.includes(point.uuid) ? 'div-selected point' : 'point'}
-									onClick={activePoints.includes(point.uuid) ? settingActions.removePoint.bind(undefined, point.uuid) :
-										settingActions.addPoint.bind(undefined, point.uuid)}>
-									<div>
-										<div/>
-									</div>
-									<p>Point {point.name}</p>
-								</li>)
-							: (optionsList === constants.optionsLists.LAYERS ?
-							image && this.state.layers.filter(i => i).map(layer =>
-								<li key={layer.element}
-									draggable="true"
-									onDragStart={e => {
-										this.setState({
-											dragging: layer
-										});
-									}}
-									onDragEnd={e => {
-										this.setState({
-											dragging: ''
-										});
-									}}
-									onDragOver={e => {
-										const otherIndex = this.state.layers.indexOf(this.state.dragging);
-										let index = this.state.layers.indexOf(layer);
-										if (otherIndex !== -1 && this.state.dragging !== layer && (otherIndex - 1 === index || otherIndex + 1 === index)) {
-											const layers = JSON.parse(JSON.stringify(this.state.layers));
-											if (index > otherIndex) {
-												layers.splice(index, 1, layer, this.state.dragging);
-												layers.splice(otherIndex, 1);
-											} else {
-												layers.splice(otherIndex, 1, this.state.dragging, layer);
-												layers.splice(index, 1);
-											}
-											this.setState({
-												layers
-											});
+					{optionsList === constants.optionsLists.POINTS ?
+						image && Array.from(image.points.values()).map(point =>
+							<li key={point.uuid}
+								className={activePoints.includes(point.uuid) ? 'div-selected point' : 'point'}
+								onClick={activePoints.includes(point.uuid) ? settingActions.removePoint.bind(undefined, point.uuid) :
+									settingActions.addPoint.bind(undefined, point.uuid)}>
+								<div>
+									<div/>
+								</div>
+								<p>Point {point.name}</p>
+							</li>)
+						: (optionsList === constants.optionsLists.LAYERS ?
+						image && this.state.layers.filter(i => i).map(layer =>
+							<li key={layer.element}
+								draggable="true"
+								onDragStart={e => {
+									this.setState({
+										dragging: layer
+									});
+								}}
+								onDragEnd={e => {
+									this.setState({
+										dragging: ''
+									});
+								}}
+								onDragOver={e => {
+									const otherIndex = this.state.layers.indexOf(this.state.dragging);
+									let index = this.state.layers.indexOf(layer);
+									if (otherIndex !== -1 && this.state.dragging !== layer && (otherIndex - 1 === index || otherIndex + 1 === index)) {
+										const layers = JSON.parse(JSON.stringify(this.state.layers));
+										if (index > otherIndex) {
+											layers.splice(index, 1, layer, this.state.dragging);
+											layers.splice(otherIndex, 1);
+										} else {
+											layers.splice(otherIndex, 1, this.state.dragging, layer);
+											layers.splice(index, 1);
 										}
-									}}
-									className={activeLayers.includes(layer.element) ? 'div-selected layer' : 'layer'}>
-									<div
-										onClick={activeLayers.includes(layer.element) ? settingActions.removeLayer.bind(undefined, layer.element) :
-											settingActions.addLayer.bind(undefined, layer.element)}>
-										<div/>
-									</div>
-									<p>{layer.name.slice(0, 1).toUpperCase() + layer.name.slice(1, layer.name.length)}</p>
-								</li>)
-							: <div/>)
+										this.setState({
+											layers
+										});
+									}
+								}}
+								className={activeLayers.includes(layer.element) ? 'div-selected layer' : 'layer'}>
+								<div
+									onClick={activeLayers.includes(layer.element) ? settingActions.removeLayer.bind(undefined, layer.element) :
+										settingActions.addLayer.bind(undefined, layer.element)}>
+									<div/>
+								</div>
+								<p>{layer.name.slice(0, 1).toUpperCase() + layer.name.slice(1, layer.name.length)}</p>
+							</li>)
+						: <div/>)
 					}
 				</ul>
 			</div>
