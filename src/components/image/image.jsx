@@ -26,15 +26,16 @@ class Image extends Component {
 					{ imageDataUrl ? <img src={imageDataUrl} /> : (selectedUuid !== undefined ? <div className='loading'><span>Loading</span><div /><div /><div /></div> : <div />) }
 				</div>
 				{
-					image !== undefined && image.image.width !== undefined ?
+					image !== undefined ?
 						<div className='image-info'>
+							<p>{image.name}</p>
 							<div>
 								<p>Image Width: {image.image.width}px</p>
 								<p>Image Height: {image.image.height}px</p>
 							</div>
 							<div>
-								<p>Output Width: {image.output.width ? image.output.width : image.image.width}px</p>
-								<p>Output Height: {image.output.height ? image.output.height : image.image.height}px</p>
+								<p>Output Width: {image.output.width}px</p>
+								<p>Output Height: {image.output.height}px</p>
 							</div>
 						</div> : <div/>
 				}

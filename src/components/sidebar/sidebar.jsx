@@ -36,6 +36,7 @@ class Sidebar extends Component {
 								onClick={image.uuid === selectedUuid || !interactable ? () => {} : generalActions.loadImage.bind(undefined, image.uuid, false)}
 							>
 								<p>{image.name}</p>
+								<p>{image.image.width}px</p>
 							</li>
 						)
 					}</ul>

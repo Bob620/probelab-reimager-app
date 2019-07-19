@@ -145,6 +145,7 @@ const actions = CreateActions([
 		func: ({stores}, uuid=false, activeOverride=false) => {
 			const settingStore = stores.settings;
 			const generalStore = stores.general;
+			const images = generalStore.get('images');
 			let overwrite = false;
 
 			if (!uuid)
@@ -152,7 +153,7 @@ const actions = CreateActions([
 			else if (!activeOverride)
 				overwrite = true;
 
-			let image = generalStore.get('images').get(uuid);
+			let image = images.get(uuid);
 			image = image ? image : generalStore.get('safebox').get(uuid);
 
 			if (image) {
@@ -196,7 +197,8 @@ const actions = CreateActions([
 				comms.send('loadImage', data).then(([{uuid, image, data}]) => {
 					if (generalStore.get('selectedUuid') === uuid)
 						generalStore.set('selectedImage', image);
-					//stores.general.get('images')[uuid] = data;
+					if (images.has(uuid))
+						images.get(uuid).output = data.output;
 					actions.navigateHome();
 				}).catch(() => {
 				});
@@ -206,7 +208,6 @@ const actions = CreateActions([
 	{
 		actionType: 'writeSelectedImage',
 		func: ({stores}, override=undefined, callback=() => {}) => {
-			const settingStore = stores.settings;
 			const generalStore = stores.general;
 
 			const selectedUuid = override ? override.uuid : generalStore.get('selectedUuid');

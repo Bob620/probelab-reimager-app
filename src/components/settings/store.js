@@ -20,13 +20,7 @@ module.exports = new Store('settings', {
 	pixelSizeConstant: 0,
 	autoPixelSizeConstant: true,
 	layerOrder: [constants.settings.BASELAYER],
-	layerColors: {'al': {
-		RGBA: 'rgba(255, 0, 0, 1)',
-		R: 255,
-		G: 0,
-		B: 0,
-		opacity: 1
-	}},
+	layerColors: {},
 	layerOpacity: 1,
 	layers: [],
 	selectAllPoints: false,

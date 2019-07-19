@@ -130,6 +130,13 @@
           overflow-x: hidden;
         }
 
+        p:last-child {
+          align-self: flex-end;
+          flex-grow: 0;
+          flex-shrink: 0;
+          margin-right: 10px;
+        }
+
         span {
           margin: 5px;
 

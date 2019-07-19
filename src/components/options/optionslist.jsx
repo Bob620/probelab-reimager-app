@@ -18,7 +18,8 @@ module.exports = class OptionsList extends Component {
 				element: '',
 				index: -1
 			},
-			layers: settingStore.get('layers')
+			layers: settingStore.get('layers'),
+			selectedElement: ''
 		}
 	}
 
@@ -74,9 +75,12 @@ module.exports = class OptionsList extends Component {
 
 		const activePoints = settingStore.get('activePoints');
 		const activeLayers = settingStore.get('activeLayers');
+		const layerColors = settingStore.get('layerColors');
 		const optionsList = generalStore.get('optionsList');
 		const selectAllPoints = settingStore.get('selectAllPoints');
 		const layerOpacity = settingStore.get('layerOpacity');
+		const selectedElement = this.state.selectedElement;
+		const colors = generalStore.get('colors');
 
 		return (
 			<div className={`options-list ${optionsList === constants.optionsLists.POINTS ? 'scroll' : ''}`}>
@@ -92,12 +96,18 @@ module.exports = class OptionsList extends Component {
 						</div>
 						<p>Colors</p>
 						<div className='colors'>
-							<div />
-							<div />
-							<div />
-							<div />
-							<div />
-							<div />
+							<div style={{'backgroundColor': 'rgba(0,0,0,0)'}}
+								 key='none'
+								 onClick={settingActions.removeLayer.bind(undefined, selectedElement)}/>
+							{generalStore.get('colors').map(color =>
+								<div style={{'backgroundColor': color.RGBA}}
+									 key={color.name}
+									 onClick={() => {
+									 	if (!activeLayers.includes(selectedElement))
+									 		settingActions.addLayer(selectedElement);
+									 	settingActions.colorLayer(selectedElement, color);
+									 }}/>
+							)}
 						</div>
 					</div>
 				}
@@ -119,7 +129,7 @@ module.exports = class OptionsList extends Component {
 								onClick={activePoints.includes(point.uuid) ? settingActions.removePoint.bind(undefined, point.uuid) :
 									settingActions.addPoint.bind(undefined, point.uuid)}>
 								<div>
-									<div/>
+									<div />
 								</div>
 								<p>Point {point.name}</p>
 							</li>)
@@ -127,6 +137,7 @@ module.exports = class OptionsList extends Component {
 						image && this.state.layers.filter(i => i).map(layer =>
 							<li key={layer.element}
 								draggable="true"
+								onMouseDown={() => {this.setState({selectedElement: layer.element})}}
 								onDragStart={e => {
 									e.dataTransfer.dropEffect = 'move';
 									this.setState({
@@ -159,12 +170,22 @@ module.exports = class OptionsList extends Component {
 										});
 									}
 								}}
-								className={activeLayers.includes(layer.element) ? 'div-selected layer' : 'layer'}>
-								<div
-									onClick={activeLayers.includes(layer.element) ? settingActions.removeLayer.bind(undefined, layer.element) :
-										settingActions.addLayer.bind(undefined, layer.element)}>
-									<div/>
-								</div>
+								className={(activeLayers.includes(layer.element) ? 'div-selected layer' : 'layer') + (this.state.selectedElement === layer.element ? ' selected' : '')}>
+								{layer.element === constants.settings.BASELAYER ?
+									<div
+										onClick={activeLayers.includes(selectedElement) ? settingActions.removeLayer.bind(undefined, selectedElement) : settingActions.addLayer.bind(undefined, selectedElement)}>
+										<div style={{'backgroundColor': activeLayers.includes(layer.element) ? '#0fb9b1' : '#4b6584'}}/>
+									</div>
+									:
+									<div
+										onClick={activeLayers.includes(selectedElement) ? settingActions.removeLayer.bind(undefined, selectedElement) : () => {
+											settingActions.addLayer(selectedElement);
+											if (layerColors[layer.element] === undefined)
+												settingActions.colorLayer(selectedElement, colors[Math.round(Math.random() * (colors.length - 1))]);
+										}}>
+										<div style={{'backgroundColor': layerColors[layer.element] && activeLayers.includes(layer.element) ? layerColors[layer.element].RGBA : '#4b6584'}}/>
+									</div>
+								}
 								<p>{layer.name.slice(0, 1).toUpperCase() + layer.name.slice(1, layer.name.length)}</p>
 							</li>)
 						: <div/>)
