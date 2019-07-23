@@ -21,7 +21,7 @@ module.exports = new Store('settings', {
 	autoPixelSizeConstant: true,
 	layerOrder: [constants.settings.BASELAYER],
 	layerColors: {},
-	layerOpacity: 1,
+	layerOpacity: 0.5,
 	layers: [],
 	selectAllPoints: false,
 	activePoints: [],

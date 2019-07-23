@@ -38,3 +38,6 @@ try {
 try {
 	fs.linkSync('./LICENSE', './bin/unpackaged/LICENSE');
 } catch (err) {}
+try {
+	fs.linkSync('./constants.json', './bin/unpackaged/constants.json');
+} catch(err) {}
