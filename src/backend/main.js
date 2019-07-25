@@ -13,6 +13,7 @@ let activeDir = '';
 let imageMap = new Map();
 
 let uuidMap = new Map();
+let entryMap = new Map();
 let savedMap = new Map();
 
 app.on('ready', async () => {
@@ -26,8 +27,22 @@ app.on('ready', async () => {
 		if (recentlyUpdated.size > 0)
 			Array.from(recentlyUpdated.keys()).map(async uri => {
 				recentlyUpdated.delete(uri);
-				const test = await reimager.send('getImages', {uri: uri + '/'});
-				console.log(test);
+				const thermo = (await reimager.send('getImages', {uri: uri + '/'}))[0];
+				let uuids = [];
+
+				for (const [uuid, therm] of uuidMap)
+					if (therm.entryFile === thermo.entryFile)
+						uuids.push(uuid);
+
+				comms.send('updateDirectory', {
+					images: uuids.map(uuid => {
+						const temp = JSON.parse(JSON.stringify(thermo));
+						temp.uuid = uuid;
+						temp.imageUuid = uuid;
+						uuidMap.set(uuid, temp);
+						return temp;
+					})
+				});
 			});
 	}, 1000);
 
@@ -153,8 +168,12 @@ app.on('ready', async () => {
 		const thermos = await reimager.send('getDir', {uri: dirUri});
 
 		for (const thermo of thermos) {
-			thermo.imageUuid = thermo.uuid;
-			uuidMap.set(thermo.uuid, thermo);
+			let uuid = entryMap.get(thermo.entryFile);
+			uuid = uuid ? uuid : thermo.uuid;
+			thermo.uuid = uuid;
+			thermo.imageUuid = uuid;
+			entryMap.set(thermo.entryFile, uuid);
+			uuidMap.set(uuid, thermo);
 		}
 
 		reimager.send('watchDir', {uri: dirUri});

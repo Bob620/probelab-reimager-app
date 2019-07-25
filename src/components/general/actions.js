@@ -8,7 +8,7 @@ import constants from '../../../constants';
 const comms = new Communications(new IPC(ipcRenderer));
 
 comms.on('updateDirectory', ({images}) => {
-	actions.updateDirImages(images);
+	actions.updateDirImages(images, true);
 });
 
 comms.on('navigate', ({page}) => {
@@ -90,7 +90,7 @@ const actions = CreateActions([
 	},
 	{
 		actionType: 'updateDirImages',
-		func: ({stores}, thermos) => {
+		func: ({stores}, thermos, update=false) => {
 			stores.general.set('images', thermos.reduce((thermos, thermo) => {
 				thermo.points = Object.values(thermo.points).reduce((points, point) => {
 					const uuid = GenerateUuid.v4();
@@ -110,13 +110,12 @@ const actions = CreateActions([
 
 				thermos.set(thermo.uuid, thermo);
 				return thermos;
-			}, new Map()));
+			}, update ? stores.general.get('images') : new Map()));
 		}
 	},
 	{
 		actionType: 'selectImage',
 		func: ({stores}, uuid) => {
-			//const settingStore = stores.settings;
 			const generalStore = stores.general;
 			const settingStore = stores.settings;
 

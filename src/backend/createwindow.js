@@ -56,7 +56,7 @@ const template = [
 	},
 */
 	// { role: 'viewMenu' }
-/*	{
+	{
 		label: 'View',
 		submenu: [
 			{ role: 'reload' },
@@ -70,7 +70,7 @@ const template = [
 			{ role: 'togglefullscreen' }
 		]
 	},
-*/
+
 	// { role: 'windowMenu' }
 	{
 		label: 'Window',
