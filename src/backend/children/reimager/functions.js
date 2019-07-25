@@ -84,22 +84,33 @@ const Functions = {
 	getDir: async (dirUri, canvas) => {
 		try {
 			const directory = await fsPromise.readdir(dirUri, {withFileTypes: true});
-
-			return (await Promise.all(directory.map(dir => {
-				if (dir.isDirectory()) {
-					const files = fs.readdirSync(dirUri + dir.name + '/', {withFileTypes: true});
-
-					return Promise.all(files.filter(file => file.isFile()).map(file => {
-						file.uri = dirUri + dir.name + '/' + file.name;
-						return Functions.createThermo(file, canvas);
-					}));
-				}
-			}))).flat().filter(i => i);
+			return (await Promise.all(directory.map(dir => dir.isDirectory() ? Functions.getImages(dirUri + dir.name + '/', canvas) : []))).flat().filter(i => i);
 		} catch(err) {
 			return [];
 		}
 	},
-	createThermo: async (file, canvas, uuid=undefined) => {
+	getImages: async (dirUri, canvas) => {
+		try {
+			const files = fs.readdirSync(dirUri, {withFileTypes: true});
+			let thermos = [];
+
+			return (await Promise.all(files.filter(file => file.isFile()).map(file => {
+				file.uri = dirUri + file.name;
+				if (file.name.endsWith(constants.extractedMap.fileFormats.LAYER))
+					thermos.map(thermo => thermo.addLayerFile(file.uri));
+				else {
+					const thermo = Functions.createThermo(file, canvas);
+					if (thermo) {
+						thermos.push(thermo[0]);
+						return thermo[1];
+					}
+				}
+			}))).filter(i => i);
+		} catch(err) {
+				return [];
+		}
+	},
+	createThermo: (file, canvas, uuid=undefined) => {
 		if (file.isFile()) {
 			let thermo;
 
@@ -109,11 +120,12 @@ const Functions = {
 			if (file.name.endsWith(constants.extractedMap.fileFormats.ENTRY))
 				thermo = new ExtractedMap(file, canvas);
 
-			if (thermo) {
-				await thermo.init();
-				thermo.data.uuid = uuid ? uuid : thermo.data.uuid;
-				return thermo;
-			}
+			if (thermo)
+				return [thermo, new Promise(async resolve => {
+					const output = await thermo.init();
+					thermo.data.uuid = uuid ? uuid : thermo.data.uuid;
+					resolve(output);
+				})];
 		}
 
 		return undefined;

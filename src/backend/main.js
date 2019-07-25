@@ -9,6 +9,7 @@ const { app, dialog, shell } = require('electron');
 let window = null;
 const reimager = new ChildSpawn('reimager');
 
+let activeDir = '';
 let imageMap = new Map();
 
 let uuidMap = new Map();
@@ -19,9 +20,20 @@ app.on('ready', async () => {
 		window = createWindow();
 
 	const comms = new Communications(new IPC(window));
+	let recentlyUpdated = new Map();
 
-	reimager.on('dirUpdate', async () => {
+	setInterval(() => {
+		if (recentlyUpdated.size > 0)
+			Array.from(recentlyUpdated.keys()).map(async uri => {
+				recentlyUpdated.delete(uri);
+				const test = await reimager.send('getImages', {uri: uri + '/'});
+				console.log(test);
+			});
+	}, 1000);
 
+	reimager.on('dirUpdate', async ({filename, uri}) => {
+		if (!recentlyUpdated.has(uri + filename))
+			recentlyUpdated.set(uri + filename, true);
 	});
 
 	comms.on('canvas', data => {
@@ -52,7 +64,7 @@ app.on('ready', async () => {
 			image = image ? image : savedMap.get(data.imageUuid);
 			try {
 				dialog.showSaveDialog({
-					defaultPath: image.name + '.tif',
+					defaultPath: image.name + '.png',
 					filters: [
 						{
 							name: 'Images',
@@ -135,12 +147,17 @@ app.on('ready', async () => {
 		if (!dirUri.endsWith('/'))
 			dirUri = dirUri + '/';
 
+		reimager.send('unwatch', {uri: activeDir});
+		activeDir = dirUri;
+
 		const thermos = await reimager.send('getDir', {uri: dirUri});
 
 		for (const thermo of thermos) {
 			thermo.imageUuid = thermo.uuid;
 			uuidMap.set(thermo.uuid, thermo);
 		}
+
+		reimager.send('watchDir', {uri: dirUri});
 
 		return {
 			thermos

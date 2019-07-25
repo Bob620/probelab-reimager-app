@@ -16,6 +16,7 @@ class Child {
 
 		this.data.comms.on('canvas', this.canvas.bind(this));
 		this.data.comms.on('getDir', this.getDir.bind(this));
+		this.data.comms.on('getImages', this.getImages.bind(this));
 		this.data.comms.on('processImage', this.processImage.bind(this));
 		this.data.comms.on('unwatchDir', this.unwatchDir.bind(this));
 		this.data.comms.on('watchDir', this.watchDir.bind(this));
@@ -34,6 +35,14 @@ class Child {
 		return (await Functions.getDir(uri, this.data.canvas)).map(thermo => thermo.serialize());
 	}
 
+	async getImages({uri, uuids={}}) {
+		return (await Functions.getImages(uri, this.data.canvas)).map(thermo => {
+			const uuid = uuids[thermo.data.files.entry];
+			thermo.data.uuid = uuid ? uuid : thermo.data.uuid;
+			return thermo.serialize();
+		});
+	}
+
 	async processImage({uri, uuid, operations, settings}, returnThermo=false) {
 		settings = Functions.sanitizeSettings(settings);
 
@@ -43,33 +52,27 @@ class Child {
 				operations[i].args[0] = Functions.sanitizePosition(args[0]);
 		}
 
-		const splitUri = uri.split('/');
-		const watcher = this.data.watchedDirs.get(splitUri.slice(0, -1).join('/'));
-		const filename = splitUri[splitUri.length - 1];
-		let file = undefined;
+		const tempThermos = await Functions.getImages(uri.split('/').slice(0, -1).join('/') + '/', this.data.canvas);
+		if (tempThermos === undefined) throw {code: 0, message: 'No Thermo found'};
 
-		if (watcher)
-			file = watcher.get(filename);
+		for (const thermo of tempThermos) {
+			if (thermo.data.files.entry === uri) {
+				thermo.data.uuid = uuid ? uuid : thermo.data.uuid;
 
-		if (file === undefined) {
-			file = fs.statSync(uri);
-			file.uri = uri;
-			file.name = filename;
+				for (const {command, args} of operations)
+					await thermo[command](...args, settings);
+
+				if (returnThermo)
+					return thermo;
+
+				return {
+					data: thermo.serialize(),
+					image: await thermo.toUrl(settings)
+				};
+			}
 		}
 
-		const thermo = await Functions.createThermo(file, this.data.canvas, uuid);
-		if (thermo === undefined) throw {code: 0, message: 'No Thermo found'};
-
-		for (const {command, args} of operations)
-			await thermo[command](...args, settings);
-
-		if (returnThermo)
-			return thermo;
-
-		return {
-			data: thermo.serialize(),
-			image: await thermo.toUrl(settings)
-		};
+		throw {code: 0, message: 'No Thermo found'};
 	}
 
 	async unwatchDir({uri}) {
