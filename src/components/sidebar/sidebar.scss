@@ -1,5 +1,11 @@
 @import '../general/colors.scss';
 
+@keyframes rotate {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
 .warning {
   background-color: #eb3b5a !important;
 
@@ -111,6 +117,24 @@
       margin: 0;
       overflow-x: hidden;
       overflow-y: scroll;
+
+      > div {
+        height: 100%;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        .loading {
+          height: 30px;
+          width: 30px;
+          border-radius: 50%;
+          border-color: white;
+          border-style: inset;
+          border-width: 4px;
+          animation: rotate 2s linear infinite;
+        }
+      }
 
       > li {
         display: flex;

@@ -22,6 +22,9 @@ class Sidebar extends Component {
 		const images = Array.from(generalStore.get('images').values());
 		const interactable = generalStore.get('interactable');
 		const confirmDeleteSaved = generalStore.get('confirmDeleteSaved');
+		const storeExport = generalStore.get('storeExport');
+		const allExport = generalStore.get('allExport');
+		const loadingDir = generalStore.get('loadingDir');
 
 		return (
 			<section id='sidebar'>
@@ -29,7 +32,10 @@ class Sidebar extends Component {
 					<div className='input'>
 						<input onChange={generalActions.setWorkingDirectory} type="file" webkitdirectory="true" />
 					</div>
-					<ul className='current-dir'>{
+					<ul className='current-dir'>{loadingDir ?
+						<div>
+							<div className='loading' />
+						</div> :
 						images.sort((one, two) => one.name < two.name ? -1 : 1).map(image =>
 							<li className={`${interactable ? 'selectable' : ''} ${image.uuid === selectedUuid ? 'selected' : ''}`}
 								key={image.uuid}
@@ -69,13 +75,13 @@ class Sidebar extends Component {
 							)
 					}</ul>
 					<div className='export'>
-						<div onClick={interactable ? generalActions.writeSavedImages.bind(undefined, undefined) : () => {}}
+						<div onClick={interactable && storeExport.done ? generalActions.writeSavedImages.bind(undefined, undefined) : () => {}}
 							 className='selectable'>
-							<p>Export Saved</p>
+							{storeExport.done ? <p>Export Saved</p> : <p>{storeExport.exported}/{storeExport.total}</p>}
 						</div>
-						<div onClick={interactable ? generalActions.writeAllImages : () => {}}
+						<div onClick={interactable && allExport.done ? generalActions.writeAllImages.bind(undefined, undefined) : () => {}}
 							 className='selectable'>
-							<p>Export All</p>
+							{allExport.done ? <p>Export All</p> : <p>{allExport.exported}/{allExport.total}</p>}
 						</div>
 						{ confirmDeleteSaved !== -1 ?
 							<div onClick={interactable ? generalActions.deleteSaved : () => {}}

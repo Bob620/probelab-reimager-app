@@ -8,6 +8,7 @@ const { app, dialog, shell } = require('electron');
 
 let window = null;
 const reimager = new ChildSpawn('reimager');
+const relayerer = new ChildSpawn('relayerer');
 
 let activeDir = '';
 let imageMap = new Map();
@@ -47,7 +48,16 @@ app.on('ready', async () => {
 	}, 1000);
 
 	reimager.on('dirUpdate', async ({filename, uri}) => {
-		if (!recentlyUpdated.has(uri + filename))
+		if (filename.endsWith('.tif')) {
+			const [dirName, type, element, line] = filename.split('_');
+
+			if (element !== 'Grey' && element !== 'RefGrey' && !element.startsWith('Spec')) {
+				relayerer.send('relayer', {
+					output: `${uri}${dirName}/${dirName} ${type} ${element}_${line}.layer`,
+					input: uri + filename
+				});
+			}
+		} else if (!recentlyUpdated.has(uri + filename))
 			recentlyUpdated.set(uri + filename, true);
 	});
 
@@ -73,8 +83,84 @@ app.on('ready', async () => {
 		savedMap.delete(data.imageUuid);
 	});
 
+	comms.on('writeImages', ({images, settings}) => {
+		return new Promise((resolve, reject) => {
+			window.setProgressBar(2);
+
+			try {
+				dialog.showSaveDialog({
+					defaultPath: '{name}.png',
+					filters: [
+						{
+							name: 'Images',
+							extensions: ['tif', 'jpg', 'png', 'webp']
+						},
+						{
+							name: 'TIFF',
+							extensions: ['tif']
+						},
+						{
+							name: 'JPEG',
+							extensions: ['jpg']
+						},
+						{
+							name: 'PNG',
+							extensions: ['png']
+						},
+						{
+							name: 'WebP',
+							extensions: ['webp']
+						}
+					]
+				},
+				async path => {
+					if (path) {
+						let finished = 0;
+						const total = images.length;
+
+						let extension = path.split('.').pop();
+						extension = extension === 'tif' ? 'tiff' : (extension === 'jpg' ? 'jpeg' : extension);
+						settings[extension] = {};
+
+						for (const {imageUuid, activePoints, activeLayers} of images) {
+							let image = uuidMap.get(imageUuid);
+							image = image ? image : savedMap.get(imageUuid);
+
+							let imageSettings = JSON.parse(JSON.stringify(settings));
+							imageSettings.uri = path.replace(/{name}/gm, image.name);
+							imageSettings.activePoints = activePoints;
+							imageSettings.activeLayers = activeLayers;
+
+							if (image) {
+								await reimager.send('writeImage', {
+									uri: image.entryFile,
+									operations: createOperations(imageSettings),
+									settings: imageSettings
+								});
+							}
+
+							finished++;
+							window.setProgressBar(finished/total);
+							comms.send('exportUpdate', {exported: finished, total, type: 'all'});
+						}
+
+						resolve();
+						window.setProgressBar(-1);
+					} else {
+						window.setProgressBar(-1);
+						resolve();
+					}
+				});
+			} catch(err) {
+				window.setProgressBar(-1);
+				reject(err);
+			}
+		});
+	});
+
 	comms.on('writeImage', data => {
 		return new Promise((resolve, reject) => {
+			window.setProgressBar(2);
 			let image = uuidMap.get(data.imageUuid);
 			image = image ? image : savedMap.get(data.imageUuid);
 			try {
@@ -116,16 +202,21 @@ app.on('ready', async () => {
 							operations: createOperations(data.settings),
 							settings: data.settings
 						}));
-					} else
+						window.setProgressBar(-1);
+					} else {
+						window.setProgressBar(-1);
 						resolve();
+					}
 				});
 			} catch(err) {
+				window.setProgressBar(-1);
 				reject(err);
 			}
 		});
 	});
 
 	comms.on('loadImage', async data => {
+		window.setProgressBar(2);
 		const imageKey = createSettingKey(data);
 		const testThermo = imageMap.get(imageKey);
 
@@ -149,15 +240,18 @@ app.on('ready', async () => {
 
 			imageMap.set(imageKey, thermo);
 
+			window.setProgressBar(-1);
 			return thermo;
 		}
 
 		testThermo.imageUuid = testThermo.uuid;
 		testThermo.uuid = data.uuid;
+		window.setProgressBar(-1);
 		return testThermo;
 	});
 
 	comms.on('processDirectory', async data => {
+		window.setProgressBar(2);
 		let dirUri = data.dir.replace(/\\/gmi, '/');
 		if (!dirUri.endsWith('/'))
 			dirUri = dirUri + '/';
@@ -178,6 +272,7 @@ app.on('ready', async () => {
 
 		reimager.send('watchDir', {uri: dirUri});
 
+		window.setProgressBar(-1);
 		return {
 			thermos
 		};

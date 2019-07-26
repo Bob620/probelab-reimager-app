@@ -14,6 +14,9 @@ module.exports = new Store('general', {
 	interactable: true,
 	optionsList: constants.optionsLists.POINTS,
 	confirmDeleteSaved: -1,
+	storeExport: {exported: 0, total: 0, done: true},
+	allExport: {exported: 0, total: 0, done: true},
+	dirLoading: false,
 	colors: [
 		{
 			name: 'red',

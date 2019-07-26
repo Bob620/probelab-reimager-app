@@ -101,6 +101,7 @@
     "canvas": "^2.5.0",
     "env-paths": "^2.2.0",
     "luxon": "^1.16.0",
+    "sharp": "^0.22.1",
     "thermo-reimager": "github:bob620/thermo-reimager#remote-canvas",
     "uuid": "latest"
   }

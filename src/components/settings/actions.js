@@ -31,7 +31,10 @@ export default CreateActions([
 	{
 		actionType: 'toggleAutoPixelSizeConstant',
 		func: ({stores}, force=undefined) => {
-			stores.settings.set('autoPixelSizeConstant', force !== undefined ? force : !stores.settings.get('autoPixelSizeConstant'));
+			const alt = !stores.settings.get('autoPixelSizeConstant');
+
+			stores.settings.set('autoPixelSizeConstant', force !== undefined ? !!force : alt);
+			localStorage.setItem('autoPixelSizeConstant', `${force !== undefined ? !!force : alt}`);
 		}
 	},
 	{
@@ -101,15 +104,22 @@ export default CreateActions([
 			const num = parseFloat(target.value);
 			if (!isNaN(num))
 				if (0 < num)
-					if (num <= 500)
+					if (num <= 500) {
 						stores.settings.set('pixelSizeConstant', num);
-					else
+						localStorage.setItem('pixelSizeConstant', `${num}`);
+					} else {
 						stores.settings.set('pixelSizeConstant', 500);
-				else
+						localStorage.setItem('pixelSizeConstant', '500');
+					}
+				else {
 					stores.settings.set('pixelSizeConstant', 0);
+					localStorage.setItem('pixelSizeConstant', '0');
+				}
 
-			if (target.value === '')
+			if (target.value === '') {
 				stores.settings.set('pixelSizeConstant', '');
+				localStorage.setItem('pixelSizeConstant', '');
+			}
 		}
 	},
 	{

@@ -23,7 +23,7 @@ class Image extends Component {
 		return (
 			<section id='main' className='image'>
 				<div className='image'>
-					{ imageDataUrl ? <img src={imageDataUrl} /> : (selectedUuid !== undefined ? <div className='loading'><span>Loading</span><div /><div /><div /></div> : <div />) }
+					{ imageDataUrl && selectedUuid !== undefined ? <img src={imageDataUrl} /> : (selectedUuid !== undefined ? <div className='loading'><span>Loading</span><div /><div /><div /></div> : <div />) }
 				</div>
 				{
 					image !== undefined ?

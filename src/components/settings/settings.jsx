@@ -19,10 +19,10 @@ class Settings extends Component {
 			<section id='main' className='settings'>
 				<div className='colors'>
 					<div className='scale selectable'>
-						<p onClick={settingActions.toggleAutoPixelSizeConstant}>Pixel Size Constant: </p>
+						<p onClick={settingActions.toggleAutoPixelSizeConstant.bind(undefined, undefined)}>Pixel Size Constant: </p>
 						{
 							settingStore.get('autoPixelSizeConstant') ?
-								<input onClick={settingActions.toggleAutoPixelSizeConstant} onChange={settingActions.changeFromAutoPixelSizeConstant} type='text' value='Auto'/> :
+								<input onClick={settingActions.toggleAutoPixelSizeConstant.bind(undefined, undefined)} onChange={settingActions.changeFromAutoPixelSizeConstant} type='text' value='Auto'/> :
 								<input type='number' maxLength='10' min='0' max='500' value={settingStore.get('pixelSizeConstant')} onChange={settingActions.changePixelSizeConstant} />
 						}
 					</div>

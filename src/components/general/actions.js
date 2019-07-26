@@ -5,7 +5,16 @@ import IPC from './ipc';
 import GenerateUuid from './generateuuid.js';
 import constants from '../../../constants';
 
+import settingStore from '../settings/store.js';
+
 const comms = new Communications(new IPC(ipcRenderer));
+
+const autoPixelSizeConstant = localStorage.getItem('autoPixelSizeConstant') === 'true';
+const pixelSizeConstant = localStorage.getItem('pixelSizeConstant');
+
+settingStore.data.set('autoPixelSizeConstant', autoPixelSizeConstant);
+settingStore.data.set('pixelSizeConstant', pixelSizeConstant);
+settingStore.data.commitChanges();
 
 comms.on('updateDirectory', ({images}) => {
 	actions.updateDirImages(images, true);
@@ -23,7 +32,31 @@ comms.on('navigate', ({page}) => {
 	}
 });
 
+comms.on('exportUpdate', ({type, total, exported}) => {
+	switch(type) {
+		default:
+		case 'store':
+			actions.updateStoreExport({exported, total, done: exported === total});
+			break;
+		case 'all':
+			actions.updateAllExport({exported, total, done: exported === total});
+			break;
+	}
+});
+
 const actions = CreateActions([
+	{
+		actionType: 'updateStoreExport',
+		func: ({stores}, data) => {
+			stores.general.set('storeExport', data);
+		}
+	},
+	{
+		actionType: 'updateAllExport',
+		func: ({stores}, data) => {
+			stores.general.set('allExport', data);
+		}
+	},
 	{
 		actionType: 'saveImage',
 		func: ({stores}, uuid, data, callback=undefined) => {
@@ -75,8 +108,10 @@ const actions = CreateActions([
 			if (dir) {
 				generalStore.set('selectedUuid', undefined);
 				generalStore.set('workingDir', dir);
+				generalStore.set('loadingDir', true);
 
 				comms.send('processDirectory', { dir }).then(([{thermos}]) => {
+					generalStore.set('loadingDir', false);
 					actions.updateDirImages(thermos);
 
 					const selectedUuid = generalStore.get('selectedUuid');
@@ -84,6 +119,7 @@ const actions = CreateActions([
 						actions.selectImage(selectedUuid);
 				}).catch(err => {
 					console.log(err);
+					generalStore.set('loadingDir', false);
 				});
 			}
 		}
@@ -265,18 +301,47 @@ const actions = CreateActions([
 	{
 		actionType: 'writeAllImages',
 		func: ({actions, stores}, uuidList=undefined) => {
-			let uuids = uuidList !== undefined ? uuidList : Array.from(stores.general.get('images').keys());
-
+			const generalStore = stores.general;
 			const settingStore = stores.settings;
 
-			if (uuids.length > 0) {
-				const uuid = uuids.pop();
+			const allImages = generalStore.get('images');
+			const allImageArray = Array.from(allImages.values());
 
-				let settings = {uuid};
+			let uuids = uuidList !== undefined ? uuidList : allImageArray.map(image => image.imageUuid);
+
+			if (uuids.length > 0) {
+				let settings = {};
 				for (const key of settingStore.getKeys())
 					settings[key] = JSON.parse(JSON.stringify(settingStore.get(key)));
 
-				actions.writeSelectedImage(settings, actions.writeAllImages.bind(undefined, uuids));
+				const images = uuids.map(uuid => {
+					const layerColors = settingStore.get('layerColors');
+					let image = allImages.get(uuid);
+
+					return {
+						imageUuid: uuid,
+						activePoints: (settings.selectAllPoints ? Array.from(image.points.keys()) : settings.activePoints).reduce((points, uuid) => {
+							points.push(image.points.get(uuid));
+							return points;
+						}, []),
+						activeLayers: sortLayers(settings.activeLayers.reduce((layers, element) => {
+							if (element && image.layers.has(element)) {
+								let layer = JSON.parse(JSON.stringify(image.layers.get(element)));
+								if (layerColors[element])
+									layer.color = layerColors[element];
+								layers.push(layer);
+							}
+							return layers;
+						}, []), settings.layerOrder).reverse()
+					}
+				});
+
+				comms.send('writeImages', {images, settings})
+				.then(() => {
+
+				}).catch(() => {
+
+				});
 			}
 		}
 	},
