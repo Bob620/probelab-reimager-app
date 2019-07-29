@@ -23,7 +23,7 @@ class Child {
 			await (sharp(input).greyscale().toColourspace('b-w').tiff({
 				quality: 100,
 				compression: 'lzw'
-			}).toFile(output));
+			})).toFile(output);
 		} else
 			throw {message: 'Provide an input and output'};
 	}

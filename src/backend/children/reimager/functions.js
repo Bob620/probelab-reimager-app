@@ -93,16 +93,22 @@ const Functions = {
 		try {
 			const files = fs.readdirSync(dirUri, {withFileTypes: true});
 			let thermos = [];
+			let extraLayers = [];
 
 			return (await Promise.all(files.filter(file => file.isFile()).map(file => {
 				file.uri = dirUri + file.name;
-				if (file.name.endsWith(constants.extractedMap.fileFormats.LAYER))
-					thermos.map(thermo => thermo.addLayerFile(file.uri));
-				else {
+				if (file.name.endsWith(constants.extractedMap.fileFormats.LAYER)) {
+					extraLayers.push(file);
+					return Promise.all(thermos.map(thermo => thermo.addLayerFile(file.uri))).then(() => undefined);
+				} else {
 					const thermo = Functions.createThermo(file, canvas);
 					if (thermo) {
 						thermos.push(thermo[0]);
-						return thermo[1];
+						return new Promise(async resolve => {
+							for (const layer of extraLayers)
+								await thermo[0].addLayerFile(layer.uri);
+							resolve(thermo[1]);
+						});
 					}
 				}
 			}))).filter(i => i);

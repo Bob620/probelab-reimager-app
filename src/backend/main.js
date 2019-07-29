@@ -1,3 +1,5 @@
+const fs = require('fs');
+
 const createWindow = require('./createwindow.js');
 const ChildSpawn = require('./childspawn.js');
 const IPC = require('./ipc.js');
@@ -16,6 +18,8 @@ let imageMap = new Map();
 let uuidMap = new Map();
 let entryMap = new Map();
 let savedMap = new Map();
+
+//app.setAppUserModelId(process.execPath);
 
 app.on('ready', async () => {
 	if (window === null)
@@ -51,12 +55,11 @@ app.on('ready', async () => {
 		if (filename.endsWith('.tif')) {
 			const [dirName, type, element, line] = filename.split('_');
 
-			if (element !== 'Grey' && element !== 'RefGrey' && !element.startsWith('Spec')) {
-				relayerer.send('relayer', {
-					output: `${uri}${dirName}/${dirName} ${type} ${element}_${line}.layer`,
+			if (element && element !== 'Grey' && element !== 'RefGrey' && !element.startsWith('Spec') && line && line.length === 1)
+				await relayerer.send('relayer', {
+					output: `${uri}${dirName}.MAP.EDS/${dirName} ${type} ${element}_${line}.layer`,
 					input: uri + filename
 				});
-			}
 		} else if (!recentlyUpdated.has(uri + filename))
 			recentlyUpdated.set(uri + filename, true);
 	});
@@ -255,6 +258,17 @@ app.on('ready', async () => {
 		let dirUri = data.dir.replace(/\\/gmi, '/');
 		if (!dirUri.endsWith('/'))
 			dirUri = dirUri + '/';
+
+		for (const file of fs.readdirSync(dirUri, {withFileTypes: true}))
+			if (file.isFile() && file.name.endsWith('.tif')) {
+				const [dirName, type, element, line] = file.name.split('_');
+
+				if (element && element !== 'Grey' && element !== 'RefGrey' && !element.startsWith('Spec') && line && line.length === 1)
+					await relayerer.send('relayer', {
+						output: `${dirUri}${dirName}.MAP.EDS/${dirName} ${type} ${element}_${line}.layer`,
+						input: dirUri + file.name
+					});
+			}
 
 		reimager.send('unwatch', {uri: activeDir});
 		activeDir = dirUri;
