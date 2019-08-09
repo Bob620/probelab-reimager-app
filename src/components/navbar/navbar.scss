@@ -1,8 +1,48 @@
+@import '../general/colors.scss';
+
 #navbar {
   display: flex;
   flex-direction: row;
   align-items: center;
   height: 100%;
+
+  > .notifications {
+    flex-shrink: 0;
+    flex-grow: 0;
+
+    width: 38px;
+    height: 38px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding-left: 10px;
+
+    > div {
+      grid-template-columns: [start] 1fr [bit] 1em [end];
+      grid-template-rows: [start] 1fr [bit] 1em [end];
+      display: grid;
+      height: 100%;
+      width: 100%;
+
+      > svg {
+        height: 90%;
+        width: 90%;
+        cursor: pointer;
+        grid-column: start / span end;
+        grid-row: start / span end;
+      }
+
+      > p {
+        grid-column: bit / span end;
+        grid-row: bit / span end;
+        border-radius: 3px;
+        background-color: #0fb9b1;
+        text-align: center;
+        cursor: pointer;
+      }
+    }
+  }
 
   > h1 {
     text-align: center;

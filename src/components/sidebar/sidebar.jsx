@@ -25,6 +25,8 @@ class Sidebar extends Component {
 		const storeExport = generalStore.get('storeExport');
 		const allExport = generalStore.get('allExport');
 		const loadingDir = generalStore.get('loadingDir');
+		const selectedUuids = generalStore.get('selectedUuids');
+		const easyExport = generalStore.get('easyExport');
 
 		return (
 			<section id='sidebar'>
@@ -37,15 +39,18 @@ class Sidebar extends Component {
 							<div className='loading' />
 						</div> :
 						images.sort((one, two) => one.name < two.name ? -1 : 1).map(image =>
-							<li className={`${interactable ? 'selectable' : ''} ${image.uuid === selectedUuid ? 'selected' : ''}`}
+							<li className={`${interactable ? 'selectable' : ''} ${selectedUuids.has(image.uuid) ? 'selected' : ''}`}
 								key={image.uuid}
-								onClick={image.uuid === selectedUuid || !interactable ? () => {} : generalActions.loadImage.bind(undefined, image.uuid, false)}
+								onClick={!interactable ? () => {} : e => {
+									generalActions.loadImage(image.uuid, false, e.shiftKey, e.ctrlKey);
+								}}
 							>
 								<p>{image.name}</p>
 								<p>{image.image.width}px</p>
 							</li>
 						)
 					}</ul>
+					{selectedUuids.size <= 1 ?
 					<div className='imageFunctions'>
 						<div onClick={safeboxActions.addImage.bind(undefined, generalStore.get('selectedUuid'))}
 							 className={'selectable'}>
@@ -59,7 +64,22 @@ class Sidebar extends Component {
 							 className={'selectable'}>
 							<p>Export</p>
 						</div>
+					</div> :
+					<div className='imageFunctions'>
+						<div onClick={safeboxActions.addImages.bind(undefined, selectedUuids)}
+							 className={'selectable'}>
+							<p>Store Selected</p>
+						</div>
+						<div onClick={generalActions.writeSelectedImages.bind(undefined, undefined, undefined)}
+							 className={'selectable'}>
+							<p>Export Selected</p>
+						</div>
+						<div onClick={generalActions.toggleEasyExport.bind(undefined)}
+							 className={`easyExport selectable ${easyExport ? 'enabled' : 'disabled'}`}>
+							<p>Easy</p>
+						</div>
 					</div>
+					}
 					<ul className='safebox'>{ safebox.length > 0 &&
 						safebox.sort((one, two) => one.uuid < two.uuid ? -1 : 1)
 							.map(({ uuid, name, settings }) =>

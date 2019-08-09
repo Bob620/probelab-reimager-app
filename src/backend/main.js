@@ -6,7 +6,10 @@ const IPC = require('./ipc.js');
 const Communications = require('./communications.js');
 const GenerateUuid = require('./generateuuid.js');
 
-const { app, dialog, shell } = require('electron');
+const [version, channel] = require('../../package.json').version.split('-');
+const constants = require('../../constants.json');
+
+const { app, dialog, shell, net } = require('electron');
 
 let window = null;
 const reimager = new ChildSpawn('reimager');
@@ -27,6 +30,58 @@ app.on('ready', async () => {
 
 	const comms = new Communications(new IPC(window));
 	let recentlyUpdated = new Map();
+
+	const req = net.request(`${constants.UPDATEURL}/channels/${channel}/latest`);
+	req.on('response', res => {
+		if (res.statusCode === 200) {
+			let data = '';
+
+			res.on('data', chunk => {
+				data = data + chunk;
+			});
+
+			res.on('end', () => {
+				const latest = JSON.parse(data);
+
+				if (latest.version > version)
+					comms.send('notification', {
+						type: 'update',
+						title: `Update Available (${latest.version})`,
+						description: latest.description,
+						link: latest.link,
+						linkAlt: 'Download Page'
+					});
+			});
+		}
+	});
+	req.end();
+
+	setInterval(() => {
+		const req = net.request(`${constants.UPDATEURL}/channels/${channel}/latest`);
+		req.on('response', res => {
+			if (res.statusCode === 200) {
+				let data = '';
+
+				res.on('data', chunk => {
+					data = data + chunk;
+				});
+
+				res.on('end', () => {
+					const latest = JSON.parse(data);
+
+					if (latest.version > version)
+						comms.send('notification', {
+							type: 'update',
+							title: `Update Available (${latest.version})`,
+							description: latest.description,
+							link: latest.link,
+							linkAlt: 'Download Page'
+						});
+				});
+			}
+		});
+		req.end();
+	}, 86400000);
 
 	setInterval(() => {
 		if (recentlyUpdated.size > 0)
@@ -310,10 +365,8 @@ app.on('activate', () => {
 
 app.on('web-contents-created', (event, contents) => {
 	contents.on('new-window', async (event, navigationUrl) => {
-		// In this example, we'll ask the operating system
-		// to open this event's url in the default browser.
 		event.preventDefault();
-		await shell.openExternal(navigationUrl)
+		shell.openExternal(navigationUrl)
 	});
 
 	contents.on('will-navigate', (event, navigationUrl) => {

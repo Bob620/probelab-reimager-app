@@ -1,0 +1,25 @@
+@import '../general/colors.scss';
+
+.notifications {
+  grid-template-areas: "notifications";
+
+  h2, p, a {
+    margin: 0;
+  }
+
+  a {
+    color: $selected-color;
+
+    &:hover {
+      color: $hover-color;
+    }
+  }
+
+  > ul {
+    list-style-type: none;
+
+    > li {
+      margin-bottom: 2em;
+    }
+  }
+}

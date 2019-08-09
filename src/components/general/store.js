@@ -5,8 +5,11 @@ import constants from '../../../constants.json';
 module.exports = new Store('general', {
 	page: 'landing',
 	workingDir: '',
+	easyExport: true,
+	notifications: [],
 	images: new Map(),
 	safebox: new Map(),
+	selectedUuids: new Set(),
 	selectedUuid: undefined,
 	selectedImage: undefined,
 	sidebarWidth: 300,

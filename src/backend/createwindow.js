@@ -97,13 +97,19 @@ const template = [
 				}
 			},
 			{
-				label: 'Website',
+				label: 'About',
+				click: (menuItem, browserWindow, e) => {
+					browserWindow.send('message', {type: 'navigate', data: {page: 'about'}, uuid: ''});
+				}
+			},
+			{
+				label: 'Probelab Website',
 				click: (menuItem, browserWindow, e) => {
 					shell.openExternal('http://probelab.net');
 				}
 			},
 			{
-				label: 'About',
+				label: 'Reimager Website',
 				click: (menuItem, browserWindow, e) => {
 					shell.openExternal('http://reimager.probelab.net');
 				}

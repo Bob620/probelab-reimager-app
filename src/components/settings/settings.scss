@@ -1,11 +1,11 @@
 #main.settings {
   display: grid;
-  grid-template-rows: 60px 1fr;
+  grid-template-rows: 1fr;
   grid-template-columns: 1fr;
-  grid-template-areas: "colors" "image";
+  grid-template-areas: "settings";
 
-  > .colors {
-    grid-area: colors;
+  > .settings {
+    grid-area: settings;
 
     display: flex;
     flex-direction: row;
@@ -47,20 +47,6 @@
         padding: 5px;
         margin: 0;
       }
-    }
-  }
-
-  > .image {
-    grid-area: image;
-
-    display: flex;
-    justify-content: center;
-    align-items: center;
-
-    img {
-      max-width: 95%;
-      max-height: 95%;
-      object-fit: contain;
     }
   }
 }

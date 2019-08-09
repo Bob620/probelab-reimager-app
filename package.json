@@ -1,7 +1,7 @@
 {
   "name": "probelab-reimager-app",
   "productName": "Probelab Reimager",
-  "version": "2.6.0-pre",
+  "version": "2.7.1-dev",
   "description": "Visual UI for Probelab Reimager using Electron",
   "main": "./src/backend/main.js",
   "scripts": {
@@ -77,6 +77,10 @@
   "email": "bruder.kraft225@gmail.com",
   "license": "MIT",
   "devDependencies": {
+    "@fortawesome/free-regular-svg-icons": "^5.10.1",
+    "@fortawesome/free-solid-svg-icons": "^5.10.1",
+    "@fortawesome/react-fontawesome": "^0.1.4",
+    "@fortawesome/fontawesome-svg-core": "^1.2.21",
     "babel-core": "^6.26.3",
     "babel-polyfill": "^6.26.0",
     "babel-preset-env": "^1.7.0",
@@ -99,10 +103,7 @@
   },
   "dependencies": {
     "canvas": "^2.5.0",
-    "env-paths": "^2.2.0",
-    "luxon": "^1.16.0",
     "sharp": "^0.22.1",
-    "thermo-reimager": "github:bob620/thermo-reimager#remote-canvas",
-    "uuid": "latest"
+    "thermo-reimager": "github:bob620/thermo-reimager#remote-canvas"
   }
 }

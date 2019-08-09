@@ -15,6 +15,8 @@ import Sidebar from '../../components/sidebar/sidebar.jsx';
 import Options from '../../components/options/options.jsx';
 import Image from '../../components/image/image.jsx';
 import Settings from '../../components/settings/settings.jsx';
+import About from '../../components/about/about.jsx';
+import Notifications from '../../components/notifications/notifications.jsx';
 
 class Page extends Component {
 	constructor(props) {
@@ -29,7 +31,7 @@ class Page extends Component {
 			default:
 			case 'landing':
 				return (
-					<section className='app'>
+					<section className='app app-home'>
 						<Navbar />
 						<Sidebar />
 						<Image />
@@ -38,9 +40,17 @@ class Page extends Component {
 				);
 			case 'settings':
 				return (
-					<section className='app'>
+					<section className='app app-settings'>
 						<Navbar />
+						<Notifications />
 						<Settings />
+					</section>
+				);
+			case 'about':
+				return (
+					<section className='app app-about'>
+						<Navbar />
+						<About />
 					</section>
 				);
 		}

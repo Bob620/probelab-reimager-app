@@ -24,9 +24,12 @@ settingStore.data.commitChanges();
 //
 //};
 
-
 comms.on('updateDirectory', ({images}) => {
 	actions.updateDirImages(images, true);
+});
+
+comms.on('notification', notification => {
+	actions.addNotification(notification);
 });
 
 comms.on('navigate', ({page}) => {
@@ -37,6 +40,9 @@ comms.on('navigate', ({page}) => {
 			break;
 		case 'settings':
 			actions.navigateSettings();
+			break;
+		case 'about':
+			actions.navigateAbout();
 			break;
 	}
 });
@@ -54,6 +60,14 @@ comms.on('exportUpdate', ({type, total, exported}) => {
 });
 
 const actions = CreateActions([
+	{
+		actionType: 'addNotification',
+		func: ({stores}, data) => {
+			const notifs = stores.general.get('notifications');
+			notifs.unshift(data);
+			stores.general.set('notifications', notifs);
+		}
+	},
 	{
 		actionType: 'updateStoreExport',
 		func: ({stores}, data) => {
@@ -95,6 +109,12 @@ const actions = CreateActions([
 		actionType: 'navigateSettings',
 		func: ({stores}) => {
 			stores.general.set('page', 'settings');
+		}
+	},
+	{
+		actionType: 'navigateAbout',
+		func: ({stores}) => {
+			stores.general.set('page', 'about');
 		}
 	},
 	{
@@ -186,11 +206,46 @@ const actions = CreateActions([
 	},
 	{
 		actionType: 'loadImage',
-		func: ({stores}, uuid=false, activeOverride=false) => {
+		func: ({stores}, uuid=false, activeOverride=false, shift=false, ctrl=false) => {
 			const settingStore = stores.settings;
 			const generalStore = stores.general;
 			const images = generalStore.get('images');
+			let selectedUuids = generalStore.get('selectedUuids');
 			let overwrite = false;
+
+			if (ctrl) {
+				const selectedUuid = generalStore.get('selectedUuid');
+				if (images.has(selectedUuid)) {
+					if (images.has(uuid))
+						if (selectedUuids.has(uuid))
+							selectedUuids.delete(uuid);
+						else
+							selectedUuids.add(uuid);
+					generalStore.set('selectedUuids', selectedUuids);
+					return;
+				}
+			}
+
+			if (shift) {
+				const selectedUuid = generalStore.get('selectedUuid');
+				if (images.has(selectedUuid)) {
+					if (images.has(uuid)) {
+						const imageKeys = Array.from((images.values())).sort((one, two) => one.name < two.name ? -1 : 1).map(image => image.uuid);
+						const selectedIndex = imageKeys.indexOf(selectedUuid);
+						const newIndex = imageKeys.indexOf(uuid);
+
+						if (selectedIndex > newIndex)
+							selectedUuids = new Set(Array.from(images.keys()).filter(imageUuid => imageKeys.indexOf(imageUuid) >= newIndex && imageKeys.indexOf(imageUuid) <= selectedIndex));
+						else
+							selectedUuids = new Set(Array.from(images.keys()).filter(imageUuid => imageKeys.indexOf(imageUuid) <= newIndex && imageKeys.indexOf(imageUuid) >= selectedIndex));
+					}
+
+					generalStore.set('selectedUuids', selectedUuids);
+					return;
+				}
+			}
+
+			generalStore.set('selectedUuids', new Set());
 
 			if (!uuid)
 				uuid = generalStore.get('selectedUuid');
@@ -201,7 +256,7 @@ const actions = CreateActions([
 			image = image ? image : generalStore.get('safebox').get(uuid);
 
 			if (image) {
-				actions.selectImage(uuid);
+				actions.selectImage(uuid, shift);
 
 				let data = {
 					uuid,
@@ -238,6 +293,8 @@ const actions = CreateActions([
 					return layers;
 				}, []), data.settings.layerOrder).reverse();
 
+				generalStore.set('selectedUuids', new Set([uuid]));
+
 				comms.send('loadImage', data).then(([{uuid, image, data}]) => {
 					if (generalStore.get('selectedUuid') === uuid)
 						generalStore.set('selectedImage', image);
@@ -254,10 +311,10 @@ const actions = CreateActions([
 		func: ({stores}, override=undefined, callback=() => {}) => {
 			const generalStore = stores.general;
 
-			const selectedUuid = override ? override.uuid : generalStore.get('selectedUuid');
+			const selectedUuid = override ? override : generalStore.get('selectedUuid');
 
 			if (selectedUuid) {
-				const settingStore = override ? override : stores.settings;
+				const settingStore = stores.settings;
 
 				let image = generalStore.get('images').get(selectedUuid);
 				image = image ? image : generalStore.get('safebox').get(selectedUuid);
@@ -292,6 +349,24 @@ const actions = CreateActions([
 						callback();
 				}).catch(() => {});
 			}
+		}
+	},
+	{
+		actionType: 'toggleEasyExport',
+		func: ({stores}) => {
+			stores.general.set('easyExport', !stores.general.get('easyExport'))
+		}
+	},
+	{
+		actionType: 'writeSelectedImages',
+		func: ({actions, stores}, uuidList=undefined, easy=stores.general.get('easyExport')) => {
+			let uuids = uuidList !== undefined ? uuidList : Array.from(stores.general.get('selectedUuids').keys());
+
+			if (easy)
+				actions.writeAllImages(uuids);
+			else
+				if (uuids.length > 0)
+					actions.writeSelectedImage(uuids.pop(), actions.writeSelectedImages.bind(undefined, uuids, easy));
 		}
 	},
 	{

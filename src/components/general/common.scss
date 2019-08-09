@@ -13,10 +13,31 @@ body, #App, .app {
 }
 
 .app {
-  display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 60px 1fr;
+    grid-template-areas: "navbar" "main";
+}
+
+.app-home {
   grid-template-columns: 300px 1fr 300px;
   grid-template-rows: 60px 1fr;
   grid-template-areas: "sidebar navbar options" "sidebar main options";
+}
+
+.app-settings {
+  grid-template-columns: 300px 1fr;
+  grid-template-rows: 60px 1fr;
+  grid-template-areas: "notifications navbar" "notifications main";
+}
+
+.app-about {
+  grid-template-columns: 1fr;
+  grid-template-rows: 60px 1fr;
+  grid-template-areas: "navbar" "main";
+}
+
+.app {
+  display: grid;
   overflow: hidden;
 
   #navbar {

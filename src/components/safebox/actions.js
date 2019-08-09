@@ -48,6 +48,13 @@ export default CreateActions([
 		}
 	},
 	{
+		actionType: 'addImages',
+		func: ({actions, stores}, uuids) => {
+			for (const uuid of uuids)
+				actions.addImage(uuid);
+		}
+	},
+	{
 		actionType: 'updateImage',
 		func: ({actions, stores}, uuid) => {
 			let image = stores.general.get('safebox').get(uuid);

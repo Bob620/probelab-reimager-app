@@ -17,7 +17,7 @@ class Settings extends Component {
 	render() {
 		return (
 			<section id='main' className='settings'>
-				<div className='colors'>
+				<div className='settings'>
 					<div className='scale selectable'>
 						<p onClick={settingActions.toggleAutoPixelSizeConstant.bind(undefined, undefined)}>Pixel Size Constant: </p>
 						{
@@ -25,10 +25,6 @@ class Settings extends Component {
 								<input onClick={settingActions.toggleAutoPixelSizeConstant.bind(undefined, undefined)} onChange={settingActions.changeFromAutoPixelSizeConstant} type='text' value='Auto'/> :
 								<input type='number' maxLength='10' min='0' max='500' value={settingStore.get('pixelSizeConstant')} onChange={settingActions.changePixelSizeConstant} />
 						}
-					</div>
-					<div onClick={generalActions.navigateHome}
-						 className='refresh selectable'>
-						<p>Home</p>
 					</div>
 				</div>
 			</section>

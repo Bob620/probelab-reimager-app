@@ -33,5 +33,6 @@
   "optionsLists": {
     "POINTS": "points",
     "LAYERS": "layers"
-  }
+  },
+  "UPDATEURL": "https://reimager.probelab.net/api/1"
 }

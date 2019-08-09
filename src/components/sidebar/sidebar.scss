@@ -6,6 +6,25 @@
   }
 }
 
+p {
+  margin: 0;
+}
+
+.enabled {
+  background-color: #20bf6b !important;
+
+  &:hover {
+    background-color: #20bf6b !important;
+  }
+}
+.disabled {
+  background-color: #eb3b5a !important;
+
+  &:hover {
+    background-color: #eb3b5a !important;
+  }
+}
+
 .warning {
   background-color: #eb3b5a !important;
 
@@ -101,6 +120,14 @@
         border-color: white;
         border-style: solid;
         flex-grow: 1;
+      }
+
+      .easyExport {
+        flex-shrink: 1;
+        flex-grow: 0;
+        width: auto;
+        padding-left: 5px;
+        padding-right: 5px;
       }
     }
 
