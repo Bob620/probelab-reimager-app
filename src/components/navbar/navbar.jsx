@@ -31,7 +31,7 @@ class Navbar extends Component {
 						{notifs.length !== 0 && <p>{notifs.length}</p>}
 					</div>
 				</div> : ''}
-				<h1>Probelab Reimager</h1>
+				<h1>Probelab ReImager</h1>
 				{ generalStore.get('page') === 'landing' &&
 					<div onClick={generalActions.loadImage.bind(undefined, false)}
 						 className='refresh selectable'>

@@ -1,8 +1,8 @@
 {
   "name": "probelab-reimager-app",
-  "productName": "Probelab Reimager",
-  "version": "2.7.1-dev",
-  "description": "Visual UI for Probelab Reimager using Electron",
+  "productName": "Probelab ReImager",
+  "version": "1.0.0-beta",
+  "description": "Visual UI for Probelab ReImager using Electron",
   "main": "./src/backend/main.js",
   "scripts": {
     "start": "electron .",
@@ -32,7 +32,7 @@
     ]
   },
   "build": {
-    "icon": "./assets/svg/atom-1.ico",
+    "icon": "./assets/svg/atom-2.ico",
     "appId": "net.probelab.reimager",
     "win": {
       "target": [

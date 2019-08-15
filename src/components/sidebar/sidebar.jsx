@@ -18,6 +18,7 @@ class Sidebar extends Component {
 
 	render() {
 		let selectedUuid = generalStore.get('selectedUuid');
+		const safeboxUuids = generalStore.get('safebox');
 		const safebox = Array.from(generalStore.get('safebox').values());
 		const images = Array.from(generalStore.get('images').values());
 		const interactable = generalStore.get('interactable');
@@ -50,21 +51,32 @@ class Sidebar extends Component {
 							</li>
 						)
 					}</ul>
-					{selectedUuids.size <= 1 ?
-					<div className='imageFunctions'>
-						<div onClick={safeboxActions.addImage.bind(undefined, generalStore.get('selectedUuid'))}
-							 className={'selectable'}>
-							<p>Store</p>
+					{selectedUuids.size <= 1 ? ( safeboxUuids.has(selectedUuid) ?
+						<div className='imageFunctions'>
+							<div onClick={safeboxActions.addImage.bind(undefined, selectedUuid)}
+								 className={'selectable'}>
+								<p>Store</p>
+							</div>
+							<div onClick={safeboxActions.updateImage.bind(undefined, selectedUuid)}
+								 className={'selectable'}>
+								<p>Update</p>
+							</div>
+							<div onClick={generalActions.writeSelectedImage.bind(undefined, undefined)}
+								 className={'selectable'}>
+								<p>Export</p>
+							</div>
+						</div> :
+						<div className='imageFunctions'>
+							<div onClick={safeboxActions.addImage.bind(undefined, selectedUuid)}
+								 className={'selectable'}>
+								<p>Store</p>
+							</div>
+							<div onClick={generalActions.writeSelectedImage.bind(undefined, undefined)}
+								 className={'selectable'}>
+								<p>Export</p>
+							</div>
 						</div>
-						<div onClick={safeboxActions.updateImage.bind(undefined, generalStore.get('selectedUuid'))}
-							 className={'selectable'}>
-							<p>Update</p>
-						</div>
-						<div onClick={generalActions.writeSelectedImage.bind(undefined, undefined)}
-							 className={'selectable'}>
-							<p>Export</p>
-						</div>
-					</div> :
+					) :
 					<div className='imageFunctions'>
 						<div onClick={safeboxActions.addImages.bind(undefined, selectedUuids)}
 							 className={'selectable'}>
@@ -106,7 +118,7 @@ class Sidebar extends Component {
 						{ confirmDeleteSaved !== -1 ?
 							<div onClick={interactable ? generalActions.deleteSaved : () => {}}
 								 className='selectable warning'>
-								<p>Confirm ({confirmDeleteSaved})</p>
+								<p>Confirm? ({confirmDeleteSaved})</p>
 							</div> :
 							<div onClick={interactable ? generalActions.confirmDeleteSaved : () => {}}
 								 className='selectable'>

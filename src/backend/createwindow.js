@@ -128,7 +128,7 @@ module.exports = () => {
 		backgroundColor: '#4b6584',
 		width: 1100,
 		height: 800,
-		title: 'Probelab Reimager',
+		title: 'Probelab ReImager',
 		webPreferences: {
 			nodeIntegration: true,
 			enableRemoteModule: false

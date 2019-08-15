@@ -17,7 +17,7 @@ settingStore.data.set('pixelSizeConstant', pixelSizeConstant);
 settingStore.data.commitChanges();
 
 //const notif = new Notification('Reimager Update Available', {
-//	body: 'A new version of Probelab Reimager has been released'
+//	body: 'A new version of Probelab ReImager has been released'
 //});
 
 //notif.onclick = () => {

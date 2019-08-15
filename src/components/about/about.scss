@@ -1,3 +1,56 @@
-#main.about {
+@import '../general/colors.scss';
 
+#main.about {
+  height: calc(100vh - 60px);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr 1fr;
+  grid-template-areas: 'upperLeft upperRight' 'upperLeft centerRight' 'lowerLeft centerRight' 'lowerLeft lowerRight';
+
+  > .people {
+    grid-area: upperLeft;
+  }
+
+  > .packages {
+    grid-area: lowerLeft;
+  }
+
+  > .license {
+    grid-area: upperRight;
+  }
+
+  > .acknowledgements {
+    grid-area: centerRight;
+  }
+
+  > .organizations {
+    grid-area: lowerRight;
+  }
+
+  > section {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    overflow-x: hidden;
+
+    h1 {
+      font-size: 1.5em;
+      margin: 0;
+      padding-bottom: 20px;
+    }
+
+    h2 {
+      font-size: 1.4em;
+      margin: 0;
+    }
+
+    p {
+      font-size: 0.9em;
+      margin: 0;
+    }
+
+    a {
+      color: $selected-color;
+    }
+  }
 }
