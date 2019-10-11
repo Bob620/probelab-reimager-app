@@ -15,7 +15,7 @@ export default CreateActions([
 				let data = JSON.parse(JSON.stringify(image));
 				data.settings = {};
 
-				const activePoints = settingStore.get('activePoints').map(point => point.uuid);
+				const activePoints = settingStore.get('activePoints');
 
 				for (const key of settingStore.getKeys())
 					data.settings[key] = JSON.parse(JSON.stringify(settingStore.get(key)));
@@ -31,7 +31,7 @@ export default CreateActions([
 					points.set(uuid, point);
 
 					if (activePoints.includes(oldUuid))
-						data.settings.activePoints.push(point);
+						data.settings.activePoints.push(point.uuid);
 
 					return points;
 				}, new Map());
@@ -62,7 +62,7 @@ export default CreateActions([
 			if (image)
 				actions.addImage(uuid, newUuid => {
 					actions.removeImage(undefined, uuid);
-					actions.loadImage(newUuid);
+					actions.restoreImage(newUuid);
 				});
 		}
 	},
