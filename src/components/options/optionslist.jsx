@@ -28,6 +28,8 @@ module.exports = class OptionsList extends Component {
 		let image = generalStore.get('images').get(selectedUuid);
 		image = image ? image : generalStore.get('safebox').get(selectedUuid);
 
+		settingStore.data.commitChanges();
+
 		if (image && image.uuid !== this.state.image || settingStore.get('layers').length !== this.state.layers.length)
 			this.setState({
 				image: image.uuid,
