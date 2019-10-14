@@ -133,7 +133,7 @@ module.exports = class OptionsList extends Component {
 								<div>
 									<div />
 								</div>
-								<p>Point {point.name}</p>
+								<p>{point.type === 'spot' ? 'Point' : `${point.type[0].toUpperCase()}${point.type.slice(1)}`} {point.name}</p>
 							</li>)
 						: (optionsList === constants.optionsLists.LAYERS ?
 						image && this.state.layers.filter(i => i).map(layer =>

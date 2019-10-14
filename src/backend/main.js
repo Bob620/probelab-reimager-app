@@ -384,10 +384,33 @@ function createOperations(settings) {
 		});
 
 	for (const point of settings.activePoints)
-		operations.push({
-			command: 'addPoint',
-			args: [point.x, point.y, point.name]
-		});
+		switch(point.type) {
+			case 'spot':
+				operations.push({
+					command: 'addPoint',
+					args: [...point.pos, point.name]
+				});
+				break;
+			case 'rect':
+				operations.push({
+					command: 'addRectangle',
+					args: [...point.pos, point.name]
+				});
+				break;
+			case 'circle':
+				operations.push({
+					command: 'addCircle',
+					args: [...point.pos, point.name]
+				});
+				break;
+			case 'polygon':
+				operations.push({
+					command: 'addPoly',
+					args: [point.pos, point.name]
+				});
+				break;
+		}
+
 
 	operations.push({
 		command: 'addScale',
