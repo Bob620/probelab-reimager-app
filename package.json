@@ -77,10 +77,10 @@
   "email": "bruder.kraft225@gmail.com",
   "license": "MIT",
   "devDependencies": {
+    "@fortawesome/fontawesome-svg-core": "^1.2.21",
     "@fortawesome/free-regular-svg-icons": "^5.10.1",
     "@fortawesome/free-solid-svg-icons": "^5.10.1",
     "@fortawesome/react-fontawesome": "^0.1.4",
-    "@fortawesome/fontawesome-svg-core": "^1.2.21",
     "babel-core": "^6.26.3",
     "babel-polyfill": "^6.26.0",
     "babel-preset-env": "^1.7.0",
@@ -99,7 +99,7 @@
     "react-svg": "^10.0.6",
     "scssify": "^3.0.1",
     "uglify-js": "^3.4.9",
-    "uglifyify": "^5.0.1"
+    "uglifyify": "^5.0.2"
   },
   "dependencies": {
     "canvas": "^2.5.0",
