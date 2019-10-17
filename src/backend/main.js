@@ -314,15 +314,22 @@ app.on('ready', async () => {
 		if (!dirUri.endsWith('/'))
 			dirUri = dirUri + '/';
 
-		for (const file of fs.readdirSync(dirUri, {withFileTypes: true}))
+		const files = fs.readdirSync(dirUri, {withFileTypes: true});
+		const dirNames = files.filter(file => file.isDirectory()).reduce((dirs, file) => {
+			dirs[file.name] = fs.readdirSync(`${dirUri}${file.name}`, {withFileTypes: true}).map(file => file.name);
+			return dirs;
+		}, {});
+
+		for (const file of files)
 			if (file.isFile() && file.name.endsWith('.tif')) {
 				const [dirName, type, element, line] = file.name.split('_');
 
 				if (element && element !== 'Grey' && element !== 'RefGrey' && !element.startsWith('Spec') && line && line.length === 1)
-					await relayerer.send('relayer', {
-						output: `${dirUri}${dirName}.MAP.EDS/${dirName} ${type} ${element}_${line}.layer`,
-						input: dirUri + file.name
-					});
+					if (dirNames[`${dirName}.MAP.EDS`] && !dirNames[`${dirName}.MAP.EDS`].includes(`${dirName} ${type} ${element}_${line}.layer`))
+						await relayerer.send('relayer', {
+							output: `${dirUri}${dirName}.MAP.EDS/${dirName} ${type} ${element}_${line}.layer`,
+							input: dirUri + file.name
+						});
 			}
 
 		reimager.send('unwatch', {uri: activeDir});
