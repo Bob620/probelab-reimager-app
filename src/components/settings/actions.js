@@ -84,7 +84,7 @@ export default CreateActions([
 	{
 		actionType: 'changeScaleSize',
 		func: ({stores}, {target}) => {
-			const num = parseInt(target.value);
+			const num = parseFloat(target.value);
 			if (!isNaN(num))
 				if (0 <= num)
 					if (num <= 10000000)

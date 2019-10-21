@@ -110,7 +110,7 @@ class Options extends Component {
 									<option value={constants.settings.pointTypes.CROSS}>Cross</option>
 								</select>
 							</div>
-							<ToggleableScale min='0' max='100' maxLength='3' valueName='pointFontSize' autoName='autoPointFontSize' text='Point Font Size: '
+							<ToggleableScale min='0' max='100' maxLength='3' valueName='pointFontSize' autoName='autoPointFontSize' text='Point Size(%): '
 											 toggleAuto={settingActions.toggleAutoPointFontSize}
 											 changeFromAuto={settingActions.changeFromAutoPointFontSize}
 											 onChange={settingActions.changePointFontSize}
