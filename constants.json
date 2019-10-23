@@ -1,6 +1,7 @@
 {
   "settings": {
     "BASELAYER": "base",
+    "SOLIDLAYER": "solid",
     "scalePositions": {
       "UPPERLEFT": "ul",
       "UPPERRIGHT": "ur",

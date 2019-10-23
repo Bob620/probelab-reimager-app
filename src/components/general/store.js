@@ -68,6 +68,22 @@ module.exports = new Store('general', {
 			G: 0,
 			B: 255,
 			opacity: 1
-		}
+		},
+		{
+			name: 'white',
+			RGBA: 'rgba(255, 255, 255, 1)',
+			R: 255,
+			G: 255,
+			B: 255,
+			opacity: 1
+		},
+		{
+			name: 'black',
+			RGBA: 'rgba(0, 0, 0, 1)',
+			R: 0,
+			G: 0,
+			B: 0,
+			opacity: 1
+		},
 	]
 });

@@ -78,6 +78,8 @@ const Functions = {
 			settings.tiff = inputSettings.tiff;
 		if (inputSettings.webp)
 			settings.webp = inputSettings.webp;
+		if (inputSettings.acq)
+			settings.acq = inputSettings.acq;
 
 		return settings;
 	},

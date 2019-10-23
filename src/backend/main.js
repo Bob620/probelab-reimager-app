@@ -154,6 +154,14 @@ app.on('ready', async () => {
 							extensions: ['tif', 'jpg', 'png', 'webp']
 						},
 						{
+							name: 'ACQ',
+							extensions: ['ACQ']
+						},
+						{
+							name: 'ACQ and Image',
+							extensions: ['ACQ+jpg']
+						},
+						{
 							name: 'TIFF',
 							extensions: ['tif']
 						},
@@ -230,6 +238,14 @@ app.on('ready', async () => {
 							extensions: ['tif', 'jpg', 'png', 'webp']
 						},
 						{
+							name: 'ACQ',
+							extensions: ['ACQ']
+						},
+						{
+							name: 'ACQ and Image',
+							extensions: ['ACQ+jpg']
+						},
+						{
 							name: 'TIFF',
 							extensions: ['tif']
 						},
@@ -250,17 +266,36 @@ app.on('ready', async () => {
 				},
 				async path => {
 					if (path) {
-						let extension = path.split('.').pop();
-						extension = extension === 'tif' ? 'tiff' : (extension === 'jpg' ? 'jpeg' : extension);
-						data.settings[extension] = {};
-						data.settings.uri = path;
+						let splitPath = path.split('.');
+						let extension = splitPath.pop().toLowerCase();
+						if (extension)
+							if (extension === 'acq+jpg') {
+								data.settings['acq'] = {};
+								data.settings['jpeg'] = {};
+								data.settings.uri = splitPath.join('.');
 
-						resolve(await reimager.send('writeImage', {
-							uri: image.entryFile,
-							operations: createOperations(data.settings),
-							settings: data.settings
-						}));
-						window.setProgressBar(-1);
+								resolve(await reimager.send('writeImage', {
+									uri: image.entryFile,
+									operations: createOperations(data.settings),
+									settings: data.settings
+								}));
+								window.setProgressBar(-1);
+							} else {
+								extension = extension === 'tif' ? 'tiff' : (extension === 'jpg' ? 'jpeg' : extension);
+								data.settings[extension] = {};
+								data.settings.uri = path;
+
+								resolve(await reimager.send('writeImage', {
+									uri: image.entryFile,
+									operations: createOperations(data.settings),
+									settings: data.settings
+								}));
+								window.setProgressBar(-1);
+							}
+						else {
+							window.setProgressBar(-1);
+							reject('No extension specified');
+						}
 					} else {
 						window.setProgressBar(-1);
 						resolve();

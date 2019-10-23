@@ -19,7 +19,7 @@ module.exports = new Store('settings', {
 	scaleBarPosition: constants.settings.scaleBarPositions.ABOVE,
 	pixelSizeConstant: 0,
 	autoPixelSizeConstant: true,
-	layerOrder: [constants.settings.BASELAYER],
+	layerOrder: [constants.settings.BASELAYER, constants.settings.SOLIDLAYER],
 	layerColors: {},
 	layerOpacity: 0.5,
 	layers: [],
