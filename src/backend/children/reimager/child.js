@@ -96,13 +96,15 @@ class Child {
 	}
 
 	async writeImage({uri, uuid, operations, settings}) {
-		if (settings.uri.toLowerCase().endsWith('.acq')) {
-			const thermo = await this.processImage({uri, uuid, operations: [], settings}, true);
-			await thermo.write(Functions.sanitizeSettings(settings));
-		} else {
-			const thermo = await this.processImage({uri, uuid, operations, settings}, true);
-			await thermo.write(Functions.sanitizeSettings(settings));
-		}
+		const thermo = await this.processImage(
+			{
+				uri,
+				uuid,
+				operations: settings.uri.toLowerCase().endsWith('.acq') ? [] : operations, settings
+			},
+			true
+		);
+		await thermo.write(Functions.sanitizeSettings(settings));
 	}
 }
 
