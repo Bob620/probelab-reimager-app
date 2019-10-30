@@ -35,5 +35,37 @@
     "POINTS": "points",
     "LAYERS": "layers"
   },
-  "UPDATEURL": "https://reimager.probelab.net/api/1"
+  "UPDATEURL": "https://reimager.probelab.net/api/1",
+  "export": {
+    "FILTERS": [
+      {
+        "name": "Images",
+        "extensions": ["tif", "jpg", "png", "webp"]
+      },
+      {
+        "name": "ACQ",
+        "extensions": ["ACQ"]
+      },
+      {
+        "name": "ACQ and Image",
+        "extensions": ["ACQ+jpg"]
+      },
+      {
+        "name": "TIFF",
+        "extensions": ["tif"]
+      },
+      {
+        "name": "JPEG",
+        "extensions": ["jpg"]
+      },
+      {
+        "name": "PNG",
+        "extensions": ["png"]
+      },
+      {
+        "name": "WebP",
+        "extensions": ["webp"]
+      }
+    ]
+  }
 }

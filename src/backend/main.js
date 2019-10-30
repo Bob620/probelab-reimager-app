@@ -1,4 +1,5 @@
 const fs = require('fs');
+const EventEmitter = require('events');
 
 const createWindow = require('./createwindow.js');
 const ChildSpawn = require('./childspawn.js');
@@ -24,40 +25,18 @@ let savedMap = new Map();
 
 //app.setAppUserModelId(process.execPath);
 
-app.on('ready', async () => {
-	if (window === null)
-		window = createWindow();
-
-	const comms = new Communications(new IPC(window));
-	let recentlyUpdated = new Map();
-
-	const req = net.request(`${constants.UPDATEURL}/channels/${channel}/latest`);
-	req.on('response', res => {
-		if (res.statusCode === 200) {
-			let data = '';
-
-			res.on('data', chunk => {
-				data = data + chunk;
-			});
-
-			res.on('end', () => {
-				const latest = JSON.parse(data);
-
-				if (latest.version > version)
-					comms.send('notification', {
-						type: 'update',
-						title: `Update Available (${latest.version})`,
-						description: latest.description,
-						link: latest.link,
-						linkAlt: 'Download Page'
-					});
-			});
-		}
-	});
-	req.end();
-
-	setInterval(() => {
+function lookForUpdate() {
+	return new Promise((resolve, reject) => {
 		const req = net.request(`${constants.UPDATEURL}/channels/${channel}/latest`);
+
+		req.on('error', err => {
+			reject(err);
+		});
+
+		req.on('abort', () => {
+			reject('Update lookup Aborted');
+		});
+
 		req.on('response', res => {
 			if (res.statusCode === 200) {
 				let data = '';
@@ -67,43 +46,133 @@ app.on('ready', async () => {
 				});
 
 				res.on('end', () => {
-					const latest = JSON.parse(data);
-
-					if (latest.version > version)
-						comms.send('notification', {
-							type: 'update',
-							title: `Update Available (${latest.version})`,
-							description: latest.description,
-							link: latest.link,
-							linkAlt: 'Download Page'
-						});
+					resolve(JSON.parse(data));
 				});
-			}
+			} else
+				reject(res.statusCode);
 		});
 		req.end();
+	});
+}
+
+function exportImage(images, settings, path) {
+	const updater = new EventEmitter();
+
+	new Promise(async resolve => {
+		settings = JSON.parse(JSON.stringify(settings));
+		let finished = 0;
+		const total = images.length;
+
+		updater.emit('update', {finished, total});
+
+		let splitPath = path.split('.');
+		let extension = splitPath.pop().toLowerCase();
+		if (!extension || extension.length === 0) {
+			if (path.endsWith('.'))
+				path.push('png');
+			else
+				path.push('.png');
+			extension = 'png';
+		}
+
+		if (extension === 'acq+jpg') {
+			settings['acq'] = {};
+			settings['jpeg'] = {};
+		} else {
+			extension = extension === 'tif' ? 'tiff' : (extension === 'jpg' ? 'jpeg' : extension);
+			settings[extension] = {};
+		}
+
+		for (const {imageUuid, activePoints, activeLayers} of images) {
+			let image = uuidMap.get(imageUuid);
+			image = image ? image : savedMap.get(imageUuid);
+
+			let imageSettings = JSON.parse(JSON.stringify(settings));
+			imageSettings.uri = (extension === 'acq' ? path.slice(0, -4) : (extension === 'acq+jpg' ? path.slice(0, -8) : path)).replace(/{name}/gm, image.name);
+			imageSettings.activePoints = activePoints ? activePoints : settings.activePoints;
+			imageSettings.activeLayers = activeLayers ? activeLayers : settings.activeLayers;
+
+			if (image)
+				await reimager.send('writeImage', {
+					uri: image.entryFile,
+					operations: createOperations(imageSettings),
+					settings: imageSettings
+				});
+
+			finished++;
+			updater.emit('update', {finished, total});
+		}
+
+		updater.emit('finish', total);
+		resolve();
+	});
+
+	return updater;
+}
+
+app.on('ready', async () => {
+	if (window === null)
+		window = createWindow();
+
+	const comms = new Communications(new IPC(window));
+	let recentlyUpdated = new Map();
+
+	setTimeout(async () => {
+		try {
+			const latest = await lookForUpdate();
+
+			if (latest.version > version)
+				comms.send('notification', {
+					type: 'update',
+					title: `Update Available (${latest.version})`,
+					description: latest.description,
+					link: latest.link,
+					linkAlt: 'Download Page'
+				});
+		} catch (err) {
+		}
+	}, 100);
+
+	setInterval(async () => {
+		try {
+			const latest = await lookForUpdate();
+
+			if (latest.version > version)
+				comms.send('notification', {
+					type: 'update',
+					title: `Update Available (${latest.version})`,
+					description: latest.description,
+					link: latest.link,
+					linkAlt: 'Download Page'
+				});
+		} catch (err) {}
 	}, 86400000);
 
 	setInterval(() => {
-		if (recentlyUpdated.size > 0)
-			Array.from(recentlyUpdated.keys()).map(async uri => {
-				recentlyUpdated.delete(uri);
-				const thermo = (await reimager.send('getImages', {uri: uri + '/'}))[0];
-				let uuids = [];
+		try {
+			if (recentlyUpdated.size > 0)
+				Array.from(recentlyUpdated.keys()).map(async uri => {
+					recentlyUpdated.delete(uri);
+					const thermo = (await reimager.send('getImages', {uri: uri + '/'}))[0];
+					let uuids = [];
 
-				for (const [uuid, therm] of uuidMap)
-					if (therm.entryFile === thermo.entryFile)
-						uuids.push(uuid);
+					for (const [uuid, therm] of uuidMap)
+						if (therm.entryFile === thermo.entryFile)
+							uuids.push(uuid);
 
-				comms.send('updateDirectory', {
-					images: uuids.map(uuid => {
-						const temp = JSON.parse(JSON.stringify(thermo));
-						temp.uuid = uuid;
-						temp.imageUuid = uuid;
-						uuidMap.set(uuid, temp);
-						return temp;
-					})
+					comms.send('updateDirectory', {
+						images: uuids.map(uuid => {
+							const temp = JSON.parse(JSON.stringify(thermo));
+							temp.uuid = uuid;
+							temp.imageUuid = uuid;
+							uuidMap.set(uuid, temp);
+							return temp;
+						})
+					});
 				});
-			});
+		} catch (err) {
+
+		}
 	}, 1000);
 
 	reimager.on('dirUpdate', async ({filename, uri}) => {
@@ -148,70 +217,21 @@ app.on('ready', async () => {
 			try {
 				dialog.showSaveDialog({
 					defaultPath: '{name}.png',
-					filters: [
-						{
-							name: 'Images',
-							extensions: ['tif', 'jpg', 'png', 'webp']
-						},
-						{
-							name: 'ACQ',
-							extensions: ['ACQ']
-						},
-						{
-							name: 'ACQ and Image',
-							extensions: ['ACQ+jpg']
-						},
-						{
-							name: 'TIFF',
-							extensions: ['tif']
-						},
-						{
-							name: 'JPEG',
-							extensions: ['jpg']
-						},
-						{
-							name: 'PNG',
-							extensions: ['png']
-						},
-						{
-							name: 'WebP',
-							extensions: ['webp']
-						}
-					]
+					filters: constants.export.FILTERS
 				},
 				async path => {
 					if (path) {
-						let finished = 0;
-						const total = images.length;
+						const exports = exportImage(images, settings, path);
 
-						let extension = path.split('.').pop();
-						extension = extension === 'tif' ? 'tiff' : (extension === 'jpg' ? 'jpeg' : extension);
-						settings[extension] = {};
-
-						for (const {imageUuid, activePoints, activeLayers} of images) {
-							let image = uuidMap.get(imageUuid);
-							image = image ? image : savedMap.get(imageUuid);
-
-							let imageSettings = JSON.parse(JSON.stringify(settings));
-							imageSettings.uri = path.replace(/{name}/gm, image.name);
-							imageSettings.activePoints = activePoints;
-							imageSettings.activeLayers = activeLayers;
-
-							if (image) {
-								await reimager.send('writeImage', {
-									uri: image.entryFile,
-									operations: createOperations(imageSettings),
-									settings: imageSettings
-								});
-							}
-
-							finished++;
-							window.setProgressBar(finished/total);
+						exports.on('update', ({finished, total}) => {
+							window.setProgressBar(finished / total);
 							comms.send('exportUpdate', {exported: finished, total, type: 'all'});
-						}
+						});
 
-						resolve();
-						window.setProgressBar(-1);
+						exports.on('finish', total => {
+							window.setProgressBar(-1);
+							resolve();
+						});
 					} else {
 						window.setProgressBar(-1);
 						resolve();
@@ -224,78 +244,29 @@ app.on('ready', async () => {
 		});
 	});
 
-	comms.on('writeImage', data => {
+	comms.on('writeImage', ({imageUuid, settings}) => {
 		return new Promise((resolve, reject) => {
 			window.setProgressBar(2);
-			let image = uuidMap.get(data.imageUuid);
-			image = image ? image : savedMap.get(data.imageUuid);
+			let image = uuidMap.get(imageUuid);
+			image = image ? image : savedMap.get(imageUuid);
 			try {
 				dialog.showSaveDialog({
 					defaultPath: image.name + '.png',
-					filters: [
-						{
-							name: 'Images',
-							extensions: ['tif', 'jpg', 'png', 'webp']
-						},
-						{
-							name: 'ACQ',
-							extensions: ['ACQ']
-						},
-						{
-							name: 'ACQ and Image',
-							extensions: ['ACQ+jpg']
-						},
-						{
-							name: 'TIFF',
-							extensions: ['tif']
-						},
-						{
-							name: 'JPEG',
-							extensions: ['jpg']
-						},
-						{
-							name: 'PNG',
-							extensions: ['png']
-						},
-						{
-							name: 'WebP',
-							extensions: ['webp']
-						}
-
-					]
+					filters: constants.export.FILTERS
 				},
 				async path => {
 					if (path) {
-						let splitPath = path.split('.');
-						let extension = splitPath.pop().toLowerCase();
-						if (extension)
-							if (extension === 'acq+jpg') {
-								data.settings['acq'] = {};
-								data.settings['jpeg'] = {};
-								data.settings.uri = splitPath.join('.');
+						const exports = exportImage([image], settings, path);
 
-								resolve(await reimager.send('writeImage', {
-									uri: image.entryFile,
-									operations: createOperations(data.settings),
-									settings: data.settings
-								}));
-								window.setProgressBar(-1);
-							} else {
-								extension = extension === 'tif' ? 'tiff' : (extension === 'jpg' ? 'jpeg' : extension);
-								data.settings[extension] = {};
-								data.settings.uri = path;
+						exports.on('update', ({finished, total}) => {
+							window.setProgressBar(finished / total);
+							comms.send('exportUpdate', {exported: finished, total, type: 'all'});
+						});
 
-								resolve(await reimager.send('writeImage', {
-									uri: image.entryFile,
-									operations: createOperations(data.settings),
-									settings: data.settings
-								}));
-								window.setProgressBar(-1);
-							}
-						else {
+						exports.on('finish', total => {
 							window.setProgressBar(-1);
-							reject('No extension specified');
-						}
+							resolve();
+						});
 					} else {
 						window.setProgressBar(-1);
 						resolve();

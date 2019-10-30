@@ -1,5 +1,3 @@
-const fs = require('fs');
-
 const { CanvasRoot, NodeCanvas } = require('thermo-reimager');
 
 const ThermoWatcher = require('../thermowatcher.js');
@@ -98,8 +96,13 @@ class Child {
 	}
 
 	async writeImage({uri, uuid, operations, settings}) {
-		const thermo = await this.processImage({uri, uuid, operations, settings}, true);
-		await thermo.write(Functions.sanitizeSettings(settings));
+		if (settings.uri.toLowerCase().endsWith('.acq')) {
+			const thermo = await this.processImage({uri, uuid, operations: [], settings}, true);
+			await thermo.write(Functions.sanitizeSettings(settings));
+		} else {
+			const thermo = await this.processImage({uri, uuid, operations, settings}, true);
+			await thermo.write(Functions.sanitizeSettings(settings));
+		}
 	}
 }
 
