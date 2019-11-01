@@ -98,16 +98,18 @@ app.on('ready', async () => {
 	}, 1000);
 
 	reimager.on('dirUpdate', async ({filename, uri}) => {
-		if (filename.endsWith('.tif')) {
-			const [dirName, type, element, line] = filename.split('_');
+		try {
+			if (filename.endsWith('.tif')) {
+				const [dirName, type, element, line] = filename.split('_');
 
-			if (element && element !== 'Grey' && element !== 'RefGrey' && !element.startsWith('Spec') && line && line.length === 1)
-				await relayerer.send('relayer', {
-					output: `${uri}${dirName}.MAP.EDS/${dirName} ${type} ${element}_${line}.layer`,
-					input: uri + filename
-				});
-		} else if (!recentlyUpdated.has(uri + filename))
-			recentlyUpdated.set(uri + filename, true);
+				if (element && element !== 'Grey' && element !== 'RefGrey' && !element.startsWith('Spec') && line && line.length === 1)
+					await relayerer.send('relayer', {
+						output: `${uri}${dirName}.MAP.EDS/${dirName} ${type} ${element}_${line}.layer`,
+						input: uri + filename
+					});
+			} else if (!recentlyUpdated.has(uri + filename))
+				recentlyUpdated.set(uri + filename, true);
+		} catch(err) {}
 	});
 
 	comms.on('canvas', data => {
