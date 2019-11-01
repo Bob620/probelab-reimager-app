@@ -21,6 +21,8 @@ let window = null;
 const reimager = new ChildSpawn('reimager');
 const relayerer = new ChildSpawn('relayerer');
 
+const comms = new Communications();
+
 let activeDir = '';
 let imageMap = new Map();
 
@@ -34,7 +36,7 @@ app.on('ready', async () => {
 	if (window === null)
 		window = createWindow();
 
-	const comms = new Communications(new IPC(window));
+	comms.setMessageChannel(new IPC(window));
 	let recentlyUpdated = new Map();
 
 	setTimeout(async () => {
@@ -42,7 +44,7 @@ app.on('ready', async () => {
 			const latest = await lookForUpdate();
 
 			if (latest.version > version)
-				comms.send('notification', {
+				await comms.send('notification', {
 					type: 'update',
 					title: `Update Available (${latest.version})`,
 					description: latest.description,
@@ -58,7 +60,7 @@ app.on('ready', async () => {
 			const latest = await lookForUpdate();
 
 			if (latest.version > version)
-				comms.send('notification', {
+				await comms.send('notification', {
 					type: 'update',
 					title: `Update Available (${latest.version})`,
 					description: latest.description,
@@ -80,7 +82,7 @@ app.on('ready', async () => {
 						if (therm.entryFile === thermo.entryFile)
 							uuids.push(uuid);
 
-					comms.send('updateDirectory', {
+					await comms.send('updateDirectory', {
 						images: uuids.map(uuid => {
 							const temp = JSON.parse(JSON.stringify(thermo));
 							temp.uuid = uuid;
