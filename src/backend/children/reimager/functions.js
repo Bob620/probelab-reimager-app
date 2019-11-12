@@ -1,6 +1,6 @@
 const fs = require('fs');
 const fsPromise = fs.promises;
-const { PointShoot, ExtractedMap, constants } = require('thermo-reimager');
+const { PointShoot, ExtractedMap, constants, JeolImage, PFEImage, getPFEExpectedImages } = require('thermo-reimager');
 
 const appConstants = require('../../../../constants.json');
 
@@ -86,18 +86,35 @@ const Functions = {
 	getDir: async (dirUri, canvas) => {
 		try {
 			const directory = await fsPromise.readdir(dirUri, {withFileTypes: true});
-			return (await Promise.all(directory.map(dir => dir.isDirectory() ? Functions.getImages(dirUri + dir.name + '/', canvas) : []))).flat().filter(i => i);
+			const files = (await Functions.getImages(dirUri + '/', canvas)).filter(i => i);
+			return files.concat((await Promise.all(directory.map(dir => dir.isDirectory() ? Functions.getImages(dirUri + dir.name + '/', canvas) : []))).flat().filter(i => i));
 		} catch(err) {
 			return [];
 		}
 	},
 	getImages: async (dirUri, canvas) => {
 		try {
-			const files = fs.readdirSync(dirUri, {withFileTypes: true});
+			const files = fs.readdirSync(dirUri, {withFileTypes: true}).filter(file => file.isFile());
 			let thermos = [];
 			let extraLayers = [];
 
-			return (await Promise.all(files.filter(file => file.isFile()).map(file => {
+			for (let i = 0; i < files.length; i++)
+				if (files[i].name.toLowerCase().endsWith(constants.pfe.fileFormats.ENTRY)) {
+					const originalName = files[i].name;
+					const bimIndex = files.map(e => e.name.toLowerCase()).indexOf(originalName.toLowerCase().split('.')[0] + '.bim');
+					files.splice(i, 1);
+					if (bimIndex !== -1) {
+						files.splice(bimIndex, 1);
+						const numImages = await getPFEExpectedImages(dirUri + '/' + originalName);
+						for (let j = 0; j < numImages; j++)
+							files.push({
+								isFile: () => true,
+								name: `${originalName}?${j + 1}`
+							});
+					}
+				}
+
+			return (await Promise.all(files.map(file => {
 				file.uri = dirUri + file.name;
 				if (file.name.endsWith(constants.extractedMap.fileFormats.LAYER)) {
 					extraLayers.push(file);
@@ -113,7 +130,7 @@ const Functions = {
 						});
 					}
 				}
-			}))).filter(i => i);
+			}).flat())).filter(i => i);
 		} catch(err) {
 				return [];
 		}
@@ -121,12 +138,19 @@ const Functions = {
 	createThermo: (file, canvas, uuid=undefined) => {
 		if (file.isFile()) {
 			let thermo;
+			const fileName = file.name.toLowerCase();
 
-			if (file.name.endsWith(constants.pointShoot.fileFormats.ENTRY))
+			if (fileName.endsWith(constants.pointShoot.fileFormats.ENTRY))
 				thermo = new PointShoot(file, canvas);
 
-			if (file.name.endsWith(constants.extractedMap.fileFormats.ENTRY))
+			if (fileName.endsWith(constants.extractedMap.fileFormats.ENTRY))
 				thermo = new ExtractedMap(file, canvas);
+
+			if (fileName.endsWith(constants.jeol.fileFormats.ENTRY))
+				thermo = new JeolImage(file, canvas);
+
+			if (fileName.split('?')[0].endsWith(constants.pfe.fileFormats.ENTRY))
+				thermo = new PFEImage(file.uri, canvas);
 
 			if (thermo)
 				return [thermo, new Promise(async resolve => {
