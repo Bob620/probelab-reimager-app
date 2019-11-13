@@ -104,6 +104,6 @@
   "dependencies": {
     "canvas": "^2.5.0",
     "sharp": "^0.22.1",
-    "thermo-reimager": "github:bob620/thermo-reimager"
+    "thermo-reimager": "github:bob620/thermo-reimager#pfe"
   }
 }
