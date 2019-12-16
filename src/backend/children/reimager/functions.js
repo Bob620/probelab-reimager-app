@@ -98,22 +98,6 @@ const Functions = {
 			let thermos = [];
 			let extraLayers = [];
 
-			for (let i = 0; i < files.length; i++)
-				if (files[i].name.toLowerCase().endsWith(constants.pfe.fileFormats.ENTRY)) {
-					const originalName = files[i].name;
-					const bimIndex = files.map(e => e.name.toLowerCase()).indexOf(originalName.toLowerCase().split('.')[0] + '.bim');
-					files.splice(i, 1);
-					if (bimIndex !== -1) {
-						files.splice(bimIndex, 1);
-						const numImages = await getPFEExpectedImages(dirUri + '/' + originalName);
-						for (let j = 0; j < numImages; j++)
-							files.push({
-								isFile: () => true,
-								name: `${originalName}?${j + 1}`
-							});
-					}
-				}
-
 			return (await Promise.all(files.map(file => {
 				file.uri = dirUri + file.name;
 				if (file.name.endsWith(constants.extractedMap.fileFormats.LAYER)) {
@@ -132,7 +116,7 @@ const Functions = {
 				}
 			}).flat())).filter(i => i);
 		} catch(err) {
-				return [];
+			return [];
 		}
 	},
 	createThermo: (file, canvas, uuid=undefined) => {
@@ -145,12 +129,6 @@ const Functions = {
 
 			if (fileName.endsWith(constants.extractedMap.fileFormats.ENTRY))
 				thermo = new ExtractedMap(file, canvas);
-
-			if (fileName.endsWith(constants.jeol.fileFormats.ENTRY))
-				thermo = new JeolImage(file, canvas);
-
-			if (fileName.split('?')[0].endsWith(constants.pfe.fileFormats.ENTRY))
-				thermo = new PFEImage(file.uri, canvas);
 
 			if (thermo)
 				return [thermo, new Promise(async resolve => {

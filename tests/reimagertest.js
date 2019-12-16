@@ -55,9 +55,6 @@ outsideComm.on('message', ({type, data, uuid}) => {
 	console.log(type + '    ' + uuid);
 	console.log(data);
 	console.log();
-
-	if (type === 'resolve')
-		process.exit();
 });
 
 const reimager = new Reimager(fakeComm.endOne);
@@ -67,5 +64,13 @@ outsideComm.send({
 	uuid: generateUuid.v4(),
 	data: {
 		uri: 'C:\\Users\\EPMA_Castaing\\work\\thermo imaging\\2019-08-12_Nolen - Copy'
+	}
+});
+
+outsideComm.send({
+	type: 'getDir',
+	uuid: generateUuid.v4(),
+	data: {
+		uri: 'C:\\Users\\EPMA_Castaing\\work\\thermo imaging\\shapes\\'
 	}
 });
