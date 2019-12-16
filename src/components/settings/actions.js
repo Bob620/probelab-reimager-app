@@ -145,10 +145,10 @@ export default CreateActions([
 			const num = parseInt(target.value === '0' ? '0' : target.value.replace(/^0+/g, ''));
 			if (!isNaN(num))
 				if (0 <= num)
-					if (num <= 100)
+					if (num <= 500)
 						stores.settings.set('pointFontSize', num);
 					else
-						stores.settings.set('pointFontSize', 100);
+						stores.settings.set('pointFontSize', 500);
 				else
 					stores.settings.set('pointFontSize', 0);
 
