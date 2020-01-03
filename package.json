@@ -13,7 +13,8 @@
     "package": "rm -fr ./bin/unpackaged && npm run build-prod && node package.js && cd ./bin/unpackaged && npm install --production && npm run rebuild && cd ../.. && electron-packager ./bin/unpackaged --out ./bin --overwrite",
     "win-package": "del /F /Q \"./bin/unpackaged\" && npm run build-prod && node package.js && cd ./bin/unpackaged && npm install --production && npm run rebuild && cd ../.. && electron-packager ./bin/unpackaged --out ./bin --overwrite",
     "package-all": "rm -fr ./bin/unpackaged && npm run build-prod && node package.js && cd ./bin/unpackaged && npm install --production && npm run rebuild && cd ../.. && electron-packager --all ./bin/unpackaged --out ./bin --overwrite",
-    "win-package-all": "del /F /Q \"./bin/unpackaged\" && npm run build-prod && node package.js && cd ./bin/unpackaged && npm install --production && npm run rebuild && cd ../.. && electron-packager --all ./bin/unpackaged --out ./bin --overwrite"
+    "win-package-all": "del /F /Q \"./bin/unpackaged\" && npm run build-prod && node package.js && cd ./bin/unpackaged && npm install --production && npm run rebuild && cd ../.. && electron-packager --all ./bin/unpackaged --out ./bin --overwrite",
+    "postpack": "electron-builder --pd ./dist/win-unpacked"
   },
   "browserify": {
     "transform": [
