@@ -1,21 +1,18 @@
 const fs = require('fs');
 
-const binDir = fs.readdirSync('./');
-if (!binDir.includes('bin'))
-	fs.mkdirSync('./bin');
-
-const unpackagedDir = fs.readdirSync('./bin');
-if (!unpackagedDir.includes('unpackaged'))
-	fs.mkdirSync('./bin/unpackaged');
-
-const srcDir = fs.readdirSync('./bin/unpackaged');
-if (!srcDir.includes('src'))
-	fs.mkdirSync('./bin/unpackaged/src');
+function createDir(location, name) {
+	const binDir = fs.readdirSync(location);
+	if (!binDir.includes(name)) {
+		console.log(`Creating:\t${location}/${name}`);
+		fs.mkdirSync(`${location}/${name}`);
+	}
+}
 
 function linkDir(uri, outputUri) {
 	try {
 		fs.mkdirSync(outputUri);
-	} catch(err) {}
+	} catch (err) {
+	}
 
 	const dir = fs.readdirSync(uri, {withFileTypes: true});
 
@@ -24,20 +21,37 @@ function linkDir(uri, outputUri) {
 			try {
 				console.log(`Linking ${uri}/${fileDirent.name} -> ${outputUri}/${fileDirent.name}`);
 				fs.linkSync(`${uri}/${fileDirent.name}`, `${outputUri}/${fileDirent.name}`);
-			} catch(err) {}
+			} catch (err) {
+			}
 		else if (fileDirent.isDirectory())
 			linkDir(`${uri}/${fileDirent.name}`, `${outputUri}/${fileDirent.name}`);
 }
 
+function linkFile(file, newPath) {
+	console.log(`Linking ${file} -> ${newPath}`);
+	try {
+		fs.linkSync(file, newPath);
+	} catch (err) {
+	}
+}
+
+console.log('Cleaning and creating unpacked dirs...');
+try {
+	fs.rmdirSync('./bin/unpackaged');
+} catch (err) {
+}
+createDir('./', 'bin');
+createDir('./bin', 'unpackaged');
+createDir('./bin/unpackaged', 'src');
+
+console.log('\nLinking assets...');
 linkDir('./assets', './bin/unpackaged/assets');
 linkDir('./src/backend', './bin/unpackaged/src/backend');
 
-try {
-	fs.linkSync('./package.json', './bin/unpackaged/package.json');
-} catch(err) {}
-try {
-	fs.linkSync('./LICENSE', './bin/unpackaged/LICENSE');
-} catch (err) {}
-try {
-	fs.linkSync('./constants.json', './bin/unpackaged/constants.json');
-} catch(err) {}
+console.log('\nLinking package json files...');
+linkFile('./package.json', './bin/unpackaged/package.json');
+linkFile('./package-lock.json', './bin/unpackaged/package-lock.json');
+linkFile('./LICENSE', './bin/unpackaged/LICENSE');
+linkFile('./constants.json', './bin/unpackaged/constants.json');
+
+console.log('\n');
