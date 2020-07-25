@@ -10,10 +10,9 @@
     "build-prod": "node build.js production",
     "rebuild": "electron-rebuild -f",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "package": "rm -fr ./bin/unpackaged && npm run build-prod && node package.js && cd ./bin/unpackaged && npm install --production && npm run rebuild && cd ../.. && electron-packager ./bin/unpackaged --out ./bin --overwrite",
-    "win-package": "del /F /Q \"./bin/unpackaged\" && npm run build-prod && node package.js && cd ./bin/unpackaged && npm install --production && npm run rebuild && cd ../.. && electron-packager ./bin/unpackaged --out ./bin --overwrite",
-    "package-all": "rm -fr ./bin/unpackaged && npm run build-prod && node package.js && cd ./bin/unpackaged && npm install --production && npm run rebuild && cd ../.. && electron-packager --all ./bin/unpackaged --out ./bin --overwrite",
-    "win-package-all": "del /F /Q \"./bin/unpackaged\" && npm run build-prod && node package.js && cd ./bin/unpackaged && npm install --production && npm run rebuild && cd ../.. && electron-packager --all ./bin/unpackaged --out ./bin --overwrite",
+    "compile": "npm run build-prod && node package.js && cd ./bin/unpackaged && npm install --production && npm run rebuild",
+    "package": "npm run compile && electron-packager ./bin/unpackaged --out ./bin --overwrite",
+    "win-package": "npm run compile && electron-packager ./bin/unpackaged --out ./bin --overwrite --platform=win32 --arch=x64",
     "postpack": "electron-builder --pd ./dist/win-unpacked"
   },
   "browserify": {
@@ -91,7 +90,7 @@
     "browserify": "^16.5.1",
     "browserify-css": "^0.15.0",
     "electron": "^9.1.0",
-    "electron-builder": "^22.7.0",
+    "electron-builder": "^22.8.0",
     "electron-packager": "^15.0.0",
     "electron-rebuild": "^1.11.0",
     "envify": "^4.1.0",
