@@ -132,7 +132,7 @@ const actions = CreateActions([
 			if (typeof event === 'string')
 				dir = event;
 			else if (event.target.files[0])
-				dir = event.target.files[0].path;
+				dir = event.target.files[0].path.replace(/\\/g, '/').split('/').slice(0, -1).join('/');
 
 			if (dir) {
 				generalStore.set('selectedUuid', undefined);

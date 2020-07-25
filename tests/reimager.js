@@ -61,7 +61,7 @@ const reimager = new Reimager(fakeComm.endOne);
 
 outsideComm.send({
 	type: 'getDir',
-	uuid: generateUuid.v4(),
+	uuid: 'get',
 	data: {
 		uri: '../../thermo-reimager/tests/data/'
 	}
@@ -77,7 +77,7 @@ fs.writeFileSync('./test/test.txt', '1');
 
 outsideComm.send({
 	type: 'watchDir',
-	uuid: generateUuid.v4(),
+	uuid: 'watch',
 	data: {
 		uri: './test'
 	}
@@ -92,7 +92,7 @@ setTimeout(() => {
 
 		outsideComm.send({
 			type: 'unwatchDir',
-			uuid: generateUuid.v4(),
+			uuid: 'unwatch',
 			data: {
 				uri: './test'
 			}
@@ -107,7 +107,7 @@ setTimeout(() => {
 
 		outsideComm.send({
 			type: 'writeImage',
-			uuid: generateUuid.v4(),
+			uuid: 'write',
 			data: {
 				uri: '../../thermo-reimager/tests/data/1024(1).PS.EDS/1024(1).p_s',
 				operations: [{
