@@ -31,7 +31,7 @@
       display: grid;
       grid-template-columns: 1fr 10px 1fr 10px 1fr;
       grid-template-rows: 1fr 10px 1fr 10px 1fr;
-      grid-template-areas: "ul . . . ur" ". . . . ." "ll . lc . lr" "f f f f f" "bl fl bc fr br";
+      grid-template-areas: "ul . . . ur" ". . . . ." "ll . lc . lr" "f f f f f" "bl fl bc fr br""jeol jeol jeol jeol jeol";
       height: 200px;
       width: calc(90% - 4px);
       margin-left: 5%;
@@ -119,6 +119,17 @@
         grid-area: br;
         background-color: white;
         color: black;
+      }
+
+      > .jeol {
+        grid-area: jeol;
+        background-color: white;
+        color: black;
+
+        > p {
+          width: fit-content;
+          padding: 10px;
+        }
       }
     }
 

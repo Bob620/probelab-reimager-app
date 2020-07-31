@@ -1,6 +1,6 @@
 const fs = require('fs');
 const fsPromise = fs.promises;
-const { PointShoot, ExtractedMap, constants, JeolImage, PFEImage, getPFEExpectedImages } = require('thermo-reimager');
+const {PointShoot, ExtractedMap, constants, JeolImage, PFEImage, getPFEExpectedImages} = require('thermo-reimager');
 
 const appConstants = require('../../../../constants.json');
 
@@ -24,6 +24,8 @@ const Functions = {
 				return constants.scale.types.BELOWRIGHT;
 			case appConstants.settings.scalePositions.BELOWCENTER:
 				return constants.scale.types.BELOWCENTER;
+			case appConstants.settings.scalePositions.JEOL:
+				return constants.scale.types.JEOL;
 		}
 	},
 	sanitizeColor: inputColor => {
@@ -72,7 +74,7 @@ const Functions = {
 
 		if (inputSettings.png)
 			settings.png = inputSettings.png;
-		if(inputSettings.jpeg)
+		if (inputSettings.jpeg)
 			settings.jpeg = inputSettings.jpeg;
 		if (inputSettings.tiff)
 			settings.tiff = inputSettings.tiff;
@@ -119,10 +121,16 @@ const Functions = {
 			return [];
 		}
 	},
-	createThermo: (file, canvas, uuid=undefined) => {
+	createThermo: (file, canvas, uuid = undefined) => {
 		if (file.isFile()) {
 			let thermo;
 			const fileName = file.name.toLowerCase();
+
+			if (fileName.endsWith(constants.jeol.fileFormats.ENTRY))
+				try {
+					thermo = new JeolImage(file, canvas);
+				} catch(err) {
+				}
 
 			if (fileName.endsWith(constants.pointShoot.fileFormats.ENTRY))
 				thermo = new PointShoot(file, canvas);
