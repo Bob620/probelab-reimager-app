@@ -1,7 +1,7 @@
 {
   "name": "probelab-reimager-app",
   "productName": "Probelab ReImager",
-  "version": "1.4.0-beta",
+  "version": "1.4.0-stable",
   "description": "Visual UI for Probelab ReImager using Electron",
   "main": "./src/backend/main.js",
   "scripts": {
@@ -71,6 +71,17 @@
           ]
         }
       ]
+    },
+    "mac": {
+      "target": [
+        {
+          "sign": false,
+          "target": "dmg",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
     }
   },
   "author": "Bob620",
@@ -104,6 +115,6 @@
   "dependencies": {
     "canvas": "^2.5.0",
     "sharp": "^0.25.4",
-    "thermo-reimager": "github:bob620/thermo-reimager#beta"
+    "thermo-reimager": "github:bob620/thermo-reimager"
   }
 }
