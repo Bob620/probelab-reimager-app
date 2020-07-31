@@ -6,6 +6,8 @@ import GenerateUuid from './generateuuid.js';
 import constants from '../../../constants';
 
 import settingStore from '../settings/store.js';
+import generalStore from './store.js';
+import settingActions from '../settings/actions.js';
 
 const comms = new Communications(new IPC(ipcRenderer));
 
@@ -191,6 +193,7 @@ const actions = CreateActions([
 				//settingStore.set('activePoints', settingStore.get('activePoints').filter(name => image.points[name] !== undefined));
 				generalStore.set('selectedUuid', uuid);
 				generalStore.set('selectedImage', undefined);
+				generalStore.set('jeolImage', false);
 
 				settingStore.set('layers', sortLayers(Array.from(image.layers.values()), settingStore.get('layerOrder')));
 
@@ -295,11 +298,18 @@ const actions = CreateActions([
 
 				generalStore.set('selectedUuids', new Set([uuid]));
 
+				if (settingStore.get('scalePosition') === constants.settings.scalePositions.JEOL && !image.jeolFile) {
+					data.settings.scalePosition = constants.settings.scalePositions.LOWERCENTER;
+					settingActions.setScalePosition(constants.settings.scalePositions.LOWERCENTER)
+				}
+
 				comms.send('loadImage', data).then(([{uuid, image, data}]) => {
 					if (generalStore.get('selectedUuid') === uuid)
 						generalStore.set('selectedImage', image);
 					if (images.has(uuid))
 						images.get(uuid).output = data.output;
+
+					generalStore.set('jeolImage', data.jeolFile);
 					actions.navigateHome();
 				}).catch(() => {
 				});

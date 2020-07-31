@@ -63,7 +63,7 @@ outsideComm.send({
 	type: 'getDir',
 	uuid: 'get',
 	data: {
-		uri: '../../thermo-reimager/tests/data/'
+		uri: '../../thermo-reimager/test/data/'
 	}
 });
 
@@ -109,7 +109,7 @@ setTimeout(() => {
 			type: 'writeImage',
 			uuid: 'write',
 			data: {
-				uri: '../../thermo-reimager/tests/data/1024(1).PS.EDS/1024(1).p_s',
+				uri: '../../thermo-reimager/test/data/1024.PS.EDS/1024.p_s',
 				operations: [{
 					command: 'addLayer',
 					args: [{name: 'base'}]

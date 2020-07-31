@@ -1,7 +1,7 @@
 {
   "name": "probelab-reimager-app",
   "productName": "Probelab ReImager",
-  "version": "1.1.0-stable",
+  "version": "1.4.0-stable",
   "description": "Visual UI for Probelab ReImager using Electron",
   "main": "./src/backend/main.js",
   "scripts": {
@@ -13,7 +13,7 @@
     "compile": "npm run build-prod && node package.js && cd ./bin/unpackaged && npm install --production && npm run rebuild",
     "package": "npm run compile && electron-packager ./bin/unpackaged --out ./bin --overwrite",
     "win-package": "npm run compile && electron-packager ./bin/unpackaged --out ./bin --overwrite --platform=win32 --arch=x64",
-    "postpack": "electron-builder --pd ./dist/win-unpacked"
+    "postpack": "electron-builder --pd \"./bin/Probelab ReImager-win32-x64\""
   },
   "browserify": {
     "transform": [
@@ -71,6 +71,17 @@
           ]
         }
       ]
+    },
+    "mac": {
+      "target": [
+        {
+          "sign": false,
+          "target": "dmg",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
     }
   },
   "author": "Bob620",
@@ -89,14 +100,14 @@
     "bakadux": "^1.1.0",
     "browserify": "^16.5.1",
     "browserify-css": "^0.15.0",
-    "electron": "^9.1.0",
+    "electron": "^9.1.2",
     "electron-builder": "^22.8.0",
     "electron-packager": "^15.0.0",
     "electron-rebuild": "^1.11.0",
     "envify": "^4.1.0",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
-    "react-svg": "^11.0.31",
+    "react-svg": "^11.0.32",
     "scssify": "^3.0.1",
     "uglify-js": "^3.10.0",
     "uglifyify": "^5.0.2"

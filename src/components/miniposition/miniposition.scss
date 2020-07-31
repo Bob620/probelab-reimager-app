@@ -122,4 +122,35 @@
       height: 8px;
     }
   }
+
+  &.jeol {
+    justify-content: center;
+    align-items: flex-end;
+
+    > :first-child {
+      background-color: rgba(0,0,0,0);
+      border-top-width: 2px;
+      border-top-style: solid;
+      border-top-color: white;
+      height: 8px;
+      display: block;
+    }
+
+    > :last-child {
+      background-color: rgba(0,0,0,0);
+      border-top-width: 2px;
+      border-top-style: solid;
+      border-top-color: white;
+      height: 8px;
+      display: block;
+    }
+
+    > .pos {
+      background-color: rgba(0,0,0,0);
+      border-top-width: 2px;
+      border-top-style: solid;
+      border-top-color: white;
+      height: 8px;
+    }
+  }
 }

@@ -10,7 +10,8 @@
       "LOWERCENTER": "lc",
       "BELOWLEFT": "bl",
       "BELOWRIGHT": "br",
-      "BELOWCENTER": "bc"
+      "BELOWCENTER": "bc",
+      "JEOL": "jeol"
     },
     "pointTypes": {
       "THERMOLIKE": "thermo",
