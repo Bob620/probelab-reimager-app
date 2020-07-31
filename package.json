@@ -13,7 +13,7 @@
     "compile": "npm run build-prod && node package.js && cd ./bin/unpackaged && npm install --production && npm run rebuild",
     "package": "npm run compile && electron-packager ./bin/unpackaged --out ./bin --overwrite",
     "win-package": "npm run compile && electron-packager ./bin/unpackaged --out ./bin --overwrite --platform=win32 --arch=x64",
-    "postpack": "electron-builder --pd ./dist/win-unpacked"
+    "postpack": "electron-builder --pd \"./bin/Probelab ReImager-win32-x64\""
   },
   "browserify": {
     "transform": [
