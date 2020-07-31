@@ -73,7 +73,6 @@
       ]
     },
     "mac": {
-      "sign": false,
       "target": [
         {
           "target": "dmg",
