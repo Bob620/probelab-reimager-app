@@ -114,6 +114,6 @@
   "dependencies": {
     "canvas": "^2.5.0",
     "sharp": "^0.25.4",
-    "thermo-reimager": "github:bob620/thermo-reimager"
+    "probelab-reimager": "github:bob620/probelab-reimager#dev"
   }
 }
