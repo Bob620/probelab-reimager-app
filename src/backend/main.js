@@ -15,7 +15,7 @@ const {
 const [version] = require('../../package.json').version.split('-');
 const constants = require('../../constants.json');
 
-const { app, dialog, shell } = require('electron');
+const {app, dialog, shell} = require('electron');
 
 let window = null;
 const reimager = new ChildSpawn('reimager');
@@ -67,13 +67,14 @@ app.on('ready', async () => {
 					link: latest.link,
 					linkAlt: 'Download Page'
 				});
-		} catch (err) {}
+		} catch (err) {
+		}
 	}, 86400000);
 
 	setInterval(() => {
-		try {
-			if (recentlyUpdated.size > 0)
-				Array.from(recentlyUpdated.keys()).map(async uri => {
+		if (recentlyUpdated.size > 0)
+			Array.from(recentlyUpdated.keys()).map(async uri => {
+				try {
 					recentlyUpdated.delete(uri);
 					const thermo = (await reimager.send('getImages', {uri: uri + '/'}))[0];
 					let uuids = [];
@@ -91,10 +92,10 @@ app.on('ready', async () => {
 							return temp;
 						})
 					});
-				});
-		} catch (err) {
-
-		}
+				} catch (err) {
+					console.log();
+				}
+			});
 	}, 1000);
 
 	reimager.on('dirUpdate', async ({filename, uri}) => {
@@ -109,7 +110,8 @@ app.on('ready', async () => {
 					});
 			} else if (!recentlyUpdated.has(uri + filename))
 				recentlyUpdated.set(uri + filename, true);
-		} catch(err) {}
+		} catch (err) {
+		}
 	});
 
 	comms.on('canvas', data => {
@@ -140,28 +142,28 @@ app.on('ready', async () => {
 
 			try {
 				dialog.showSaveDialog({
-					defaultPath: '{name}.png',
-					filters: constants.export.FILTERS
-				},
-				async path => {
-					if (path) {
-						const exports = exportImage(images, settings, path, reimager, {uuidMap, savedMap});
+						defaultPath: '{name}.png',
+						filters: constants.export.FILTERS
+					},
+					async path => {
+						if (path) {
+							const exports = exportImage(images, settings, path, reimager, {uuidMap, savedMap});
 
-						exports.on('update', ({finished, total}) => {
-							window.setProgressBar(finished / total);
-							comms.send('exportUpdate', {exported: finished, total, type: 'all'});
-						});
+							exports.on('update', ({finished, total}) => {
+								window.setProgressBar(finished / total);
+								comms.send('exportUpdate', {exported: finished, total, type: 'all'});
+							});
 
-						exports.on('finish', total => {
+							exports.on('finish', total => {
+								window.setProgressBar(-1);
+								resolve();
+							});
+						} else {
 							window.setProgressBar(-1);
 							resolve();
-						});
-					} else {
-						window.setProgressBar(-1);
-						resolve();
-					}
-				});
-			} catch(err) {
+						}
+					});
+			} catch (err) {
 				window.setProgressBar(-1);
 				reject(err);
 			}
@@ -169,34 +171,32 @@ app.on('ready', async () => {
 	});
 
 	comms.on('writeImage', ({imageUuid, settings}) => {
-		return new Promise((resolve, reject) => {
+		return new Promise(async (resolve, reject) => {
 			window.setProgressBar(2);
 			let image = uuidMap.get(imageUuid);
 			image = image ? image : savedMap.get(imageUuid);
 			try {
-				dialog.showSaveDialog({
+				const path = await dialog.showSaveDialog({
 					defaultPath: image.name + '.png',
 					filters: constants.export.FILTERS
-				},
-				async path => {
-					if (path) {
-						const exports = exportImage([image], settings, path, reimager, {uuidMap, savedMap});
+				});
+				if (!path.canceled) {
+					const exports = exportImage([image], settings, path.filePath, reimager, {uuidMap, savedMap});
 
-						exports.on('update', ({finished, total}) => {
-							window.setProgressBar(finished / total);
-							comms.send('exportUpdate', {exported: finished, total, type: 'all'});
-						});
+					exports.on('update', ({finished, total}) => {
+						window.setProgressBar(finished / total);
+						comms.send('exportUpdate', {exported: finished, total, type: 'all'});
+					});
 
-						exports.on('finish', total => {
-							window.setProgressBar(-1);
-							resolve();
-						});
-					} else {
+					exports.on('finish', total => {
 						window.setProgressBar(-1);
 						resolve();
-					}
-				});
-			} catch(err) {
+					});
+				} else {
+					window.setProgressBar(-1);
+					resolve();
+				}
+			} catch (err) {
 				window.setProgressBar(-1);
 				reject(err);
 			}
