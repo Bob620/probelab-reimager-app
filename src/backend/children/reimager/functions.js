@@ -1,6 +1,6 @@
 const fs = require('fs');
 const fsPromise = fs.promises;
-const {PointShoot, ExtractedMap, constants, JeolImage, PFEImage, getPFEExpectedImages} = require('thermo-reimager');
+const {PointShoot, ExtractedMap, constants, JeolImage, PFEImage, getPFEExpectedImages} = require('probelab-reimager');
 
 const appConstants = require('../../../../constants.json');
 

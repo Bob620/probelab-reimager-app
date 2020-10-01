@@ -1,4 +1,4 @@
-const { CanvasRoot, NodeCanvas } = require('thermo-reimager');
+const { CanvasRoot, NodeCanvas } = require('probelab-reimager');
 
 const ThermoWatcher = require('../thermowatcher.js');
 const Communications = require('../../communications.js');
