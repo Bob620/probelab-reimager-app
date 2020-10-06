@@ -164,9 +164,15 @@ app.on('ready', async () => {
 		logs.dirUpdate.info('New layers added');
 	});
 
-	comms.on('exportLog', () => {
-		log.info('Hi', 'o/');
-		log.export();
+	comms.on('exportLog', async () => {
+		const path = await dialog.showSaveDialog({
+			defaultPath: 'output.log'
+		});
+
+		if (!path.canceled) {
+			log.info('Hi', 'o/');
+			log.export(path.filePath);
+		}
 	});
 
 	comms.on('canvas', data => {

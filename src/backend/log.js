@@ -38,8 +38,8 @@ class Log {
 		return this.data.history.join('\n');
 	}
 
-	export() {
-		fs.writeFileSync('./output.log', this.serialize());
+	export(uri) {
+		fs.writeFileSync(uri, this.serialize());
 	}
 }
 
