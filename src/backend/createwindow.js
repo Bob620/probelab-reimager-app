@@ -121,7 +121,9 @@ const template = [
 const menu = Menu.buildFromTemplate(template);
 Menu.setApplicationMenu(menu);
 
-module.exports = () => {
+module.exports = log => {
+	log.info('Creating window...');
+
 	let window = new BrowserWindow({
 		minWidth: 1100,
 		minHeight: 800,
@@ -139,16 +141,10 @@ module.exports = () => {
 	window.loadFile('./assets/index.html');
 
 	window.once('ready-to-show', () => {
+		log.info(`Window ready to show`);
 		window.show();
 	});
 
-	// Emitted when the window is closed.
-	window.on('closed', function () {
-		// Dereference the window object, usually you would store windows
-		// in an array if your app supports multi windows, this is the time
-		// when you should delete the corresponding element.
-		window = null
-	});
-
+	log.info(`Window created`);
 	return window;
 };

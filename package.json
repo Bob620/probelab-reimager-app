@@ -1,7 +1,7 @@
 {
   "name": "probelab-reimager-app",
   "productName": "Probelab ReImager",
-  "version": "1.5.0-beta",
+  "version": "1.6.0-dev",
   "description": "Visual UI for Probelab ReImager using Electron",
   "main": "./src/backend/main.js",
   "scripts": {

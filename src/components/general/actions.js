@@ -1,6 +1,7 @@
-import { CreateActions } from 'bakadux';
+import {CreateActions} from 'bakadux';
 import Communications from './communications';
-const { ipcRenderer } = window.require('electron');
+
+const {ipcRenderer} = window.require('electron');
 import IPC from './ipc';
 import GenerateUuid from './generateuuid.js';
 import constants from '../../../constants';
@@ -35,7 +36,7 @@ comms.on('notification', notification => {
 });
 
 comms.on('navigate', ({page}) => {
-	switch(page) {
+	switch (page) {
 		default:
 		case 'home':
 			actions.navigateHome();
@@ -50,7 +51,7 @@ comms.on('navigate', ({page}) => {
 });
 
 comms.on('exportUpdate', ({type, total, exported}) => {
-	switch(type) {
+	switch (type) {
 		default:
 		case 'store':
 			actions.updateStoreExport({exported, total, done: exported === total});
@@ -62,6 +63,12 @@ comms.on('exportUpdate', ({type, total, exported}) => {
 });
 
 const actions = CreateActions([
+	{
+		actionType: 'exportLog',
+		func: () => {
+			comms.send('exportLog');
+		}
+	},
 	{
 		actionType: 'addNotification',
 		func: ({stores}, data) => {
@@ -84,7 +91,7 @@ const actions = CreateActions([
 	},
 	{
 		actionType: 'saveImage',
-		func: ({stores}, uuid, data, callback=undefined) => {
+		func: ({stores}, uuid, data, callback = undefined) => {
 			if (uuid)
 				comms.send('saveImage', {
 					uuid
@@ -141,7 +148,7 @@ const actions = CreateActions([
 				generalStore.set('workingDir', dir);
 				generalStore.set('loadingDir', true);
 
-				comms.send('processDirectory', { dir }).then(([{thermos}]) => {
+				comms.send('processDirectory', {dir}).then(([{thermos}]) => {
 					generalStore.set('loadingDir', false);
 					actions.updateDirImages(thermos);
 
@@ -157,7 +164,7 @@ const actions = CreateActions([
 	},
 	{
 		actionType: 'updateDirImages',
-		func: ({stores}, thermos, update=false) => {
+		func: ({stores}, thermos, update = false) => {
 			stores.general.set('images', thermos.reduce((thermos, thermo) => {
 				thermo.points = Object.values(thermo.points).reduce((points, point) => {
 					const uuid = GenerateUuid.v4();
@@ -209,7 +216,7 @@ const actions = CreateActions([
 	},
 	{
 		actionType: 'loadImage',
-		func: ({stores}, uuid=false, activeOverride=false, shift=false, ctrl=false) => {
+		func: ({stores}, uuid = false, activeOverride = false, shift = false, ctrl = false) => {
 			const settingStore = stores.settings;
 			const generalStore = stores.general;
 			const images = generalStore.get('images');
@@ -318,7 +325,8 @@ const actions = CreateActions([
 	},
 	{
 		actionType: 'writeSelectedImage',
-		func: ({stores}, override=undefined, callback=() => {}) => {
+		func: ({stores}, override = undefined, callback = () => {
+		}) => {
 			const generalStore = stores.general;
 
 			const selectedUuid = override ? override : generalStore.get('selectedUuid');
@@ -357,7 +365,8 @@ const actions = CreateActions([
 				comms.send('writeImage', data).then(() => {
 					if (typeof callback === 'function')
 						callback();
-				}).catch(() => {});
+				}).catch(() => {
+				});
 			}
 		}
 	},
@@ -369,19 +378,18 @@ const actions = CreateActions([
 	},
 	{
 		actionType: 'writeSelectedImages',
-		func: ({actions, stores}, uuidList=undefined, easy=stores.general.get('easyExport')) => {
+		func: ({actions, stores}, uuidList = undefined, easy = stores.general.get('easyExport')) => {
 			let uuids = uuidList !== undefined ? uuidList : Array.from(stores.general.get('selectedUuids').keys());
 
 			if (easy)
 				actions.writeAllImages(uuids);
-			else
-				if (uuids.length > 0)
-					actions.writeSelectedImage(uuids.pop(), actions.writeSelectedImages.bind(undefined, uuids, easy));
+			else if (uuids.length > 0)
+				actions.writeSelectedImage(uuids.pop(), actions.writeSelectedImages.bind(undefined, uuids, easy));
 		}
 	},
 	{
 		actionType: 'writeSavedImages',
-		func: ({actions, stores}, uuidList=undefined) => {
+		func: ({actions, stores}, uuidList = undefined) => {
 			let uuids = uuidList !== undefined ? uuidList : Array.from(stores.general.get('safebox').keys());
 
 			if (uuids.length > 0) {
@@ -394,7 +402,7 @@ const actions = CreateActions([
 	},
 	{
 		actionType: 'writeAllImages',
-		func: ({actions, stores}, uuidList=undefined) => {
+		func: ({actions, stores}, uuidList = undefined) => {
 			const generalStore = stores.general;
 			const settingStore = stores.settings;
 
@@ -431,9 +439,9 @@ const actions = CreateActions([
 				});
 
 				comms.send('writeImages', {images, settings})
-				.then(() => {
+					.then(() => {
 
-				}).catch(() => {
+					}).catch(() => {
 
 				});
 			}
@@ -517,7 +525,7 @@ const actions = CreateActions([
 
 function sortLayers(layers, order) {
 	let outputLayers = [];
-	for (let i = 0; i < order.length; i ++)
+	for (let i = 0; i < order.length; i++)
 		outputLayers.push(undefined);
 
 	let offset = 0;
