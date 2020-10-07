@@ -1,11 +1,11 @@
-const { CanvasRoot, NodeCanvas } = require('probelab-reimager');
+const {CanvasRoot, NodeCanvas} = require('probelab-reimager');
 
 const ThermoWatcher = require('../thermowatcher.js');
 const Communications = require('../../communications.js');
 const Functions = require('./functions.js');
 
 class Child {
-	constructor(canvas, comms=process) {
+	constructor(canvas, comms = process) {
 		this.data = {
 			watchedDirs: new Map(),
 			comms: new Communications(comms),
@@ -30,10 +30,15 @@ class Child {
 	}
 
 	async getDir({uri}) {
-		return (await Functions.getDir(uri, this.data.canvas)).map(thermo => thermo.serialize());
+		this.data.comms.send('log-info', 'Getting directory...');
+		const thermos = (await Functions.getDir(uri, this.data.canvas)).map(thermo => thermo.serialize());
+
+		this.data.comms.send('log-info', 'Returning thermos from directory');
+		return thermos;
 	}
 
-	async getImages({uri, uuids={}}) {
+	async getImages({uri, uuids = {}}) {
+		this.data.comms.send('log-info', 'Getting images...');
 		return (await Functions.getImages(uri, this.data.canvas)).map(thermo => {
 			const uuid = uuids[thermo.data.files.entry];
 			thermo.data.uuid = uuid ? uuid : thermo.data.uuid;
@@ -41,7 +46,7 @@ class Child {
 		});
 	}
 
-	async processImage({uri, uuid, operations, settings}, returnThermo=false) {
+	async processImage({uri, uuid, operations, settings}, returnThermo = false) {
 		settings = Functions.sanitizeSettings(settings);
 
 		for (let i = 0; i < operations.length; i++) {
@@ -74,6 +79,7 @@ class Child {
 	}
 
 	async unwatchDir({uri}) {
+		this.data.comms.send('log-info', 'Unwatching directory');
 		const watcher = this.data.watchedDirs.get(uri);
 		if (watcher) {
 			watcher.unwatch();
@@ -83,6 +89,7 @@ class Child {
 
 	async watchDir({uri}) {
 		if (!this.data.watchedDirs.has(uri)) {
+			this.data.comms.send('log-info', 'Watching directory');
 			const watcher = new ThermoWatcher(uri);
 
 			watcher.on('close', uri => {
@@ -96,6 +103,7 @@ class Child {
 	}
 
 	async writeImage({uri, uuid, operations, settings}) {
+		this.data.comms.send('log-info', 'Processing image...');
 		const thermo = await this.processImage(
 			{
 				uri,
@@ -104,7 +112,10 @@ class Child {
 			},
 			true
 		);
+
+		this.data.comms.send('log-info', 'Writing image...');
 		await thermo.write(Functions.sanitizeSettings(settings));
+		this.data.comms.send('log-info', 'Image written');
 	}
 }
 

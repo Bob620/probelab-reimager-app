@@ -1,4 +1,5 @@
 const generateUUID = require('./generateuuid.js');
+const {CreateFakeLog, CreateCommLog} = require('./log.js');
 
 module.exports = class {
 	constructor(messageChannel = {
@@ -6,14 +7,7 @@ module.exports = class {
 		},
 		send: () => {
 		}
-	}, log = {
-		info: () => {
-		},
-		warn: () => {
-		},
-		error: () => {
-		}
-	}) {
+	}, log = CreateFakeLog()) {
 		this.data = {
 			messageChannel,
 			messageCallbacks: new Map(),
@@ -47,7 +41,7 @@ module.exports = class {
 						callback.resolve(data);
 			} else
 				try {
-					this.data.log.info(`Received '${type}' request`);
+					this.data.log.info(`Received '${type}' (${uuid})`);
 
 					const callbacks = this.data.messageCallbacks.get(type);
 					if (callbacks)
@@ -55,7 +49,7 @@ module.exports = class {
 							sender.send('resolve', (await Promise.all(callbacks.map(callback => callback(data)))).flat().filter(i => i), uuid);
 						else
 							this.send('resolve', (await Promise.all(callbacks.map(callback => callback(data)))).flat().filter(i => i), uuid);
-				} catch (err) {
+				} catch(err) {
 					this.data.log.error(err);
 
 					if (sender)
@@ -63,6 +57,13 @@ module.exports = class {
 					else
 						this.send('reject', err.stack, uuid);
 				}
+		});
+
+		this.data.messageChannel.on('logger', async ({uuid, domain, comm}) => {
+			if (uuid) {
+				await CreateCommLog(domain, this, uuid);
+				await CreateCommLog(comm, this, uuid);
+			}
 		});
 	}
 
@@ -80,22 +81,24 @@ module.exports = class {
 	}
 
 	send(type, data = {}, uuid = generateUUID.v4()) {
-		this.data.log.info(`Sending '${type}'`);
+		this.data.log.info(`Sending '${type}' (${uuid})`);
 
 		return new Promise((resolve, reject) => {
-			const callbacks = this.data.uuidCallbacks.get(uuid);
-			if (callbacks)
-				callbacks.push({
-					resolve: data => {
-						this.data.log.info(`Received '${type}'`);
-						resolve(data);
-					}, reject: err => {
-						this.data.log.error(err);
-						reject(err);
-					}
-				});
-			else
-				this.data.uuidCallbacks.set(uuid, [{resolve, reject}]);
+			if (type !== 'resolve' || type !== 'reject') {
+				const callbacks = this.data.uuidCallbacks.get(uuid);
+				if (callbacks)
+					callbacks.push({
+						resolve: data => {
+							this.data.log.info(`Received '${type}' (${uuid})`);
+							resolve(data);
+						}, reject: err => {
+							this.data.log.error(err);
+							reject(err);
+						}
+					});
+				else
+					this.data.uuidCallbacks.set(uuid, [{resolve, reject}]);
+			}
 
 			this.data.messageChannel.send({type, data, uuid});
 		});

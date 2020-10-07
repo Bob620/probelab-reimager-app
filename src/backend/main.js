@@ -1,16 +1,18 @@
-const Log = require('./log.js');
+const Log = require('./log.js').Log;
 const log = new Log();
 const logs = {
-	main: 		log.createDomain('    main   '),
-	update: 	log.createDomain('   update  '),
-	window: 	log.createDomain('   window  '),
-	updateDir: 	log.createDomain(' updateDir '),
-	dirUpdate: 	log.createDomain(' dirUpdate '),
-	saveImage: 	log.createDomain(' saveImage '),
-	writeImage: log.createDomain(' writeImage'),
-	loadImage: 	log.createDomain(' loadImage '),
-	processDir: log.createDomain(' processDir'),
-	comms: 		log.createDomain('   comms   ')
+	main: 			log.createDomain('    main   '),
+	update: 		log.createDomain('   update  '),
+	window: 		log.createDomain('   window  '),
+	updateDir: 		log.createDomain(' updateDir '),
+	dirUpdate: 		log.createDomain(' dirUpdate '),
+	saveImage: 		log.createDomain(' saveImage '),
+	writeImage: 	log.createDomain(' writeImage'),
+	loadImage: 		log.createDomain(' loadImage '),
+	processDir: 	log.createDomain(' processDir'),
+	comms: 			log.createDomain('   wComms  '),
+	reimagerComms: 	log.createDomain('   cComms  '),
+	reimager: 		log.createDomain('  reimager ')
 };
 
 logs.main.info('Loading Node modules...');
@@ -37,7 +39,12 @@ const {app, dialog, shell} = require('electron');
 logs.main.info('All modules loaded');
 
 logs.main.info('Spawning children...');
-const reimager = new ChildSpawn('reimager');
+const reimager = new ChildSpawn('reimager', {
+	commsLog: logs.reimagerComms,
+	internalLog: logs.reimager,
+	childDomain: '  reimager ',
+	childComm: '   cComms  '
+});
 const relayerer = new ChildSpawn('relayerer');
 logs.main.info('Children spawned');
 
@@ -363,6 +370,7 @@ app.on('ready', async () => {
 		reimager.send('unwatch', {uri: activeDir});
 		activeDir = dirUri;
 
+		logs.processDir.info('Getting new directory...');
 		const thermos = await reimager.send('getDir', {uri: dirUri});
 
 		logs.processDir.info('Sanitizing thermos...');
