@@ -12,7 +12,7 @@ const logs = {
 	processDir: 	log.createDomain(' processDir'),
 	comms: 			log.createDomain('   wComms  '),
 	reimagerComms: 	log.createDomain('   cComms  '),
-	reimager: 		log.createDomain('  reimager ')
+	riChild: 		log.createDomain('  riChild  ')
 };
 
 logs.main.info('Loading Node modules...');
@@ -41,9 +41,9 @@ logs.main.info('All modules loaded');
 logs.main.info('Spawning children...');
 const reimager = new ChildSpawn('reimager', {
 	commsLog: logs.reimagerComms,
-	internalLog: logs.reimager,
+	internalLog: logs.riChild,
 	childDomain: '  reimager ',
-	childComm: '   cComms  '
+	childComm:   '  ccComms  '
 });
 const relayerer = new ChildSpawn('relayerer');
 logs.main.info('Children spawned');

@@ -50,12 +50,14 @@ module.exports = class {
 		this.data.process = fork(`${__dirname}/children/${this.data.childName}/child.js`);
 		this.data.comms.setMessageChannel(this.data.process);
 
-		this.data.comms.on('ready', async () => {
-			await this.send('logger', {
+		this.on('ready', async () => {
+			await this.data.comms.send('logger', {
 				uuid: this.data.log.uuid,
 				domain: this.data.childLog.domain,
 				comm: this.data.childLog.comm
 			});
+
+			this.data.log.listenOn(this.data.comms);
 
 			this.data.log.info('Spawned and ready');
 			this.data.ready = true;
@@ -70,17 +72,15 @@ module.exports = class {
 					reject(err);
 				}
 			}
-
-			return '';
 		});
 
-		this.data.comms.on('error', err => {
+		this.on('error', err => {
 			this.data.log.error(err);
 			this.data.ready = false;
 			this.respawn();
 		});
 
-		this.data.comms.on('exit', () => {
+		this.on('exit', () => {
 			this.data.log.info('Exited, respawning...');
 			this.data.ready = false;
 			this.respawn();

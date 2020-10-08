@@ -23,8 +23,6 @@ class Child {
 		canvas.init().then(async () => {
 			await this.data.comms.send('ready');
 			this.data.log = this.data.comms.log;
-
-			this.data.log.info('test');
 		});
 	}
 

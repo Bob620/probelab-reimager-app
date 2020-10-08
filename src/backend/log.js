@@ -24,6 +24,8 @@ class Log {
 
 	createDomain(domain) {
 		return {
+			uuid: this.uuid,
+			listenOn: this.listenOn.bind(this),
 			createDomain: this.createDomain.bind(this),
 			info: this.info.bind(this, domain),
 			warn: this.warn.bind(this, domain),
@@ -35,18 +37,27 @@ class Log {
 
 	info(domain, message) {
 		this.data.history.push(`${domain} | ${message}`);
+		console.info(`${domain} | ${message}`);
 	}
 
 	warn(domain, err) {
 		this.data.history.push(`${domain} | ${Object.prototype.toString.call(err) === '[object String]' ? err : `${err.code}  -  ${err.message}`}`);
-		if (err.stack)
+		console.warn(`${domain} | ${Object.prototype.toString.call(err) === '[object String]' ? err : `${err.code}  -  ${err.message}`}`);
+
+		if (err.stack) {
 			this.data.history.push(err.stack);
+			console.log(err.stack);
+		}
 	}
 
 	error(domain, err = new Error()) {
 		this.data.history.push(`${domain} | ${Object.prototype.toString.call(err) === '[object String]' ? err : `${err.code}  -  ${err.message}`}`);
-		if (err.stack)
+		console.error(`${domain} | ${Object.prototype.toString.call(err) === '[object String]' ? err : `${err.code}  -  ${err.message}`}`);
+
+		if (err.stack) {
 			this.data.history.push(err.stack);
+			console.log(err.stack);
+		}
 	}
 
 	serialize() {

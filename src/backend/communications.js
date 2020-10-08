@@ -17,6 +17,13 @@ module.exports = class {
 		};
 
 		this.setMessageChannel();
+
+		this.on('logger', async ({uuid, domain, comm}) => {
+			if (uuid && (domain !== '' || comm !== '')) {
+				this.data.childLog = await CreateCommLog(domain, this, uuid);
+				this.data.log = await CreateCommLog(comm, this, uuid);
+			}
+		});
 	}
 
 	get log() {
@@ -63,13 +70,6 @@ module.exports = class {
 						this.send('reject', err.stack, uuid);
 				}
 		});
-
-		this.data.messageChannel.on('logger', async ({uuid, domain, comm}) => {
-			if (uuid) {
-				this.data.childLog = await CreateCommLog(domain, this, uuid);
-				this.data.log = await CreateCommLog(comm, this, uuid);
-			}
-		});
 	}
 
 	on(type, callback) {
@@ -86,7 +86,8 @@ module.exports = class {
 	}
 
 	send(type, data = {}, uuid = generateUUID.v4()) {
-		this.data.log.info(`Sending '${type}' (${uuid})`);
+		if (!type.startsWith(`log-${this.data.childLog.uuid}-`))
+			this.data.log.info(`Sending '${type}' (${uuid})`);
 
 		return new Promise((resolve, reject) => {
 			if (type !== 'resolve' || type !== 'reject') {
