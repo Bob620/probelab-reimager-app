@@ -12,10 +12,15 @@ module.exports = class {
 			messageChannel,
 			messageCallbacks: new Map(),
 			uuidCallbacks: new Map(),
-			log
+			log,
+			childLog: CreateFakeLog()
 		};
 
 		this.setMessageChannel();
+	}
+
+	get log() {
+		return this.data.childLog;
 	}
 
 	setMessageChannel(messageChannel = this.data.messageChannel) {
@@ -61,8 +66,8 @@ module.exports = class {
 
 		this.data.messageChannel.on('logger', async ({uuid, domain, comm}) => {
 			if (uuid) {
-				await CreateCommLog(domain, this, uuid);
-				await CreateCommLog(comm, this, uuid);
+				this.data.childLog = await CreateCommLog(domain, this, uuid);
+				this.data.log = await CreateCommLog(comm, this, uuid);
 			}
 		});
 	}

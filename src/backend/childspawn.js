@@ -71,6 +71,7 @@ module.exports = class {
 				}
 			}
 
+			return '';
 		});
 
 		this.data.comms.on('error', err => {

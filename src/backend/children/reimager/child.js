@@ -20,8 +20,11 @@ class Child {
 		this.data.comms.on('watchDir', this.watchDir.bind(this));
 		this.data.comms.on('writeImage', this.writeImage.bind(this));
 
-		canvas.init().then(() => {
-			this.data.comms.send('ready');
+		canvas.init().then(async () => {
+			await this.data.comms.send('ready');
+			this.data.log = this.data.comms.log;
+
+			this.data.log.info('test');
 		});
 	}
 
@@ -30,15 +33,15 @@ class Child {
 	}
 
 	async getDir({uri}) {
-		this.data.comms.send('log-info', 'Getting directory...');
+		this.data.log.info('Getting directory...');
 		const thermos = (await Functions.getDir(uri, this.data.canvas)).map(thermo => thermo.serialize());
 
-		this.data.comms.send('log-info', 'Returning thermos from directory');
+		this.data.log.info('Returning thermos from directory');
 		return thermos;
 	}
 
 	async getImages({uri, uuids = {}}) {
-		this.data.comms.send('log-info', 'Getting images...');
+		this.data.log.info('Getting images...');
 		return (await Functions.getImages(uri, this.data.canvas)).map(thermo => {
 			const uuid = uuids[thermo.data.files.entry];
 			thermo.data.uuid = uuid ? uuid : thermo.data.uuid;
@@ -79,7 +82,7 @@ class Child {
 	}
 
 	async unwatchDir({uri}) {
-		this.data.comms.send('log-info', 'Unwatching directory');
+		this.data.log.info('Unwatching directory');
 		const watcher = this.data.watchedDirs.get(uri);
 		if (watcher) {
 			watcher.unwatch();
@@ -89,7 +92,7 @@ class Child {
 
 	async watchDir({uri}) {
 		if (!this.data.watchedDirs.has(uri)) {
-			this.data.comms.send('log-info', 'Watching directory');
+			this.data.log.info('Watching directory');
 			const watcher = new ThermoWatcher(uri);
 
 			watcher.on('close', uri => {
@@ -103,7 +106,7 @@ class Child {
 	}
 
 	async writeImage({uri, uuid, operations, settings}) {
-		this.data.comms.send('log-info', 'Processing image...');
+		this.data.log.info('Processing image...');
 		const thermo = await this.processImage(
 			{
 				uri,
@@ -113,9 +116,9 @@ class Child {
 			true
 		);
 
-		this.data.comms.send('log-info', 'Writing image...');
+		this.data.log.info('Writing image...');
 		await thermo.write(Functions.sanitizeSettings(settings));
-		this.data.comms.send('log-info', 'Image written');
+		this.data.log.info('Image written');
 	}
 }
 
