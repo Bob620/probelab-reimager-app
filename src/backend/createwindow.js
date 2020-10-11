@@ -91,8 +91,8 @@ module.exports = log => {
 		log.info('Window running in Dev mode');
 
 	let window = new BrowserWindow({
-		minWidth: 0,  // 1060, down from 1100
-		minHeight: 0, // 680, down from 800
+		minWidth: 1060,  // 1060, down from 1100
+		minHeight: 680, // 680, down from 800
 		backgroundColor: '#4b6584',
 		width: 1100,
 		height: 800,
