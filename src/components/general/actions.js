@@ -488,11 +488,11 @@ const actions = CreateActions([
 		func: ({stores}, event) => {
 			event.preventDefault();
 			event.dataTransfer.dropEffect = 'move';
-			const xpos = event.screenX;
+			const xpos = event.clientX;
 			const optionsWidth = stores.general.get('optionsWidth');
 
 			if (xpos > 290) // Smaller breaks Export button text
-				if (xpos < 500)
+				if (xpos < 500) // Arbitrary max
 					if (xpos + optionsWidth <= window.innerWidth * .8) {
 						if (document.styleSheets[0].cssRules[0].selectorText === '.app')
 							document.styleSheets[0].deleteRule(0);
@@ -507,11 +507,11 @@ const actions = CreateActions([
 		func: ({stores}, event) => {
 			event.preventDefault();
 			event.dataTransfer.dropEffect = 'move';
-			const xpos = event.screenX - window.innerWidth;
+			const xpos = event.clientX - window.innerWidth;
 			const sidebarWidth = stores.general.get('sidebarWidth');
 
 			if (xpos < -272) // Smaller wraps button text
-				if (xpos > -500)
+				if (xpos > -500) // Arbitrary max
 					if (Math.abs(xpos) + sidebarWidth <= window.innerWidth * .75) {
 						if (document.styleSheets[0].cssRules[0].selectorText === '.app')
 							document.styleSheets[0].deleteRule(0);
