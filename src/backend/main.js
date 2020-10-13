@@ -366,8 +366,12 @@ app.on('ready', async () => {
 			};
 		}
 
-		logs.processDir.info('Unwatching previous directory');
-		reimager.send('unwatch', {uri: activeDir});
+		try {
+			logs.processDir.info('Unwatching previous directory');
+			reimager.send('unwatch', {uri: activeDir});
+		} catch(err) {
+			logs.processDir.error(err);
+		}
 		activeDir = dirUri;
 
 		logs.processDir.info('Getting new directory...');
@@ -383,8 +387,12 @@ app.on('ready', async () => {
 			uuidMap.set(uuid, thermo);
 		}
 
-		logs.processDir.info('Watching directory for future updates');
-		reimager.send('watchDir', {uri: dirUri});
+		try {
+			logs.processDir.info('Watching directory for future updates');
+			reimager.send('watchDir', {uri: dirUri});
+		} catch(err) {
+			logs.processDir.error(err);
+		}
 
 		window.setProgressBar(-1);
 		logs.processDir.info('Directory processed');
