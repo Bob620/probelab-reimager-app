@@ -1,0 +1,6 @@
+{
+	"npmRebuild": false,
+	"mac": {
+		"minimumSystemVersion": "10.11"
+	}
+}
