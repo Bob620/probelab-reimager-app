@@ -48,6 +48,9 @@ class Child {
 	}
 
 	async processImage({uri, uuid, operations, settings}, returnThermo = false) {
+		this.data.log.info(`Processing image (${uuid})  ${uri}`);
+		this.data.log.info(`operations: ${operations.map(e => e.command).join(', ')}`);
+
 		settings = Functions.sanitizeSettings(settings);
 
 		for (let i = 0; i < operations.length; i++) {
@@ -57,18 +60,31 @@ class Child {
 		}
 
 		const tempThermos = await Functions.getImages(uri.split('/').slice(0, -1).join('/') + '/', this.data.canvas);
-		if (tempThermos === undefined) throw {code: 0, message: 'No Thermo found'};
+		if (tempThermos === undefined) {
+			this.data.log.info(`Unable to find Thermo`);
+			throw {code: 0, message: 'No Thermo found'};
+		}
 
+		this.data.log.info(`${tempThermos.length} Thermos found`);
 		for (const thermo of tempThermos) {
 			if (thermo.data.files.entry === uri) {
 				thermo.data.uuid = uuid ? uuid : thermo.data.uuid;
 
-				for (const {command, args} of operations)
-					await thermo[command](...args, settings);
+				for (const {command, args} of operations) {
+					this.data.log.info(`Running ${command}(${args.join(', ')})`);
+					try {
+						await thermo[command](...args, settings);
+					} catch(err) {
+						this.data.log.error(err);
+						console.log(err);
+						throw {code: 0, message: 'RIP'};
+					}
+				}
 
 				if (returnThermo)
 					return thermo;
 
+				this.data.log.info(`Serializing thermo for transport...`);
 				return {
 					data: thermo.serialize(),
 					image: await thermo.toUrl(settings)
@@ -76,6 +92,7 @@ class Child {
 			}
 		}
 
+		this.data.log.info(`Unable to find Thermo matching`);
 		throw {code: 0, message: 'No Thermo found'};
 	}
 

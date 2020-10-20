@@ -34,7 +34,8 @@ module.exports = class {
 		this.data.messageChannel = messageChannel;
 
 		for (const {reject} of this.data.uuidCallbacks.values())
-			reject({code: 1, message: 'Message channel changed'});
+			if (reject !== undefined)
+				reject({code: 1, message: 'Message channel changed'});
 
 		this.data.uuidCallbacks = new Map();
 

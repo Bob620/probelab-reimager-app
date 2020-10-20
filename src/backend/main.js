@@ -37,6 +37,7 @@ const constants = require('../../constants.json');
 const {app, dialog, shell} = require('electron');
 
 logs.main.info('All modules loaded');
+logs.main.info(`Running version ${version} on ${process.getSystemVersion()} ${process.arch}`);
 
 logs.main.info('Spawning children...');
 const reimager = new ChildSpawn('reimager', {
@@ -74,14 +75,7 @@ app.on('ready', async () => {
 		window = null
 	});
 
-	logs.main.info('Setting up IPC connection to window...');
-	comms.setMessageChannel(new IPC(window));
-	logs.main.info('IPC connection to window initialized');
-
-	let recentlyUpdated = new Map();
-
-	setTimeout(async () => {
-		logs.update.info('Checking for updates...');
+	window.on('ready-to-show', async () => {
 		try {
 			const latest = await lookForUpdate();
 
@@ -99,7 +93,13 @@ app.on('ready', async () => {
 		} catch (err) {
 			logs.update.error(err);
 		}
-	}, 100);
+	});
+
+	logs.main.info('Setting up IPC connection to window...');
+	comms.setMessageChannel(new IPC(window));
+	logs.main.info('IPC connection to window initialized');
+
+	let recentlyUpdated = new Map();
 
 	setInterval(async () => {
 		logs.update.info('Checking for updates...');
