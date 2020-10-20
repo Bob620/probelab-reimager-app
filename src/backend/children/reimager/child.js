@@ -1,11 +1,11 @@
-const { CanvasRoot, NodeCanvas } = require('probelab-reimager');
+const {CanvasRoot, NodeCanvas} = require('probelab-reimager');
 
 const ThermoWatcher = require('../thermowatcher.js');
 const Communications = require('../../communications.js');
 const Functions = require('./functions.js');
 
 class Child {
-	constructor(canvas, comms=process) {
+	constructor(canvas, comms = process) {
 		this.data = {
 			watchedDirs: new Map(),
 			comms: new Communications(comms),
@@ -20,8 +20,9 @@ class Child {
 		this.data.comms.on('watchDir', this.watchDir.bind(this));
 		this.data.comms.on('writeImage', this.writeImage.bind(this));
 
-		canvas.init().then(() => {
-			this.data.comms.send('ready');
+		canvas.init().then(async () => {
+			await this.data.comms.send('ready');
+			this.data.log = this.data.comms.log;
 		});
 	}
 
@@ -30,10 +31,15 @@ class Child {
 	}
 
 	async getDir({uri}) {
-		return (await Functions.getDir(uri, this.data.canvas)).map(thermo => thermo.serialize());
+		this.data.log.info('Getting directory...');
+		const thermos = (await Functions.getDir(uri, this.data.canvas)).map(thermo => thermo.serialize());
+
+		this.data.log.info('Returning thermos from directory');
+		return thermos;
 	}
 
-	async getImages({uri, uuids={}}) {
+	async getImages({uri, uuids = {}}) {
+		this.data.log.info('Getting images...');
 		return (await Functions.getImages(uri, this.data.canvas)).map(thermo => {
 			const uuid = uuids[thermo.data.files.entry];
 			thermo.data.uuid = uuid ? uuid : thermo.data.uuid;
@@ -41,7 +47,10 @@ class Child {
 		});
 	}
 
-	async processImage({uri, uuid, operations, settings}, returnThermo=false) {
+	async processImage({uri, uuid, operations, settings}, returnThermo = false) {
+		this.data.log.info(`Processing image (${uuid})  ${uri}`);
+		this.data.log.info(`operations: ${operations.map(e => e.command).join(', ')}`);
+
 		settings = Functions.sanitizeSettings(settings);
 
 		for (let i = 0; i < operations.length; i++) {
@@ -51,18 +60,31 @@ class Child {
 		}
 
 		const tempThermos = await Functions.getImages(uri.split('/').slice(0, -1).join('/') + '/', this.data.canvas);
-		if (tempThermos === undefined) throw {code: 0, message: 'No Thermo found'};
+		if (tempThermos === undefined) {
+			this.data.log.info(`Unable to find Thermo`);
+			throw {code: 0, message: 'No Thermo found'};
+		}
 
+		this.data.log.info(`${tempThermos.length} Thermos found`);
 		for (const thermo of tempThermos) {
 			if (thermo.data.files.entry === uri) {
 				thermo.data.uuid = uuid ? uuid : thermo.data.uuid;
 
-				for (const {command, args} of operations)
-					await thermo[command](...args, settings);
+				for (const {command, args} of operations) {
+					this.data.log.info(`Running ${command}(${args.join(', ')})`);
+					try {
+						await thermo[command](...args, settings);
+					} catch(err) {
+						this.data.log.error(err);
+						console.log(err);
+						throw {code: 0, message: 'RIP'};
+					}
+				}
 
 				if (returnThermo)
 					return thermo;
 
+				this.data.log.info(`Serializing thermo for transport...`);
 				return {
 					data: thermo.serialize(),
 					image: await thermo.toUrl(settings)
@@ -70,10 +92,12 @@ class Child {
 			}
 		}
 
+		this.data.log.info(`Unable to find Thermo matching`);
 		throw {code: 0, message: 'No Thermo found'};
 	}
 
 	async unwatchDir({uri}) {
+		this.data.log.info('Unwatching directory');
 		const watcher = this.data.watchedDirs.get(uri);
 		if (watcher) {
 			watcher.unwatch();
@@ -83,6 +107,7 @@ class Child {
 
 	async watchDir({uri}) {
 		if (!this.data.watchedDirs.has(uri)) {
+			this.data.log.info('Watching directory');
 			const watcher = new ThermoWatcher(uri);
 
 			watcher.on('close', uri => {
@@ -96,6 +121,7 @@ class Child {
 	}
 
 	async writeImage({uri, uuid, operations, settings}) {
+		this.data.log.info('Processing image...');
 		const thermo = await this.processImage(
 			{
 				uri,
@@ -104,7 +130,10 @@ class Child {
 			},
 			true
 		);
+
+		this.data.log.info('Writing image...');
 		await thermo.write(Functions.sanitizeSettings(settings));
+		this.data.log.info('Image written');
 	}
 }
 

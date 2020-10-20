@@ -16,7 +16,8 @@
 
   > .content {
     width: 100%;
-    overflow-x: hidden;
+    height: 100%;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
 
@@ -32,7 +33,9 @@
       grid-template-columns: 1fr 10px 1fr 10px 1fr;
       grid-template-rows: 1fr 10px 1fr 10px 1fr;
       grid-template-areas: "ul . . . ur" ". . . . ." "ll . lc . lr" "f f f f f" "bl fl bc fr br""jeol jeol jeol jeol jeol";
-      height: 200px;
+      min-height: 140px;
+      max-height: 200px;
+      height: 30%;
       width: calc(90% - 4px);
       margin-left: 5%;
       border-radius: 4px;

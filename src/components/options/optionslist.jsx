@@ -23,7 +23,7 @@ module.exports = class OptionsList extends Component {
 		}
 	}
 
-	componentWillUpdate(nextProps, nextState, nextContext) {
+	UNSAFE_componentWillUpdate(nextProps, nextState, nextContext) {
 		const selectedUuid = generalStore.get('selectedUuid');
 		let image = generalStore.get('images').get(selectedUuid);
 		image = image ? image : generalStore.get('safebox').get(selectedUuid);

@@ -1,19 +1,15 @@
 {
   "name": "probelab-reimager-app",
   "productName": "Probelab ReImager",
-  "version": "1.5.0-beta",
+  "version": "1.6.1-dev",
   "description": "Visual UI for Probelab ReImager using Electron",
   "main": "./src/backend/main.js",
   "scripts": {
     "start": "electron .",
     "build": "node build.js",
     "build-prod": "node build.js production",
-    "rebuild": "electron-rebuild -f",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "compile": "npm run build-prod && node package.js && cd ./bin/unpackaged && npm install --production && npm run rebuild",
-    "package": "npm run compile && electron-packager ./bin/unpackaged --out ./bin --overwrite",
-    "win-package": "npm run compile && electron-packager ./bin/unpackaged --out ./bin --overwrite --platform=win32 --arch=x64",
-    "postpack": "electron-builder --pd \"./bin/Probelab ReImager-win32-x64\""
+    "compile": "node compile.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "browserify": {
     "transform": [
@@ -32,7 +28,7 @@
     ]
   },
   "build": {
-    "icon": "./assets/svg/atom-2.ico",
+    "icon": "./assets/svg/atom-2-mac.ico",
     "appId": "net.probelab.reimager",
     "win": {
       "target": [
@@ -113,7 +109,7 @@
   },
   "dependencies": {
     "canvas": "^2.5.0",
-    "sharp": "^0.25.4",
-    "probelab-reimager": "github:bob620/probelab-reimager#beta"
+    "probelab-reimager": "github:bob620/probelab-reimager#beta",
+    "sharp": "^0.25.4"
   }
 }

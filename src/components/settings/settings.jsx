@@ -26,6 +26,9 @@ class Settings extends Component {
 								<input type='number' maxLength='10' min='0' max='500' value={settingStore.get('pixelSizeConstant')} onChange={settingActions.changePixelSizeConstant} />
 						}
 					</div>
+					<div className='selectable' onClick={generalActions.exportLog.bind(undefined, undefined)}>
+						<p>Export Log</p>
+					</div>
 				</div>
 			</section>
 		);
