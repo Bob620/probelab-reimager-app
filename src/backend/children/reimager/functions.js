@@ -1,6 +1,6 @@
 const fs = require('fs');
 const fsPromise = fs.promises;
-const {PointShoot, ExtractedMap, constants, JeolImage, PFEImage, getPFEExpectedImages} = require('thermo-reimager');
+const {PointShoot, ExtractedMap, constants, JeolImage, PFEImage, getPFEExpectedImages} = require('probelab-reimager');
 
 const appConstants = require('../../../../constants.json');
 
@@ -86,40 +86,32 @@ const Functions = {
 		return settings;
 	},
 	getDir: async (dirUri, canvas) => {
-		try {
-			const directory = await fsPromise.readdir(dirUri, {withFileTypes: true});
-			const files = (await Functions.getImages(dirUri + '/', canvas)).filter(i => i);
-			return files.concat((await Promise.all(directory.map(dir => dir.isDirectory() ? Functions.getImages(dirUri + dir.name + '/', canvas) : []))).flat().filter(i => i));
-		} catch(err) {
-			return [];
-		}
+		const directory = await fsPromise.readdir(dirUri, {withFileTypes: true});
+		const files = (await Functions.getImages(dirUri + '/', canvas)).filter(i => i);
+		return files.concat((await Promise.all(directory.map(dir => dir.isDirectory() ? Functions.getImages(dirUri + dir.name + '/', canvas) : []))).flat().filter(i => i));
 	},
 	getImages: async (dirUri, canvas) => {
-		try {
-			const files = fs.readdirSync(dirUri, {withFileTypes: true}).filter(file => file.isFile());
-			let thermos = [];
-			let extraLayers = [];
+		const files = fs.readdirSync(dirUri, {withFileTypes: true}).filter(file => file.isFile());
+		let thermos = [];
+		let extraLayers = [];
 
-			return (await Promise.all(files.map(file => {
-				file.uri = dirUri + file.name;
-				if (file.name.endsWith(constants.extractedMap.fileFormats.LAYER)) {
-					extraLayers.push(file);
-					return Promise.all(thermos.map(thermo => thermo.addLayerFile(file.uri))).then(() => undefined);
-				} else {
-					const thermo = Functions.createThermo(file, canvas);
-					if (thermo) {
-						thermos.push(thermo[0]);
-						return new Promise(async resolve => {
-							for (const layer of extraLayers)
-								await thermo[0].addLayerFile(layer.uri);
-							resolve(thermo[1]);
-						});
-					}
+		return (await Promise.all(files.map(file => {
+			file.uri = dirUri + file.name;
+			if (file.name.endsWith(constants.extractedMap.fileFormats.LAYER)) {
+				extraLayers.push(file);
+				return Promise.all(thermos.map(thermo => thermo.addLayerFile(file.uri))).then(() => undefined);
+			} else {
+				const thermo = Functions.createThermo(file, canvas);
+				if (thermo) {
+					thermos.push(thermo[0]);
+					return new Promise(async resolve => {
+						for (const layer of extraLayers)
+							await thermo[0].addLayerFile(layer.uri);
+						resolve(thermo[1]);
+					});
 				}
-			}).flat())).filter(i => i);
-		} catch(err) {
-			return [];
-		}
+			}
+		}).flat())).filter(i => i);
 	},
 	createThermo: (file, canvas, uuid = undefined) => {
 		if (file.isFile()) {

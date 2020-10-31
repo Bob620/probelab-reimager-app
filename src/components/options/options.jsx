@@ -74,11 +74,6 @@ class Options extends Component {
 						>
 							<p>Below Right</p>
 						</div>
-						<div className={`jeol ${interactable && jeolImage ? 'selectable' : ''} ${currentPos === constants.settings.scalePositions.JEOL ? 'selected' : ''}`}
-						     onClick={interactable && jeolImage ? settingActions.setScalePosition.bind(undefined, constants.settings.scalePositions.JEOL) : () => {}}
-						>
-							<p>Jeol-like</p>
-						</div>
 					</div>
 					<div className='toggleables'>
 						<div>
