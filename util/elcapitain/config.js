@@ -36,8 +36,7 @@ const packages = new Map([
 		'args': [],
 		'requires': [
 			'canvas',
-			'sharp',
-			'dylibbundler'
+			'sharp'
 		],
 		'recompiles': [],
 		'makes': [],
@@ -53,7 +52,8 @@ const packages = new Map([
 		'requires': [
 			'pango',
 			'glib',
-			'cairo'
+			'cairo',
+			'dylibbundler'
 		],
 		'recompiles': [],
 		'makes': ['canvas']
@@ -65,7 +65,8 @@ const packages = new Map([
 		'method': 'electron',
 		'args': [],
 		'requires': [
-			'vips'
+			'vips',
+			'dylibbundler'
 		],
 		'recompiles': [],
 		'makes': ['sharp']
