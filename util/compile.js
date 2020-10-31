@@ -18,13 +18,28 @@ function exec(command, cwd = './', returnResult = false, newEnv = {}) {
 		return out.toString();
 }
 
-function installPackage(packName) {
-	exec(`rm -fr ./node_modules/${packName}`, `./bin/unpackaged`);
-	fs.copyFileSync(`${buildPrefix}/electron/${packName}`, `./bin/unpackaged/node_modules/${packName}`);
+function copyDirSync(src, dest) {
+	src = src.endsWith('/') ? src : src + '/';
+	dest = dest.endsWith('/') ? dest : dest + '/';
+	const files = fs.readdirSync(src, {withFileTypes: true});
+	try {
+		fs.mkdirSync(dest);
+	} catch(e) {}
+
+	for (const file of files) {
+		const srcUri = `${src}${file.name}`;
+		const destUri = `${dest}${file.name}`;
+
+		if (file.isFile())
+			fs.copyFileSync(srcUri, destUri);
+		else if (file.isDirectory())
+			copyDirSync(srcUri, destUri);
+	}
 }
 
-function bundleLib(packName) {
-	exec(`"./build/bin/dylibbundler" -s "./build/lib" -of -cd -b -d "./bin/libs" -x "./bin/unpackaged/node_modules/${packName}/build/Release/${packName}.node" -p "@rpath/libs/"`, './');
+function installPackage(packName) {
+	exec(`rm -fr ./bin/unpackaged/node_modules/${packName}`);
+	copyDirSync(`${buildPrefix}/electron/${packName}`, `./bin/unpackaged/node_modules/${packName}`);
 }
 
 console.log('Building and packaging existing code...');
@@ -43,16 +58,14 @@ if (process.platform === 'darwin') {
 	} catch(e) {
 		console.log(`Injecting packages into MacOSX (${macTargetVersion}) build...`);
 		installPackage('sharp');
-		bundleLib('sharp');
 		installPackage('canvas');
-		bundleLib('canvas');
 	}
 
 	console.log('Packaging...');
 	exec('"./node_modules/.bin/electron-packager" ./bin/unpackaged --out ./bin --overwrite');
 
 	console.log(`Injecting dylibs into MacOSX (${macTargetVersion}) build...`);
-	fs.copyFileSync(`./bin/libs`, `./bin/Probelab ReImager-darwin-x64/Probelab ReImager.app/contents/Frameworks/Electron Framework.framework/Libraries/libs`);
+	copyDirSync(`./bin/libs`, `./bin/Probelab ReImager-darwin-x64/Probelab ReImager.app/contents/Frameworks/Electron Framework.framework/Libraries/libs`);
 
 	console.log('Building installer package for MacOS x64');
 	exec('"./node_modules/.bin/electron-builder" --pd "./bin/Probelab ReImager-darwin-x64"');

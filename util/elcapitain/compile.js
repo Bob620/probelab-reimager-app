@@ -132,7 +132,7 @@ async function compile(pack, recompile = false) {
 				await fs.mkdir(`${buildPrefix}/electron/package/build/Release`, {recursive: true});
 				await fs.copyFile(`${buildPrefix}/${pack.name}/build/Release/${pack.name}.node`, `${buildPrefix}/electron/package/build/Release/${pack.name}.node`);
 				await fs.rename(`${buildPrefix}/electron/package`, `${buildPrefix}/electron/${pack.name}`);
-
+				await exec(`"${buildPrefix}/bin/dylibbundler" -s "${buildPrefix}/lib" -of -cd -b -d "./bin/libs" -x "${buildPrefix}/electron/${pack.name}/build/Release/${pack.name}.node" -p "@rpath/libs/"`);
 				break;
 			default:
 				break;
