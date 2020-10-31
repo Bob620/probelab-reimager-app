@@ -53,13 +53,9 @@ if (process.platform === 'darwin') {
 	console.log(`Preparing packages for MacOSX (${macTargetVersion}) build...`);
 	exec('npm run build-el-capitan');
 
-	try {
-		fs.accessSync('./bin/libs', fs.constants.F_OK);
-	} catch(e) {
-		console.log(`Injecting packages into MacOSX (${macTargetVersion}) build...`);
-		installPackage('sharp');
-		installPackage('canvas');
-	}
+	console.log(`Injecting packages into MacOSX (${macTargetVersion}) build...`);
+	installPackage('sharp');
+	installPackage('canvas');
 
 	console.log('Packaging...');
 	exec('"./node_modules/.bin/electron-packager" ./bin/unpackaged --out ./bin --overwrite');
