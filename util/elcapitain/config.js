@@ -2,7 +2,10 @@ const fs = require('fs/promises');
 const fsConstants = require('fs').constants;
 const execSync = require('child_process').execSync;
 
-const electronVersion = require('../../package.json').devDependencies.electron;
+const packageJson = require('../../package.json');
+
+const electronVersion = packageJson.devDependencies.electron;
+const packageVersion = packageJson.version;
 
 const dirPrefix = __dirname.split('/').slice(0, -2).join('/');
 const buildPrefix = dirPrefix + '/build';
@@ -605,6 +608,7 @@ module.exports = {
 	configureConfig,
 	electronConfig,
 	macTargetVersion,
+	packageVersion,
 	nodeGyp,
 	electronVersion,
 	exec,

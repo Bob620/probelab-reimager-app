@@ -1,7 +1,14 @@
+const crypto = require('crypto');
 const fs = require('fs');
 const execSync = require('child_process').execSync;
 
-const {buildPrefix, macTargetVersion} = require('./elcapitain/config.js');
+const {buildPrefix, macTargetVersion, packageVersion} = require('./elcapitain/config.js');
+
+function hashFile(uri) {
+	const hash = crypto.createHash('sha256');
+	hash.update(fs.readFileSync(uri));
+	return hash.digest('hex');
+}
 
 function exec(command, cwd = './', returnResult = false, newEnv = {}) {
 	let env = JSON.parse(JSON.stringify(process.env));
@@ -65,6 +72,10 @@ if (process.platform === 'darwin') {
 
 	console.log('Building installer package for MacOS x64');
 	exec('"./node_modules/.bin/electron-builder" --pd "./bin/Probelab ReImager-darwin-x64"');
+
+	fs.renameSync(`./dist/Probelab ReImager-${packageVersion}.dmg`, `./dist/reimager-${packageVersion}.dmg`);
+	const hash = hashFile(`./dist/reimager-${packageVersion}.dmg`);
+	console.log(`sha256: ${hash}`);
 } else {
 	console.log('Rebuilding packages...');
 	exec('"../../node_modules/.bin/electron-rebuild" -f', './bin/unpackaged');
