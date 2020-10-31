@@ -84,13 +84,13 @@ if (process.platform === 'darwin') {
 	exec('"./node_modules/.bin/electron-packager" ./bin/unpackaged --out ./bin --overwrite');
 
 	try {
-		fs.accessSync('../bin/Probelab ReImager-win32-x64', fs.constants.F_OK);
+		fs.accessSync('./bin/Probelab ReImager-win32-x64', fs.constants.F_OK);
 		console.log('Building installer package for Windows x64');
 		exec('"./node_modules/.bin/electron-builder" --pd "./bin/Probelab ReImager-win32-x64"');
 	} catch(e) {}
 
 	try {
-		fs.accessSync('../bin/Probelab ReImager-linux-x64', fs.constants.F_OK);
+		fs.accessSync('./bin/Probelab ReImager-linux-x64', fs.constants.F_OK);
 		console.log('Building installer package for Linux x64');
 		exec('"./node_modules/.bin/electron-builder" --pd "./bin/Probelab ReImager-linux-x64"');
 	} catch(e) {}
