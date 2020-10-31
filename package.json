@@ -100,9 +100,9 @@
     "browserify": "^16.5.1",
     "browserify-css": "^0.15.0",
     "electron": "10.1.5",
-    "electron-builder": "^22.8.0",
-    "electron-packager": "^15.0.0",
-    "electron-rebuild": "^1.11.0",
+    "electron-builder": "^22.9.1",
+    "electron-packager": "^15.1.0",
+    "electron-rebuild": "^2.3.2",
     "envify": "^4.1.0",
     "node-gyp": "^7.1.2",
     "react": "^16.13.1",
@@ -114,7 +114,7 @@
   },
   "dependencies": {
     "canvas": "^2.5.0",
-    "probelab-reimager": "github:bob620/probelab-reimager#beta",
+    "probelab-reimager": "github:bob620/probelab-reimager",
     "sharp": "^0.25.4"
   }
 }
