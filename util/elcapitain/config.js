@@ -7,23 +7,25 @@ const electronVersion = require('../../package.json').devDependencies.electron;
 const dirPrefix = __dirname.split('/').slice(0, -2).join('/');
 const buildPrefix = dirPrefix + '/build';
 
+const macTargetVersion = '10.11';
+
 const env = {
-	LDFLAGS: `-mmacosx-version-min=10.11`,
-	CXXFLAGS: `-stdlib=libc++ -mmacosx-version-min=10.11`,
-	CPPFLAGS: `-stdlib=libc++ -mmacosx-version-min=10.11`,
-	CFLAGS: `-stdlib=libc++ -mmacosx-version-min=10.11`,
+	LDFLAGS: `-mmacosx-version-min=${macTargetVersion}`,
+	CXXFLAGS: `-stdlib=libc++ -mmacosx-version-min=${macTargetVersion}`,
+	CPPFLAGS: `-stdlib=libc++ -mmacosx-version-min=${macTargetVersion}`,
+	CFLAGS: `-stdlib=libc++ -mmacosx-version-min=${macTargetVersion}`,
 	PATH: `${buildPrefix}:${buildPrefix}/bin:/usr/local/bin:/usr/bin:/bin`,
 	PKG_CONFIG_PATH: `${buildPrefix}/lib/pkgconfig`,
 	CMAKE_INSTALL_PREFIX: `${buildPrefix}/`,
 	HOME: process.env.HOME
 };
 
-const mesonConfig = `--prefix=${buildPrefix}/`;
-const configureConfig = `--prefix=${buildPrefix}/`;
-const cmakeConfig = `-f makefile.unix -DCMAKE_INSTALL_PREFIX=${buildPrefix} -DCMAKE_SYSTEM_PREFIX_PATH=${buildPrefix}`;
+const mesonConfig = `--prefix="${buildPrefix}/"`;
+const configureConfig = `--prefix="${buildPrefix}/"`;
+const cmakeConfig = `-f makefile.unix -DCMAKE_INSTALL_PREFIX="${buildPrefix}" -DCMAKE_SYSTEM_PREFIX_PATH="${buildPrefix}"`;
 const electronConfig = `--target=${electronVersion} --arch=x64 --dist-url=https://electronjs.org/headers`;
 
-const nodeGyp = `HOME=~/.electron-gyp ${buildPrefix}/../node_modules/.bin/node-gyp`;
+const nodeGyp = `HOME=~/.electron-gyp "${buildPrefix}/../node_modules/.bin/node-gyp"`;
 
 const packages = new Map([
 	['package', {
@@ -153,7 +155,10 @@ const packages = new Map([
 		'method': 'meson',
 		'args': [],
 		'requires': [
-			'pkgconfig'
+			'pkgconfig',
+			'cairo',
+			'ffi',
+			'glib'
 		],
 		'recompiles': [],
 		'makes': ['libgirepository-1.0.dylib']
@@ -422,16 +427,20 @@ const packages = new Map([
 	}],
 	['glib', {
 		'details': 'https://gitlab.gnome.org/GNOME/glib',
-		'link': 'https://gitlab.gnome.org/GNOME/glib/-/archive/2.67.0/glib-2.67.0.tar.gz',
+		'link': 'https://download.gnome.org/sources/glib/2.67/glib-2.67.0.tar.xz',
 		'name': 'glib',
 		'method': 'meson',
 		'args': [
 			'--default-library=shared',
+			'-Dxattr=false',
+			'-Dselinux=disabled',
+			'-Ddtrace=false',
 			'-Dc_args=""',
-			'-Dcpp_args="-mmacosx-version-min=10.11"',
-			'-Dc_link_args="-mmacosx-version-min=10.11"',
-			'-Dcpp_link_args="-mmacosx-version-min=10.11"',
-			`--pkg-config-path=${env.PKG_CONFIG_PATH}`
+			'-Dsystemtap=false',
+			`-Dcpp_args="-mmacosx-version-min=${macTargetVersion}"`,
+			`-Dc_link_args="-mmacosx-version-min=${macTargetVersion}"`,
+			`-Dcpp_link_args="-mmacosx-version-min=${macTargetVersion}"`,
+			`--pkg-config-path="${env.PKG_CONFIG_PATH}"`
 		],
 		'requires': [
 			'pkgconfig',
@@ -441,7 +450,10 @@ const packages = new Map([
 			'pcre'
 		],
 		'recompiles': [],
-		'makes': ['gio', 'libgio-2.0.0.dylib', 'libglib-2.0.0.dylib']
+		'makes': ['gio', 'libgobject-2.0.dylib', 'libgio-2.0.0.dylib', 'libglib-2.0.0.dylib'],
+		'postConfigure': async () => {
+
+		}
 	}],
 	['pkgconfig', {
 		'details': 'https://pkg-config.freedesktop.org',
@@ -478,7 +490,7 @@ const packages = new Map([
 		'recompiles': [
 			'iconv'
 		],
-		'makes': ['gettext-po.h', 'libgettextlib.dylib', 'libgettextpo.dylib', 'gettext', 'gettextize']
+		'makes': ['gettext-po.h', 'libgettextlib.dylib', 'libgettextpo.dylib', 'libintl.dylib', 'gettext', 'gettextize']
 	}],
 	['ffi', {
 		'details': 'http://www.sourceware.org/libffi/',
@@ -591,6 +603,7 @@ module.exports = {
 	cmakeConfig,
 	configureConfig,
 	electronConfig,
+	macTargetVersion,
 	nodeGyp,
 	electronVersion,
 	exec,

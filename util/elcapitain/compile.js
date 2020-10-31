@@ -1,6 +1,6 @@
 const fs = require('fs/promises');
 
-const {buildPrefix, configureConfig, cmakeConfig, mesonConfig, exec, packages, nodeGyp, electronConfig} = require('./config.js');
+const {buildPrefix, configureConfig, cmakeConfig, mesonConfig, exec, packages, nodeGyp, electronConfig, macTargetVersion} = require('./config.js');
 
 async function compile(pack, recompile = false) {
 	if (!pack.compiled || recompile) {
@@ -15,8 +15,15 @@ async function compile(pack, recompile = false) {
 					} catch(e) {
 					}
 				}
+
+				if (pack.postClean)
+					await pack.postClean();
+
 				console.log(`Configuring ${pack.name} (${pack.link})`);
 				await exec(`./configure ${configureConfig} ${pack.args.join(' ')} > /dev/null`, pack.name);
+
+				if (pack.postConfigure)
+					await pack.postConfigure();
 
 				console.log(`Building ${pack.name} (${pack.link})`);
 				await exec('make install > /dev/null', pack.name);
@@ -32,8 +39,15 @@ async function compile(pack, recompile = false) {
 					} catch(e) {
 					}
 				}
+
+				if (pack.postClean)
+					await pack.postClean();
+
 				console.log(`Configuring ${pack.name} (${pack.link})`);
 				await exec(`cmake make ${cmakeConfig} ${pack.args.join(' ')} . > /dev/null`, pack.name);
+
+				if (pack.postConfigure)
+					await pack.postConfigure();
 
 				console.log(`Building ${pack.name} (${pack.link})`);
 				await exec('cmake --build . --target install > /dev/null', pack.name);
@@ -42,9 +56,11 @@ async function compile(pack, recompile = false) {
 				console.log(`Cleaning ${pack.name} (${pack.link})`);
 				try {
 					await fs.rmdir(`${buildPrefix}/${pack.name}/_build`, {recursive: true});
-					await fs.unlink('meson_options.txt');
 				} catch(e) {
 				}
+
+				if (pack.postClean)
+					await pack.postClean();
 
 				console.log(`Configuring ${pack.name} (${pack.link})`);
 				try {
@@ -53,7 +69,13 @@ async function compile(pack, recompile = false) {
 					throw err.stdout.toString();
 				}
 
-				await fs.writeFile(`${buildPrefix}/${pack.name}/_build/build.ninja`, (await fs.readFile(`${buildPrefix}/${pack.name}/_build/build.ninja`, {encoding: 'utf8'})).replace('-liconv', `${buildPrefix}/lib/libiconv.dylib`));
+				await fs.writeFile(`${buildPrefix}/${pack.name}/_build/build.ninja`, (await fs.readFile(`${buildPrefix}/${pack.name}/_build/build.ninja`, {encoding: 'utf8'}))
+					.replace('-liconv', `${buildPrefix}/lib/libiconv.dylib`)
+					.replace(/command = cc/gm, `command = cc -mmacosx-version-min=${macTargetVersion}`)
+					.replace(/command = c\+\+/gm, `command = c++ -mmacosx-version-min=${macTargetVersion}`));
+
+				if (pack.postConfigure)
+					await pack.postConfigure();
 
 				console.log(`Building ${pack.name} (${pack.link})`);
 				try {
@@ -74,11 +96,23 @@ async function compile(pack, recompile = false) {
 					}
 				}
 
+				if (pack.postClean)
+					await pack.postClean();
+
+				if (pack.postConfigure)
+					await pack.postConfigure();
+
 				console.log(`Building ${pack.name} (${pack.link})`);
 				await exec('make install > /dev/null', pack.name);
 
 				break;
 			case 'electron':
+				if (pack.postClean)
+					await pack.postClean();
+
+				if (pack.postConfigure)
+					await pack.postConfigure();
+
 				console.log(`Building ${pack.name} (${pack.link})`);
 				await exec(`${nodeGyp} rebuild ${electronConfig} > /dev/null`, pack.name);
 

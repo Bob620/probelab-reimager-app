@@ -1,7 +1,7 @@
 const fs = require('fs');
 const execSync = require('child_process').execSync;
 
-const {buildPrefix} = require('./elcapitain/config.js');
+const {buildPrefix, macTargetVersion} = require('./elcapitain/config.js');
 
 function exec(command, cwd = './', returnResult = false, newEnv = {}) {
 	let env = JSON.parse(JSON.stringify(process.env));
@@ -20,7 +20,7 @@ function exec(command, cwd = './', returnResult = false, newEnv = {}) {
 
 function installPackage(packName) {
 	exec(`rm -fr ./node_modules/${packName}`, `./bin/unpackaged`);
-	fs.renameSync(`${buildPrefix}/electron/${packName}`, `./bin/unpackaged/node_modules/${packName}`);
+	fs.copyFileSync(`${buildPrefix}/electron/${packName}`, `./bin/unpackaged/node_modules/${packName}`);
 }
 
 function bundleLib(packName) {
@@ -35,20 +35,24 @@ console.log('Installing production npm packages...');
 exec('npm install --production', './bin/unpackaged');
 
 if (process.platform === 'darwin') {
-	console.log('Preparing packages for MacOSX (10.11) build...');
+	console.log(`Preparing packages for MacOSX (${macTargetVersion}) build...`);
 	exec('npm run build-el-capitan');
 
-	console.log('Injecting packages into MacOSX (10.11) build...');
-	installPackage('sharp');
-	bundleLib('sharp');
-	installPackage('canvas');
-	bundleLib('canvas');
+	try {
+		fs.accessSync('./bin/libs', fs.constants.F_OK);
+	} catch(e) {
+		console.log(`Injecting packages into MacOSX (${macTargetVersion}) build...`);
+		installPackage('sharp');
+		bundleLib('sharp');
+		installPackage('canvas');
+		bundleLib('canvas');
+	}
 
 	console.log('Packaging...');
 	exec('"./node_modules/.bin/electron-packager" ./bin/unpackaged --out ./bin --overwrite');
 
-	console.log('Injecting dylibs into MacOSX (10.11) build...');
-	fs.renameSync(`./bin/libs`, `./bin/Probelab ReImager-darwin-x64/Probelab ReImager.app/contents/Frameworks/Electron Framework.framework/Libraries/libs`);
+	console.log(`Injecting dylibs into MacOSX (${macTargetVersion}) build...`);
+	fs.copyFileSync(`./bin/libs`, `./bin/Probelab ReImager-darwin-x64/Probelab ReImager.app/contents/Frameworks/Electron Framework.framework/Libraries/libs`);
 
 	console.log('Building installer package for MacOS x64');
 	exec('"./node_modules/.bin/electron-builder" --pd "./bin/Probelab ReImager-darwin-x64"');
