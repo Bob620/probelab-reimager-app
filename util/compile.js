@@ -78,7 +78,7 @@ if (process.platform === 'darwin') {
 	console.log(`sha256: ${hash}`);
 } else {
 	console.log('Rebuilding packages...');
-	exec('"../../node_modules/.bin/electron-rebuild" -f', './bin/unpackaged');
+	exec('"../../node_modules/.bin/electron-rebuild" -f -e "../../node_modules/electron"', './bin/unpackaged');
 
 	console.log('Packaging...');
 	exec('"./node_modules/.bin/electron-packager" ./bin/unpackaged --out ./bin --overwrite');
