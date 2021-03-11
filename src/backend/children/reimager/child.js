@@ -1,3 +1,5 @@
+const path = require('path');
+
 const {CanvasRoot, NodeCanvas} = require('probelab-reimager');
 
 const ThermoWatcher = require('../thermowatcher.js');
@@ -9,7 +11,9 @@ class Child {
 		this.data = {
 			watchedDirs: new Map(),
 			comms: new Communications(comms),
-			canvas
+			canvas,
+			cacheDir: '',
+			imageCache: new Map()
 		};
 
 		this.data.comms.on('canvas', this.canvas.bind(this));
@@ -32,7 +36,10 @@ class Child {
 
 	async getDir({uri}) {
 		this.data.log.info('Getting directory...');
-		const thermos = (await Functions.getDir(uri, this.data.canvas)).map(thermo => thermo.serialize());
+		this.data.imageCache = await Functions.getDir(uri, this.data.canvas);
+		this.data.cacheDir = path.resolve(uri);
+
+		const thermos = this.data.imageCache.map(thermo => thermo.serialize());
 
 		this.data.log.info('Returning thermos from directory');
 		return thermos;
@@ -40,7 +47,11 @@ class Child {
 
 	async getImages({uri, uuids = {}}) {
 		this.data.log.info('Getting images...');
-		return (await Functions.getImages(uri, this.data.canvas)).map(thermo => {
+		if (uri !== this.data.cacheDir) {
+			await this.getDir({uri});
+		}
+
+		return this.data.imageCache.map(thermo => {
 			const uuid = uuids[thermo.data.files.entry];
 			thermo.data.uuid = uuid ? uuid : thermo.data.uuid;
 			return thermo.serialize();
@@ -59,7 +70,11 @@ class Child {
 				operations[i].args[0] = Functions.sanitizePosition(args[0]);
 		}
 
-		const tempThermos = await Functions.getImages(uri.split('/').slice(0, -1).join('/') + '/', this.data.canvas);
+		if (path.resolve(path.dirname(uri)) !== this.data.cacheDir && path.resolve(path.dirname(path.dirname(uri))) !== this.data.cacheDir) {
+			await this.getDir({uri: path.dirname(uri)});
+		}
+
+		const tempThermos = this.data.imageCache;
 		if (tempThermos === undefined) {
 			this.data.log.info(`Unable to find Thermo`);
 			throw {code: 0, message: 'No Thermo found'};

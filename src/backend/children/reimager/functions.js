@@ -1,6 +1,6 @@
 const fs = require('fs');
 const fsPromise = fs.promises;
-const {PointShoot, ExtractedMap, constants, JeolImage, PFEImage, getPFEExpectedImages} = require('probelab-reimager');
+const {PointShoot, ExtractedMap, constants, JeolImage, PFE} = require('probelab-reimager');
 
 const appConstants = require('../../../../constants.json');
 
@@ -95,23 +95,33 @@ const Functions = {
 		let thermos = [];
 		let extraLayers = [];
 
-		return (await Promise.all(files.map(file => {
+		return (await Promise.all(files.flatMap(file => {
 			file.uri = dirUri + file.name;
 			if (file.name.endsWith(constants.extractedMap.fileFormats.LAYER)) {
 				extraLayers.push(file);
 				return Promise.all(thermos.map(thermo => thermo.addLayerFile(file.uri))).then(() => undefined);
 			} else {
-				const thermo = Functions.createThermo(file, canvas);
-				if (thermo) {
-					thermos.push(thermo[0]);
+				const thermoItem = Functions.createThermo(file, canvas);
+				if (thermoItem) {
+					let outThermos;
+					if (thermoItem[0].getImages === undefined) {
+						outThermos = [thermoItem[0]];
+					} else {
+						outThermos = thermoItem[1];
+					}
+
 					return new Promise(async resolve => {
-						for (const layer of extraLayers)
-							await thermo[0].addLayerFile(layer.uri);
-						resolve(thermo[1]);
+						for (const thermo of await outThermos) {
+							await thermo.init();
+							thermos.push(thermo);
+							for (const layer of extraLayers)
+								await thermo.addLayerFile(layer.uri);
+						}
+						resolve(outThermos);
 					});
 				}
 			}
-		}).flat())).filter(i => i);
+		}).flat())).filter(i => i).flat();
 	},
 	createThermo: (file, canvas, uuid = undefined) => {
 		if (file.isFile()) {
@@ -129,6 +139,9 @@ const Functions = {
 
 			if (fileName.endsWith(constants.extractedMap.fileFormats.ENTRY))
 				thermo = new ExtractedMap(file, canvas);
+
+			if (fileName.endsWith(constants.pfe.fileFormats.ENTRY.toLowerCase()))
+				thermo = new PFE(file, canvas);
 
 			if (thermo)
 				return [thermo, new Promise(async resolve => {
