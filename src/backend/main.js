@@ -163,12 +163,13 @@ app.on('ready', async () => {
 						output: `${uri}${dirName}.MAP.EDS/${dirName} ${type} ${element}_${line}.layer`,
 						input: uri + filename
 					});
+				logs.dirUpdate.info('New layers added');
 			} else if (!recentlyUpdated.has(uri + filename))
 				recentlyUpdated.set(uri + filename, true);
 		} catch (err) {
 			logs.dirUpdate.error(err);
 		}
-		logs.dirUpdate.info('New layers added');
+		logs.dirUpdate.info('No actions taken yet');
 	});
 
 	comms.on('exportLog', async () => {

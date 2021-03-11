@@ -52,7 +52,7 @@ module.exports = class {
 			this.data.mainWatching = false;
 		} else if (filename === tempFolder)
 			this.tryWatchTemp();
-		else
+		else if (!filename.endsWith('.ldb'))
 			this.emit('update', {
 				filename,
 				uri: this.data.uri
