@@ -1,15 +1,19 @@
 {
   "name": "probelab-reimager-app",
   "productName": "Probelab ReImager",
-  "version": "1.6.1-beta",
+  "version": "1.7.0-stable",
   "description": "Visual UI for Probelab ReImager using Electron",
   "main": "./src/backend/main.js",
   "scripts": {
     "start": "electron .",
-    "build": "node build.js",
-    "build-prod": "node build.js production",
-    "compile": "node compile.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "node util/build.js",
+    "build-prod": "node util/build.js production",
+    "build-el-capitan": "node util/elcapitain/download.js",
+    "compile": "node util/compile.js",
+    "clean": "node util/clean.js",
+    "distclean": "node util/clean.js distclean",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "rebuild": "electron-rebuild -f"
   },
   "browserify": {
     "transform": [
@@ -28,7 +32,7 @@
     ]
   },
   "build": {
-    "icon": "./assets/svg/atom-2-mac.ico",
+    "icon": "./assets/svg/icon",
     "appId": "net.probelab.reimager",
     "win": {
       "target": [
@@ -83,33 +87,35 @@
   "email": "bruder.kraft225@gmail.com",
   "license": "MIT",
   "devDependencies": {
-    "@fortawesome/fontawesome-svg-core": "^1.2.30",
-    "@fortawesome/free-regular-svg-icons": "^5.14.0",
-    "@fortawesome/free-solid-svg-icons": "^5.14.0",
-    "@fortawesome/react-fontawesome": "^0.1.11",
+    "@fortawesome/fontawesome-svg-core": "^1.2.34",
+    "@fortawesome/free-regular-svg-icons": "^5.15.2",
+    "@fortawesome/free-solid-svg-icons": "^5.15.2",
+    "@fortawesome/react-fontawesome": "^0.1.14",
     "babel-core": "^6.26.3",
     "babel-polyfill": "^6.26.0",
     "babel-preset-env": "^1.7.0",
     "babel-preset-react": "^6.24.1",
     "babelify": "^8.0.0",
     "bakadux": "^1.1.0",
-    "browserify": "^16.5.1",
+    "bent": "^7.3.12",
+    "browserify": "^16.5.2",
     "browserify-css": "^0.15.0",
-    "electron": "^9.1.2",
-    "electron-builder": "^22.8.0",
-    "electron-packager": "^15.0.0",
-    "electron-rebuild": "^1.11.0",
+    "electron": "10.4.0",
+    "electron-builder": "^22.10.5",
+    "electron-packager": "^15.2.0",
+    "electron-rebuild": "^2.3.5",
     "envify": "^4.1.0",
-    "react": "^16.13.1",
-    "react-dom": "^16.13.1",
-    "react-svg": "^11.0.32",
+    "node-gyp": "^7.1.2",
+    "react": "^16.14.0",
+    "react-dom": "^16.14.0",
+    "react-svg": "^11.2.5",
     "scssify": "^3.0.1",
-    "uglify-js": "^3.10.0",
+    "uglify-js": "^3.13.0",
     "uglifyify": "^5.0.2"
   },
   "dependencies": {
-    "canvas": "^2.5.0",
-    "probelab-reimager": "github:bob620/probelab-reimager#beta",
+    "canvas": "^2.7.0",
+    "probelab-reimager": "github:bob620/probelab-reimager@dev",
     "sharp": "^0.25.4"
   }
 }
