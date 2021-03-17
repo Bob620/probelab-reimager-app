@@ -45,7 +45,7 @@
 
 #main.image {
   display: grid;
-  grid-template-rows: 1fr 100px;
+  grid-template-rows: calc(100vh - 200px) 100px;
   grid-template-columns: 1fr;
   grid-template-areas: "image" "info";
 
@@ -55,6 +55,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    height: 100%;
 
     img {
       max-width: 95%;
