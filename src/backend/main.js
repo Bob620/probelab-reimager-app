@@ -92,7 +92,7 @@ app.on('ready', async () => {
 			Array.from(recentlyUpdated.keys()).map(async uri => {
 				try {
 					recentlyUpdated.delete(uri);
-					const thermo = (await reimager.send('getImages', {uri: uri + '/'}))[0];
+					const thermo = (await reimager.send('getImages', {uri: path.resolve(uri) + path.sep}))[0];
 					let uuids = [];
 
 					for (const [uuid, therm] of uuidMap)
