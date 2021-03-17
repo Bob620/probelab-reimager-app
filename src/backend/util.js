@@ -1,8 +1,9 @@
+const crypto = require('crypto');
 const EventEmitter = require('events');
 
-const { net } = require('electron');
+const {net} = require('electron');
 
-const [, channel] = require('../../package.json').version.split('-');
+const [version, channel] = require('../../package.json').version.split('-');
 const constants = require('../../constants.json');
 
 function lookForUpdate() {
@@ -33,6 +34,27 @@ function lookForUpdate() {
 		});
 		req.end();
 	});
+}
+
+async function checkAndNotifyUpdate(logs, comms) {
+	logs.update.info('Checking for updates...');
+	try {
+		const latest = await lookForUpdate();
+
+		if (latest.version > version) {
+			logs.update.info('Update found');
+			await comms.send('notification', {
+				type: 'update',
+				title: `Update Available (${latest.version})`,
+				description: latest.description,
+				link: latest.link,
+				linkAlt: 'Download Page'
+			});
+		} else
+			logs.update.info('No updates found');
+	} catch(err) {
+		logs.update.error(err);
+	}
 }
 
 function exportImage(images, settings, path, reimager, {uuidMap, savedMap}) {
@@ -137,13 +159,18 @@ function createOperations(settings) {
 }
 
 function createSettingKey(settings) {
+	let key = crypto.createHash('sha256');
+
 	settings = JSON.parse(JSON.stringify(settings));
 	delete settings.uuid;
-	return JSON.stringify(settings);
+
+	key.update(JSON.stringify(settings));
+	return key.digest('hex');
 }
 
 module.exports = {
 	lookForUpdate,
+	checkAndNotifyUpdate,
 	exportImage,
 	createOperations,
 	createSettingKey
