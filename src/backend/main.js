@@ -25,7 +25,7 @@ const IPC = require('./ipc.js');
 const Communications = require('./communications.js');
 const GenerateUuid = require('./generateuuid.js');
 const {
-	lookForUpdate,
+	checkAndNotifyUpdate,
 	exportImage,
 	createOperations,
 	createSettingKey
@@ -75,25 +75,7 @@ app.on('ready', async () => {
 		window = null
 	});
 
-	window.on('ready-to-show', async () => {
-		try {
-			const latest = await lookForUpdate();
-
-			if (latest.version > version) {
-				logs.update.info('Update found');
-				await comms.send('notification', {
-					type: 'update',
-					title: `Update Available (${latest.version})`,
-					description: latest.description,
-					link: latest.link,
-					linkAlt: 'Download Page'
-				});
-			} else
-				logs.update.info('No updates found');
-		} catch (err) {
-			logs.update.error(err);
-		}
-	});
+	window.on('ready-to-show', checkAndNotifyUpdate.bind(undefined, logs, comms));
 
 	logs.main.info('Setting up IPC connection to window...');
 	comms.setMessageChannel(new IPC(window));
@@ -101,26 +83,7 @@ app.on('ready', async () => {
 
 	let recentlyUpdated = new Map();
 
-	setInterval(async () => {
-		logs.update.info('Checking for updates...');
-		try {
-			const latest = await lookForUpdate();
-
-			if (latest.version > version) {
-				logs.update.info('Update found');
-				await comms.send('notification', {
-					type: 'update',
-					title: `Update Available (${latest.version})`,
-					description: latest.description,
-					link: latest.link,
-					linkAlt: 'Download Page'
-				});
-			} else
-				logs.update.info('No updates found');
-		} catch (err) {
-			logs.update.error(err);
-		}
-	}, 86400000);
+	setInterval(checkAndNotifyUpdate.bind(undefined, logs, comms), 86400000);
 
 	setInterval(() => {
 		if (recentlyUpdated.size > 0) {
@@ -210,80 +173,15 @@ app.on('ready', async () => {
 
 	comms.on('writeImages', ({images, settings}) => {
 		logs.writeImage.info('Writing images');
-		return new Promise(async (resolve, reject) => {
-			window.setProgressBar(2);
-
-			try {
-				const path = await dialog.showSaveDialog({
-					defaultPath: '{name}.png',
-					filters: constants.export.FILTERS
-				});
-
-				if (!path.canceled) {
-					logs.writeImage.info('Exporting images...');
-					const exports = exportImage(images, settings, path.filePath, reimager, {uuidMap, savedMap});
-
-					exports.on('update', ({finished, total}) => {
-						window.setProgressBar(finished / total);
-						comms.send('exportUpdate', {exported: finished, total, type: 'all'});
-					});
-
-					exports.on('finish', total => {
-						window.setProgressBar(-1);
-						logs.writeImage.info('Image written');
-						resolve();
-					});
-				} else {
-					window.setProgressBar(-1);
-					logs.writeImage.info('Writing canceled by user');
-					resolve();
-				}
-			} catch (err) {
-				window.setProgressBar(-1);
-				logs.writeImage.error(err);
-				reject(err);
-			}
-		});
+		return writeImages(images, settings, '{name}.png');
 	});
 
 	comms.on('writeImage', async ({imageUuid, settings}) => {
 		logs.writeImage.info('Writing image');
-		return new Promise(async (resolve, reject) => {
-			window.setProgressBar(2);
-			let image = uuidMap.get(imageUuid);
-			image = image ? image : savedMap.get(imageUuid);
+		let image = uuidMap.get(imageUuid);
+		image = image ? image : savedMap.get(imageUuid);
 
-			try {
-				const path = await dialog.showSaveDialog({
-					defaultPath: image.name + '.png',
-					filters: constants.export.FILTERS
-				});
-
-				if (!path.canceled) {
-					logs.writeImage.info('Exporting image...');
-					const exports = exportImage([image], settings, path.filePath, reimager, {uuidMap, savedMap});
-
-					exports.on('update', ({finished, total}) => {
-						window.setProgressBar(finished / total);
-						comms.send('exportUpdate', {exported: finished, total, type: 'all'});
-					});
-
-					exports.on('finish', total => {
-						window.setProgressBar(-1);
-						logs.writeImage.info('Image written');
-						resolve();
-					});
-				} else {
-					window.setProgressBar(-1);
-					logs.writeImage.info('Writing canceled by user');
-					resolve();
-				}
-			} catch (err) {
-				window.setProgressBar(-1);
-				logs.writeImage.error(err);
-				reject(err);
-			}
-		});
+		return writeImages([image], settings, image.name + '.png');
 	});
 
 	comms.on('loadImage', async data => {
@@ -442,3 +340,40 @@ app.on('web-contents-created', (event, contents) => {
 		event.preventDefault();
 	});
 });
+
+function writeImages(images, settings, defaultName) {
+	return new Promise(async (resolve, reject) => {
+		window.setProgressBar(2);
+
+		try {
+			const path = await dialog.showSaveDialog({
+				defaultPath: defaultName,
+				filters: constants.export.FILTERS
+			});
+
+			if (!path.canceled) {
+				logs.writeImage.info('Exporting images...');
+				const exports = exportImage(images, settings, path.filePath, reimager, {uuidMap, savedMap});
+
+				exports.on('update', ({finished, total}) => {
+					window.setProgressBar(finished / total);
+					comms.send('exportUpdate', {exported: finished, total, type: 'all'});
+				});
+
+				exports.on('finish', total => {
+					window.setProgressBar(-1);
+					logs.writeImage.info('Image written');
+					resolve();
+				});
+			} else {
+				window.setProgressBar(-1);
+				logs.writeImage.info('Writing canceled by user');
+				resolve();
+			}
+		} catch (err) {
+			window.setProgressBar(-1);
+			logs.writeImage.error(err);
+			reject(err);
+		}
+	});
+}
