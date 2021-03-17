@@ -47,9 +47,8 @@ class Child {
 
 	async getImages({uri, uuids = {}}) {
 		this.data.log.info('Getting images...');
-		if (uri !== this.data.cacheDir) {
+		if (uri !== this.data.cacheDir)
 			await this.getDir({uri});
-		}
 
 		return this.data.imageCache.map(thermo => {
 			const uuid = uuids[thermo.data.files.entry];
@@ -70,9 +69,9 @@ class Child {
 				operations[i].args[0] = Functions.sanitizePosition(args[0]);
 		}
 
-		if (path.resolve(path.dirname(uri)) !== this.data.cacheDir && path.resolve(path.dirname(path.dirname(uri))) !== this.data.cacheDir) {
-			await this.getDir({uri: path.dirname(uri)});
-		}
+		const uriDir = path.dirname(uri);
+		if (uriDir !== this.data.cacheDir && path.dirname(uriDir) !== this.data.cacheDir)
+			await this.getDir({uri: uriDir});
 
 		const tempThermos = this.data.imageCache;
 		if (tempThermos === undefined) {

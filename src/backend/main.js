@@ -17,6 +17,7 @@ const logs = {
 
 logs.main.info('Loading Node modules...');
 const fs = require('fs');
+const path = require('path');
 
 logs.main.info('Loading internal modules...');
 const createWindow = require('./createwindow.js');
@@ -231,12 +232,9 @@ app.on('ready', async () => {
 		window.setProgressBar(2);
 
 		logs.processDir.info('Sanitizing directory uri...');
-		let dirUri = data.dir.replace(/\\/gmi, '/');
-		if (!dirUri.endsWith('/'))
-			dirUri = dirUri + '/';
+		let dirUri = path.resolve(data.dir) + path.sep;
 
 		logs.processDir.info(`'${data.dir}'  ->  '${dirUri}'`);
-
 		logs.processDir.info('Reading directory...');
 		try {
 			const files = fs.readdirSync(dirUri, {withFileTypes: true});

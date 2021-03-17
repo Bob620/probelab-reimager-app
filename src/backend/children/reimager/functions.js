@@ -1,3 +1,4 @@
+const path = require('path');
 const fs = require('fs');
 const fsPromise = fs.promises;
 const {PointShoot, ExtractedMap, constants, JeolImage, PFE} = require('probelab-reimager');
@@ -87,8 +88,8 @@ const Functions = {
 	},
 	getDir: async (dirUri, canvas) => {
 		const directory = await fsPromise.readdir(dirUri, {withFileTypes: true});
-		const files = (await Functions.getImages(dirUri + '/', canvas)).filter(i => i);
-		return files.concat((await Promise.all(directory.map(dir => dir.isDirectory() ? Functions.getImages(dirUri + dir.name + '/', canvas) : []))).flat().filter(i => i));
+		const files = (await Functions.getImages(dirUri, canvas)).filter(i => i);
+		return files.concat((await Promise.all(directory.map(dir => dir.isDirectory() ? Functions.getImages(dirUri + dir.name + path.sep, canvas) : []))).flat().filter(i => i));
 	},
 	getImages: async (dirUri, canvas) => {
 		const files = fs.readdirSync(dirUri, {withFileTypes: true}).filter(file => file.isFile());
@@ -102,7 +103,7 @@ const Functions = {
 				return Promise.all(thermos.map(thermo => thermo.addLayerFile(file.uri))).then(() => undefined);
 			} else {
 				const thermoItem = Functions.createThermo(file, canvas);
-				if (thermoItem) {
+				if (thermoItem && thermoItem[1]) {
 					let outThermos;
 					if (thermoItem[0].getImages === undefined) {
 						outThermos = [thermoItem[0]];
@@ -111,13 +112,17 @@ const Functions = {
 					}
 
 					return new Promise(async resolve => {
-						for (const thermo of await outThermos) {
-							await thermo.init();
-							thermos.push(thermo);
-							for (const layer of extraLayers)
-								await thermo.addLayerFile(layer.uri);
+						try {
+							for (const thermo of await outThermos) {
+								await thermo.init();
+								thermos.push(thermo);
+								for (const layer of extraLayers)
+									await thermo.addLayerFile(layer.uri);
+							}
+							resolve(outThermos);
+						} catch(e) {
+							resolve()
 						}
-						resolve(outThermos);
 					});
 				}
 			}
@@ -144,10 +149,14 @@ const Functions = {
 				thermo = new PFE(file, canvas);
 
 			if (thermo)
-				return [thermo, new Promise(async resolve => {
-					const output = await thermo.init();
-					thermo.data.uuid = uuid ? uuid : thermo.data.uuid;
-					resolve(output);
+				return [thermo, new Promise(async (resolve, reject) => {
+					try {
+						const output = await thermo.init();
+						thermo.data.uuid = uuid ? uuid : thermo.data.uuid;
+						resolve(output);
+					} catch(e) {
+						reject(e);
+					}
 				})];
 		}
 
