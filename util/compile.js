@@ -2,7 +2,15 @@ const crypto = require('crypto');
 const fs = require('fs');
 const execSync = require('child_process').execSync;
 
-const {buildPrefix, macTargetVersion, packageVersion} = require('./elcapitain/config.js');
+const {buildPrefix, macTargetVersion, packageVersion} = require('./sourcer/config.js');
+
+function createDir(location, name) {
+	const binDir = fs.readdirSync(location);
+	if (!binDir.includes(name)) {
+		console.log(`Creating:\t${location}/${name}`);
+		fs.mkdirSync(`${location}/${name}`);
+	}
+}
 
 function hashFile(uri) {
 	const hash = crypto.createHash('sha256');
@@ -31,7 +39,8 @@ function copyDirSync(src, dest) {
 	const files = fs.readdirSync(src, {withFileTypes: true});
 	try {
 		fs.mkdirSync(dest);
-	} catch(e) {}
+	} catch(e) {
+	}
 
 	for (const file of files) {
 		const srcUri = `${src}${file.name}`;
@@ -49,6 +58,13 @@ function installPackage(packName) {
 	copyDirSync(`${buildPrefix}/electron/${packName}`, `./bin/unpackaged/node_modules/${packName}`);
 }
 
+function installDlls(packagedDir) {
+	copyDirSync(`${buildPrefix}/electron/dlls`, `./bin/${packagedDir}`);
+}
+
+createDir('.', 'build');
+createDir('./build', 'electron');
+
 console.log('Building and packaging existing code...');
 exec('npm run build-prod');
 exec('node package.js');
@@ -56,43 +72,54 @@ exec('node package.js');
 console.log('Installing production npm packages...');
 exec('npm install --production', './bin/unpackaged');
 
-if (process.platform === 'darwin') {
-	console.log(`Preparing packages for MacOSX (${macTargetVersion}) build...`);
-	exec('npm run build-el-capitan');
+switch(process.platform) {
+	case 'darwin':
+		console.log(`Preparing packages for MacOSX (${macTargetVersion}) build...`);
+		exec('npm run build-el-capitan');
 
-	console.log(`Injecting packages into MacOSX (${macTargetVersion}) build...`);
-	installPackage('sharp');
-	installPackage('canvas');
+		console.log(`Injecting packages into MacOSX (${macTargetVersion}) build...`);
+		installPackage('sharp');
+		installPackage('canvas');
 
-	console.log('Packaging...');
-	exec('"./node_modules/.bin/electron-packager" ./bin/unpackaged --out ./bin --overwrite');
+		console.log('Packaging...');
+		exec('"./node_modules/.bin/electron-packager" ./bin/unpackaged --out ./bin --overwrite');
 
-	console.log(`Injecting dylibs into MacOSX (${macTargetVersion}) build...`);
-	copyDirSync(`./bin/libs`, `./bin/Probelab ReImager-darwin-x64/Probelab ReImager.app/contents/Frameworks/Electron Framework.framework/Libraries/libs`);
+		console.log(`Injecting dylibs into MacOSX (${macTargetVersion}) build...`);
+		copyDirSync(`./bin/libs`, `./bin/Probelab ReImager-darwin-x64/Probelab ReImager.app/contents/Frameworks/Electron Framework.framework/Libraries/libs`);
 
-	console.log('Building installer package for MacOS x64');
-	exec('"./node_modules/.bin/electron-builder" --pd "./bin/Probelab ReImager-darwin-x64"');
+		console.log('Building installer package for MacOS x64');
+		exec('"./node_modules/.bin/electron-builder" --pd "./bin/Probelab ReImager-darwin-x64"');
 
-	fs.renameSync(`./dist/Probelab ReImager-${packageVersion}.dmg`, `./dist/reimager-${packageVersion}.dmg`);
-	const hash = hashFile(`./dist/reimager-${packageVersion}.dmg`);
-	console.log(`sha256: ${hash}`);
-} else {
-	console.log('Rebuilding packages...');
-	exec('"../../node_modules/.bin/electron-rebuild" -f -e "../../node_modules/electron"', './bin/unpackaged');
+		fs.renameSync(`./dist/Probelab ReImager-${packageVersion}.dmg`, `./dist/reimager-${packageVersion}.dmg`);
+		const hash = hashFile(`./dist/reimager-${packageVersion}.dmg`);
+		console.log(`sha256: ${hash}`);
+		break;
+	case 'win32':
+		console.log(`Preparing packages for Windows build...`);
+		exec('npm run build-windows');
 
-	console.log('Packaging...');
-	exec('"./node_modules/.bin/electron-packager" ./bin/unpackaged --out ./bin --overwrite');
+		console.log(`Injecting packages into Windows build...`);
+		installPackage('sharp');
+		installPackage('canvas');
 
-	try {
+		console.log('Packaging...');
+		exec('"./node_modules/.bin/electron-packager" ./bin/unpackaged --out ./bin --overwrite');
+
 		fs.accessSync('./bin/Probelab ReImager-win32-x64', fs.constants.F_OK);
 		console.log('Building installer package for Windows x64');
 		exec('"./node_modules/.bin/electron-builder" --pd "./bin/Probelab ReImager-win32-x64"');
-	} catch(e) {}
+		break;
+	default:
+	case 'linux':
+		console.log('Rebuilding packages...');
+		exec('"../../node_modules/.bin/electron-rebuild" -f -e "../../node_modules/electron"', './bin/unpackaged');
 
-	try {
+		console.log('Packaging...');
+		exec('"./node_modules/.bin/electron-packager" ./bin/unpackaged --out ./bin --overwrite');
+
 		fs.accessSync('./bin/Probelab ReImager-linux-x64', fs.constants.F_OK);
 		console.log('Building installer package for Linux x64');
 		exec('"./node_modules/.bin/electron-builder" --pd "./bin/Probelab ReImager-linux-x64"');
-	} catch(e) {}
+		break;
 }
 

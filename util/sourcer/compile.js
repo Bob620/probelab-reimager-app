@@ -1,6 +1,17 @@
+const path = require('path');
 const fs = require('fs/promises');
 
-const {buildPrefix, configureConfig, cmakeConfig, mesonConfig, exec, packages, nodeGyp, electronConfig, macTargetVersion} = require('./config.js');
+const {
+	buildPrefix,
+	configureConfig,
+	cmakeConfig,
+	mesonConfig,
+	exec,
+	packages,
+	nodeGyp,
+	electronConfig,
+	macTargetVersion
+} = require('./config.js');
 
 async function compile(pack, recompile = false) {
 	if (!pack.compiled || recompile) {
@@ -106,33 +117,89 @@ async function compile(pack, recompile = false) {
 				await exec('make install > /dev/null', pack.name);
 
 				break;
-			case 'electron':
+			case 'dll':
 				if (pack.postClean)
 					await pack.postClean();
 
 				if (pack.postConfigure)
 					await pack.postConfigure();
 
+				for (const file of await fs.readdir(path.resolve(`${buildPrefix}/${pack.name}/`)))
+					if (file === 'Release')
+						for (const file of await fs.readdir(path.resolve(`${buildPrefix}/${pack.name}/Release`)))
+							if (file.endsWith('.dll'))
+								await fs.link(path.resolve(`${buildPrefix}/${pack.name}/Release/${file}`), path.resolve(`${buildPrefix}/${pack.name}/${file}`));
+
+				break;
+			case 'electron':
+				// Run clean and configure functions
+				if (pack.postClean)
+					await pack.postClean();
+
+				if (pack.postConfigure)
+					await pack.postConfigure();
+
+				// Install using npm
+				console.log(`NPM Installing ${pack.name} (${pack.link})`);
+				await exec(`npm install > /dev/null`, pack.name);
+
+				// Build the package
 				console.log(`Building ${pack.name} (${pack.link})`);
+				//await exec(`npm rebuild ${electronConfig} > /dev/null`, pack.name);
 				await exec(`${nodeGyp} rebuild ${electronConfig} > /dev/null`, pack.name);
 
+				if (process.platform === 'win32') {
+					await fs.mkdir(`${buildPrefix}/electron/windows`, {recursive: true});
+					for (const file of await fs.readdir(`${buildPrefix}/${pack.name}/build/Release/`))
+						if (file.endsWith('.dll'))
+							await fs.copyFile(`${buildPrefix}/${pack.name}/build/Release/${file}`, `${buildPrefix}/electron/windows/${file}`);
+				}
+
+				// Package the package to make it as small as possible
 				console.log(`Packaging ${pack.name} (${pack.link})`);
 				await exec('npm pack > /dev/null', pack.name);
 
+				// Cleanup package directory to make sure any failed packages don't pollute
 				const tarballName = `${pack.name}-${require(`${buildPrefix}/${pack.name}/package.json`).version}.tgz`;
 				try {
 					await fs.rmdir(`${buildPrefix}/electron/package`, {recursive: true});
-				} catch(e) {}
-				
+				} catch(e) {
+				}
+
+				// Untar the package into the post-build directory
 				await exec(`tar -C ${buildPrefix}/electron -xzf ${buildPrefix}/${pack.name}/${tarballName}`);
 				try {
 					await fs.unlink(`${buildPrefix}/${pack.name}/${tarballName}`);
-				} catch(e) {}
+				} catch(e) {
+				}
 
+				// Inject the compiled files back into the release as expected by node-gyp
+				// Packaging does not keep compiled files as it is expected to be platform agnostic
 				await fs.mkdir(`${buildPrefix}/electron/package/build/Release`, {recursive: true});
 				await fs.copyFile(`${buildPrefix}/${pack.name}/build/Release/${pack.name}.node`, `${buildPrefix}/electron/package/build/Release/${pack.name}.node`);
+
+				// Inject previously existing dlls
+				if (process.platform === 'win32') {
+					const files = await fs.readdir(`${buildPrefix}/electron/windows/`);
+					for (const file of files)
+						if (file.endsWith('.dll'))
+							await fs.copyFile(`${buildPrefix}/electron/windows/${file}`, `${buildPrefix}/electron/package/build/Release/${file}`);
+					await fs.rm(`${buildPrefix}/electron/windows`, {recursive: true});
+				}
+
+				// Inject required dlls
+				if (process.platform === 'win32' && pack.requiresDlls)
+					for (const dllPack of pack.requiresDlls)
+						for (const file of await fs.readdir(path.join(buildPrefix, dllPack)))
+							if (file.endsWith('.dll'))
+								await fs.copyFile(path.join(buildPrefix, dllPack, file), `${buildPrefix}/electron/package/build/Release/${file}`);
+
+				// move the generic package to post-compiled state
 				await fs.rename(`${buildPrefix}/electron/package`, `${buildPrefix}/electron/${pack.name}`);
-				await exec(`"${buildPrefix}/bin/dylibbundler" -s "${buildPrefix}/lib" -of -cd -b -d "./bin/libs" -x "${buildPrefix}/electron/${pack.name}/build/Release/${pack.name}.node" -p "@rpath/libs/"`);
+
+				// Bundle dylibs on mac to make sure paths don't break
+				if (process.platform === 'darwin')
+					await exec(`"${buildPrefix}/bin/dylibbundler" -s "${buildPrefix}/lib" -of -cd -b -d "./bin/libs" -x "${buildPrefix}/electron/${pack.name}/build/Release/${pack.name}.node" -p "@rpath/libs/"`);
 				break;
 			default:
 				break;

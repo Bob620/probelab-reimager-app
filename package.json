@@ -1,14 +1,15 @@
 {
   "name": "probelab-reimager-app",
   "productName": "Probelab ReImager",
-  "version": "1.7.0-stable",
+  "version": "1.7.2-stable",
   "description": "Visual UI for Probelab ReImager using Electron",
   "main": "./src/backend/main.js",
   "scripts": {
     "start": "electron .",
     "build": "node util/build.js",
     "build-prod": "node util/build.js production",
-    "build-el-capitan": "node util/elcapitain/download.js",
+    "build-el-capitan": "node util/sourcer/elcapitan.js",
+    "build-windows": "node util/sourcer/windows.js",
     "compile": "node util/compile.js",
     "clean": "node util/clean.js",
     "distclean": "node util/clean.js distclean",
@@ -96,15 +97,16 @@
     "babel-preset-env": "^1.7.0",
     "babel-preset-react": "^6.24.1",
     "babelify": "^8.0.0",
-    "bakadux": "^1.1.0",
+    "bakadux": "^1.1.1",
     "bent": "^7.3.12",
     "browserify": "^16.5.2",
     "browserify-css": "^0.15.0",
-    "electron": "10.4.0",
-    "electron-builder": "^22.10.5",
+    "electron": "10.4.1",
+    "electron-builder": "^22.9.1",
     "electron-packager": "^15.2.0",
     "electron-rebuild": "^2.3.5",
     "envify": "^4.1.0",
+    "lzma-native": "^7.0.1",
     "node-gyp": "^7.1.2",
     "react": "^16.14.0",
     "react-dom": "^16.14.0",
@@ -114,8 +116,8 @@
     "uglifyify": "^5.0.2"
   },
   "dependencies": {
-    "canvas": "^2.7.0",
-    "probelab-reimager": "github:bob620/probelab-reimager@dev",
-    "sharp": "^0.25.4"
+    "canvas": "2.7.0",
+    "probelab-reimager": "github:bob620/probelab-reimager#dev",
+    "sharp": "^0.27.2"
   }
 }

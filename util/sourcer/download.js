@@ -2,8 +2,7 @@ const fs = require('fs/promises');
 
 const bent = require('bent')('buffer');
 
-const {requirements, buildPrefix, packages, exec} = require('./config.js');
-const {compile} = require('./compile.js');
+const {buildPrefix, exec} = require('./config.js');
 
 async function doomload(type, link, pack, name, downloadLocation, extractLocation) {
 	try {
@@ -72,22 +71,6 @@ async function download(pack) {
 		}
 }
 
-requirements().then(async compileOrder => {
-	let toCompile = new Set();
-
-	for (const packName of compileOrder) {
-		const pack = packages.get(packName);
-		if (pack.link !== '')
-			await download(pack);
-
-		if (pack.requires.filter(e => !packages.get(e).compiled).length !== 0) {
-			toCompile.add(packName);
-		} else
-			try {
-				await compile(pack);
-				pack.compiled = true;
-			} catch(err) {
-				console.log(err);
-			}
-	}
-});
+module.exports = {
+	download
+};

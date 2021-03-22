@@ -1,34 +1,6 @@
-const fs = require('fs/promises');
-const fsConstants = require('fs').constants;
-const execSync = require('child_process').execSync;
-
-const packageJson = require('../../package.json');
-
-const electronVersion = packageJson.devDependencies.electron;
-const packageVersion = packageJson.version;
-
-const dirPrefix = __dirname.split('/').slice(0, -2).join('/');
-const buildPrefix = dirPrefix + '/build';
-
-const macTargetVersion = '10.11';
-
-const env = {
-	LDFLAGS: `-mmacosx-version-min=${macTargetVersion}`,
-	CXXFLAGS: `-stdlib=libc++ -mmacosx-version-min=${macTargetVersion}`,
-	CPPFLAGS: `-stdlib=libc++ -mmacosx-version-min=${macTargetVersion}`,
-	CFLAGS: `-stdlib=libc++ -mmacosx-version-min=${macTargetVersion}`,
-	PATH: `${buildPrefix}:${buildPrefix}/bin:/usr/local/bin:/usr/bin:/bin`,
-	PKG_CONFIG_PATH: `${buildPrefix}/lib/pkgconfig`,
-	CMAKE_INSTALL_PREFIX: `${buildPrefix}/`,
-	HOME: process.env.HOME
-};
-
-const mesonConfig = `--prefix="${buildPrefix}/"`;
-const configureConfig = `--prefix="${buildPrefix}/"`;
-const cmakeConfig = `-f makefile.unix -DCMAKE_INSTALL_PREFIX="${buildPrefix}" -DCMAKE_SYSTEM_PREFIX_PATH="${buildPrefix}"`;
-const electronConfig = `--target=${electronVersion} --arch=x64 --dist-url=https://electronjs.org/headers`;
-
-const nodeGyp = `HOME=~/.electron-gyp "${buildPrefix}/../node_modules/.bin/node-gyp"`;
+const {getCompileOrder, buildPrefix, macTargetVersion, env} = require('./config.js');
+const {compile} = require('./compile.js');
+const {download} = require('./download.js');
 
 const packages = new Map([
 	['package', {
@@ -63,7 +35,7 @@ const packages = new Map([
 	}],
 	['sharp', {
 		'details': 'https://sharp.pixelplumbing.com',
-		'link': 'https://github.com/lovell/sharp/archive/v0.26.2.zip',
+		'link': 'https://github.com/lovell/sharp/archive/v0.27.2.zip',
 		'name': 'sharp',
 		'method': 'electron',
 		'args': [],
@@ -522,111 +494,22 @@ const packages = new Map([
 	}]
 ]);
 
-let compileOrder = new Set();
+getCompileOrder(packages).then(async compileOrder => {
+	let toCompile = new Set();
 
-async function testForFile(fileName) {
-	let exists = false;
+	for (const packName of compileOrder) {
+		const pack = packages.get(packName);
+		if (pack.link !== '')
+			await download(pack);
 
-	try {
-		await fs.access(`${buildPrefix}/bin/${fileName}`, fsConstants.F_OK);
-		exists = true;
-	} catch(e) {
+		if (pack.requires.filter(e => !packages.get(e).compiled).length !== 0) {
+			toCompile.add(packName);
+		} else
+			try {
+				await compile(pack);
+				pack.compiled = true;
+			} catch(err) {
+				console.log(err);
+			}
 	}
-
-	try {
-		await fs.access(`${buildPrefix}/include/${fileName}`, fsConstants.F_OK);
-		exists = true;
-	} catch(e) {
-	}
-
-	try {
-		await fs.access(`${buildPrefix}/lib/${fileName}`, fsConstants.F_OK);
-		exists = true;
-	} catch(e) {
-	}
-
-	try {
-		await fs.access(`${buildPrefix}/etc/${fileName}`, fsConstants.F_OK);
-		exists = true;
-	} catch(e) {
-	}
-
-	try {
-		await fs.access(`${buildPrefix}/share/${fileName}`, fsConstants.F_OK);
-		exists = true;
-	} catch(e) {
-	}
-
-	try {
-		await fs.access(`${buildPrefix}/electron/${fileName}`, fsConstants.F_OK);
-		exists = true;
-	} catch(e) {
-	}
-
-	return exists;
-}
-
-async function prepare(packName) {
-	const pack = packages.get(packName);
-	try {
-		await fs.access(`${buildPrefix}/${packName}`, fsConstants.F_OK);
-		pack.downloaded = true;
-	} catch(e) {
-		pack.downloaded = false;
-	}
-
-	pack.compiled = false;
-	if (pack.makes && pack.makes.length > 0 && pack.downloaded)
-		try {
-			for (const file of pack.makes)
-				if (!await testForFile(file))
-					throw '';
-
-			pack.compiled = true;
-		} catch(e) {
-		}
-
-	for (const prePack of pack.requires)
-		await prepare(prePack);
-	compileOrder.add(pack.name);
-}
-
-async function exec(command, cwd = '', override = false) {
-	return execSync(command, {
-		env,
-		cwd: override ? cwd : `${buildPrefix}/${cwd}`,
-		maxBuffer: 1024 * 1024
-	});
-}
-
-module.exports = {
-	packages,
-	dirPrefix,
-	buildPrefix,
-	mesonConfig,
-	cmakeConfig,
-	configureConfig,
-	electronConfig,
-	macTargetVersion,
-	packageVersion,
-	nodeGyp,
-	electronVersion,
-	exec,
-	requirements: async () => {
-		try {
-			await fs.access(buildPrefix, fsConstants.F_OK);
-		} catch(e) {
-			await fs.mkdir(buildPrefix);
-		}
-
-		try {
-			await fs.access(`${buildPrefix}/electron`, fsConstants.F_OK);
-		} catch(e) {
-			await fs.mkdir(`${buildPrefix}/electron`);
-		}
-
-		await prepare('package');
-
-		return compileOrder;
-	}
-};
+});
