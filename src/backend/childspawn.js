@@ -1,4 +1,5 @@
 const fork = require('child_process').fork;
+const path = require('path');
 
 const CreateFakeLog = require('./log.js').CreateFakeLog;
 const Communications = require('./communications.js');
@@ -6,6 +7,7 @@ const FakeComm = require('./fakecomm.js');
 
 class FakeChild {
 	constructor(childFile, comms) {
+		this.connected = true;
 		this.data = {
 			child: undefined,
 			comms,
@@ -13,7 +15,11 @@ class FakeChild {
 		};
 
 		this.data.comms.setMessageChannel(this.data.fakeComm.endTwo);
-		this.data.child = new (require(childFile))(this.data.fakeComm.endOne);
+		try {
+			this.data.child = new (require(childFile))(this.data.fakeComm.endOne);
+		} catch(e) {
+			throw e;
+		}
 	}
 
 	on(event, func) {
@@ -74,7 +80,7 @@ module.exports = class {
 		if (this.data.process === undefined) {
 			this.data.process = '';
 
-			const childFile = `${__dirname}/children/${this.data.childName}/child.js`;
+			const childFile = path.resolve(`${__dirname}/children/${this.data.childName}/child.js`);
 
 			this.data.log.info(`Attempting to spawn '${childFile}'${fakeChild ? ' as a fake child' : ''}`);
 
@@ -97,7 +103,7 @@ module.exports = class {
 
 				this.data.log.listenOn(this.data.comms);
 
-				this.data.log.info('Spawned and ready');
+				this.data.log.info(`Spawned and ready (${this.data.childName})`);
 				this.data.ready = true;
 
 				const toRun = this.data.toRun;
