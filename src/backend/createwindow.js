@@ -99,7 +99,8 @@ module.exports = log => {
 		title: `Probelab ReImager${isDev ? ' Dev' : ''}`,
 		webPreferences: {
 			nodeIntegration: true,
-			enableRemoteModule: false
+			enableRemoteModule: false,
+			contextIsolation: false
 		},
 		show: false
 	});
