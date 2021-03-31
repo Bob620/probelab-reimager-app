@@ -1,4 +1,5 @@
 const fs = require('fs/promises');
+const path = require('path');
 
 const data = {
 	distClean: {
@@ -14,7 +15,7 @@ const data = {
 	},
 	clean: {
 		build: {
-			dirs: ['lib', 'include', 'share', 'bin', 'etc']
+			dirs: ['lib', 'include', 'share', 'bin', 'etc', 'electron']
 		},
 		bin: {
 			files: []
@@ -26,7 +27,7 @@ const data = {
 };
 
 async function clean(type = 'clean') {
-	const dirs = (await fs.readdir('../')).map(e => {
+	const dirs = (await fs.readdir(path.resolve('../'))).map(e => {
 		if (data.clean[e] !== undefined) {
 			let dir = JSON.parse(JSON.stringify(data[type][e]));
 			dir.name = e;
@@ -35,29 +36,29 @@ async function clean(type = 'clean') {
 		return undefined;
 	}).filter(e => e !== undefined);
 
-	let filePrefix = __dirname + '../';
+	let filePrefix = path.resolve(__dirname + '../');
 	for (const dir of dirs)
 		if (dir.all) {
 			try {
-				console.log(`Deleting ${filePrefix}${dir.name}/*`);
-				await fs.rmdir(`${filePrefix}${dir.name}`, {recursive: true});
-				await fs.mkdir(`${filePrefix}${dir.name}`);
+				console.log(`Deleting ${path.join(filePrefix, dir.name)}${path.sep}*`);
+				await fs.rmdir(path.join(filePrefix, dir.name), {recursive: true});
+				await fs.mkdir(path.join(filePrefix, dir.name));
 			} catch(e) {
 			}
 		} else {
 			if (dir.files)
 				for (const fileName of dir.files)
 					try {
-						console.log(`Deleting ${filePrefix}${dir.name}/${fileName}`);
-						await fs.unlink(`${filePrefix}${dir.name}/${fileName}`);
+						console.log(`Deleting ${path.join(filePrefix, dir.name, fileName)}`);
+						await fs.unlink(path.join(filePrefix, dir.name, fileName));
 					} catch(e) {
 					}
 
 			if (dir.dirs)
 				for (const dirName of dir.dirs)
 					try {
-						console.log(`Deleting ${filePrefix}${dir.name}/${dirName}`);
-						await fs.rmdir(`${filePrefix}${dir.name}/${dirName}`, {recursive: true});
+						console.log(`Deleting ${path.join(filePrefix, dir.name, dirName)}`);
+						await fs.rmdir(path.join(filePrefix, dir.name, dirName), {recursive: true});
 					} catch(e) {
 					}
 		}
