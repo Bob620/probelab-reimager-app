@@ -46,12 +46,12 @@ createDir('./bin/unpackaged', 'src');
 
 console.log('\nLinking assets...');
 linkDir('./assets', './bin/unpackaged/assets');
-linkDir('./src/backend', './bin/unpackaged/src/backend');
+//linkDir('./src/backend', './bin/unpackaged/src/backend');
 
 console.log('\nLinking package json files...');
 linkFile('./package.json', './bin/unpackaged/package.json');
 linkFile('./package-lock.json', './bin/unpackaged/package-lock.json');
 linkFile('./LICENSE', './bin/unpackaged/LICENSE');
-linkFile('./constants.json', './bin/unpackaged/constants.json');
+//linkFile('./constants.json', './bin/unpackaged/constants.json');
 
 console.log('\n');
