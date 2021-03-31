@@ -4,6 +4,26 @@ const {getCompileOrder, exec, buildPrefix} = require('./config.js');
 const {compile} = require('./compile.js');
 const {download} = require('./download.js');
 
+async function copyDir(src, dest) {
+	src = src.endsWith('/') ? src : src + '/';
+	dest = dest.endsWith('/') ? dest : dest + '/';
+	const files = await fs.readdir(src, {withFileTypes: true});
+	try {
+		await fs.mkdir(dest);
+	} catch(e) {
+	}
+
+	for (const file of files) {
+		const srcUri = `${src}${file.name}`;
+		const destUri = `${dest}${file.name}`;
+
+		if (file.isFile())
+			await fs.copyFile(srcUri, destUri);
+		else if (file.isDirectory())
+			await copyDir(srcUri, destUri);
+	}
+}
+
 const packages = new Map([
 	['package', {
 		'details': '',
@@ -12,11 +32,29 @@ const packages = new Map([
 		'method': '',
 		'args': [],
 		'requires': [
-			'sharp',
-			'canvas'
+			'probelab-reimager'
 		],
 		'recompiles': [],
 		'makes': []
+	}],
+	['probelab-reimager', {
+		'details': 'https://github.com/Bob620/probelab-reimager',
+		'link': 'https://github.com/Bob620/probelab-reimager/archive/refs/heads/dev.zip',
+		'name': 'probelab-reimager',
+		'method': 'electron',
+		'args': [],
+		'requires': [
+			'sharp',
+			'canvas',
+			'node-adodb'
+		],
+		'recompiles': [],
+		'makes': ['probelab-reimager'],
+		'postCompile': async () => {
+			await copyDir(`${buildPrefix}/probelab-reimager/fonts`, `${buildPrefix}/electron/probelab-reimager/fonts`);
+			await fs.writeFile(`${buildPrefix}/electron/probelab-reimager/module.js`, (await fs.readFile(`${buildPrefix}/electron/probelab-reimager/module.js`, 'utf8'))
+				.replace(/\/\.\.\/fonts/gi, '/fonts'));
+		}
 	}],
 	['canvas', {
 		'details': 'https://www.npmjs.com/package/canvas',
@@ -34,9 +72,23 @@ const packages = new Map([
 			await exec('npm install nan@2.14.0', 'canvas');
 		},
 		'postCompile': async () => {
-			await exec('npm install node-pre-gyp', 'electron/canvas');
+			await fs.writeFile(`${buildPrefix}/electron/canvas/index.js`, (await fs.readFile(`${buildPrefix}/electron/canvas/index.js`, 'utf8'))
+				.replace(/\.\.\/build\/Release\/canvas\.node/gi, './canvas.node'));
 		},
 		buildEnv: process.env
+	}],
+	['node-adodb', {
+		'details': 'https://github.com/nuintun/node-adodb',
+		'link': 'https://github.com/nuintun/node-adodb/archive/refs/tags/5.0.3.tar.gz',
+		'name': 'node-adodb',
+		'method': 'electron',
+		'args': [],
+		'requires': [],
+		'recompiles': [],
+		'makes': ['node-adodb'],
+		'postCompile': async () => {
+			await fs.copyFile(`${buildPrefix}/node-adodb/lib/adodb.js`, `${buildPrefix}/electron/node-adodb/adodb.js`);
+		}
 	}],
 	['sharp', {
 		'details': 'https://sharp.pixelplumbing.com',
@@ -51,10 +103,12 @@ const packages = new Map([
 		'recompiles': [],
 		'makes': ['sharp'],
 		'postCompile': async () => {
+			await fs.writeFile(`${buildPrefix}/electron/sharp/lib/index.js`, (await fs.readFile(`${buildPrefix}/electron/sharp/lib/index.js`, 'utf8'))
+				.replace(/\.\.\/build\/Release\/sharp\.node/gi, '../sharp.node'));
 			const files = await fs.readdir(`${buildPrefix}/sharp/vendor/8.10.5/lib/`);
 			for (const file of files)
 				if (file.endsWith('.dll'))
-					await fs.copyFile(`${buildPrefix}/sharp/vendor/8.10.5/lib/${file}`, `${buildPrefix}/electron/sharp/build/Release/${file}`);
+					await fs.copyFile(`${buildPrefix}/sharp/vendor/8.10.5/lib/${file}`, `${buildPrefix}/electron/sharp/${file}`);
 		}
 	}],
 	['sharp-prebuilt', {
@@ -65,7 +119,7 @@ const packages = new Map([
 		'args': [],
 		'requires': [],
 		'recompiles': [],
-		'makes': ['sharp-prebuilt']
+		'makes': ['sharp']
 	}],
 	['cairo-prebuilt', {
 		'details': 'https://www.npmjs.com/package/canvas',
@@ -75,7 +129,7 @@ const packages = new Map([
 		'args': [],
 		'requires': [],
 		'recompiles': [],
-		'makes': ['cairo-prebuilt']
+		'makes': ['canvas']
 	}]
 ]);
 
