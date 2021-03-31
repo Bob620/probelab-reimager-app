@@ -7,7 +7,6 @@ import OptionsList from './optionslist.jsx';
 
 import constants from '../../../constants.json';
 
-import history from '../general/history.js';
 import generalActions from '../general/actions.js'
 import settingActions from '../settings/actions.js';
 import generalStore from '../general/store.js';

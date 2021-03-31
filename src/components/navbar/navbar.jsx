@@ -6,7 +6,6 @@ import { faBell as farBell } from '@fortawesome/free-regular-svg-icons';
 import '../general/common.scss'
 import './navbar.scss'
 
-import history from '../../components/general/history.js';
 import generalStore from '../../components/general/store.js';
 import generalActions from '../../components/general/actions.js';
 import settingStore from '../../components/settings/store.js';

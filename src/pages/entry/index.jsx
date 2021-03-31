@@ -6,7 +6,6 @@ import dispatcher from 'bakadux';
 //import './flat-ui.min.css';
 import '../../components/general/common.scss';
 
-import history from '../../components/general/history.js';
 import generalStore from '../../components/general/store.js';
 import generalActions from '../../components/general/actions.js';
 

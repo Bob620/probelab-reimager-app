@@ -3,7 +3,6 @@ import React, { Component } from 'react';
 import '../general/common.scss'
 import './sidebar.scss'
 
-import history from '../general/history.js';
 import generalStore from '../general/store.js';
 import generalActions from '../general/actions.js';
 import safeboxActions from '../safebox/actions.js';

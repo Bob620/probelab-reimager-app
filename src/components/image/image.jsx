@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 
 import './image.scss'
 
-import history from '../../components/general/history.js';
 import generalStore from '../../components/general/store.js';
 import generalActions from '../../components/general/actions.js';
 import settingStore from '../../components/settings/store.js';
