@@ -5,32 +5,20 @@
   "description": "Visual UI for Probelab ReImager using Electron",
   "main": "./src/backend/main.js",
   "scripts": {
+    "install": "node util/install.js",
     "start": "electron .",
-    "build": "node util/build.js",
-    "build-prod": "node util/build.js production",
     "build-el-capitan": "node util/sourcer/elcapitan.js",
     "build-windows": "node util/sourcer/windows.js",
     "compile": "node util/compile.js",
     "clean": "node util/clean.js",
     "distclean": "node util/clean.js distclean",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "rebuild": "electron-rebuild -f"
+    "minify": "node util/minify.js"
   },
-  "browserify": {
-    "transform": [
-      [
-        "babelify",
-        {
-          "presets": [
-            "env",
-            "react"
-          ]
-        }
-      ],
-      [
-        "browserify-css"
-      ]
-    ]
+  "browser": {
+    "crypto": "crypto-browserify",
+    "stream": "stream-browserify",
+    "events": "events",
+    "buffer": "buffer-browserify"
   },
   "build": {
     "icon": "./assets/svg/icon",
@@ -92,32 +80,27 @@
     "@fortawesome/free-regular-svg-icons": "^5.15.2",
     "@fortawesome/free-solid-svg-icons": "^5.15.2",
     "@fortawesome/react-fontawesome": "^0.1.14",
-    "babel-core": "^6.26.3",
-    "babel-polyfill": "^6.26.0",
-    "babel-preset-env": "^1.7.0",
-    "babel-preset-react": "^6.24.1",
-    "babelify": "^8.0.0",
     "bakadux": "^1.1.1",
     "bent": "^7.3.12",
-    "browserify": "^16.5.2",
-    "browserify-css": "^0.15.0",
-    "electron": "10.4.1",
+    "buffer-browserify": "^0.2.5",
+    "crypto-browserify": "^3.12.0",
+    "electron": "12.0.2",
     "electron-builder": "^22.9.1",
     "electron-packager": "^15.2.0",
     "electron-rebuild": "^2.3.5",
-    "envify": "^4.1.0",
+    "esbuild": "^0.10.0",
+    "esbuild-sass-plugin": "^1.2.0",
+    "events": "^3.3.0",
     "lzma-native": "^7.0.1",
     "node-gyp": "^7.1.2",
     "react": "^16.14.0",
     "react-dom": "^16.14.0",
     "react-svg": "^11.2.5",
-    "scssify": "^3.0.1",
-    "uglify-js": "^3.13.0",
-    "uglifyify": "^5.0.2"
+    "stream-browserify": "^2.0.2"
   },
   "dependencies": {
     "canvas": "2.7.0",
     "probelab-reimager": "github:bob620/probelab-reimager#dev",
-    "sharp": "^0.27.2"
+    "sharp": "0.27.2"
   }
 }
