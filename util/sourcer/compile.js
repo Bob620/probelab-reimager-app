@@ -1,6 +1,8 @@
 const path = require('path');
 const fs = require('fs/promises');
 
+const esbuild = require('esbuild');
+
 const {
 	buildPrefix,
 	configureConfig,
@@ -143,59 +145,61 @@ async function compile(pack, recompile = false) {
 				console.log(`NPM Installing ${pack.name} (${pack.link})`);
 				await exec(`npm install > /dev/null`, pack.name);
 
+				const packJson = require(`${buildPrefix}/${pack.name}/package.json`);
+				const dllDir = path.resolve(`${buildPrefix}/electron/${pack.name}`);
+
 				// Build the package
-				console.log(`Building ${pack.name} (${pack.link})`);
-				//await exec(`npm rebuild ${electronConfig} > /dev/null`, pack.name);
-				await exec(`${nodeGyp} rebuild ${electronConfig} > /dev/null`, pack.name);
+				try {
+					console.log(`Building ${pack.name} (${pack.link})`);
+					//await exec(`npm rebuild ${electronConfig} > /dev/null`, pack.name);
+					await exec(`${nodeGyp} rebuild ${electronConfig} > /dev/null`, pack.name);
 
-				if (process.platform === 'win32') {
-					await fs.mkdir(`${buildPrefix}/electron/windows`, {recursive: true});
+					console.log('Copying built dlls and node files');
+					await fs.mkdir(dllDir, {recursive: true});
 					for (const file of await fs.readdir(`${buildPrefix}/${pack.name}/build/Release/`))
-						if (file.endsWith('.dll'))
-							await fs.copyFile(`${buildPrefix}/${pack.name}/build/Release/${file}`, `${buildPrefix}/electron/windows/${file}`);
-				}
-
-				// Package the package to make it as small as possible
-				console.log(`Packaging ${pack.name} (${pack.link})`);
-				await exec('npm pack > /dev/null', pack.name);
-
-				// Cleanup package directory to make sure any failed packages don't pollute
-				const tarballName = `${pack.name}-${require(`${buildPrefix}/${pack.name}/package.json`).version}.tgz`;
-				try {
-					await fs.rmdir(`${buildPrefix}/electron/package`, {recursive: true});
+						if (file.endsWith('.dll') || (file.endsWith('.node') && !file.endsWith('postbuild.node')))
+							try {
+								await fs.copyFile(`${buildPrefix}/${pack.name}/build/Release/${file}`, `${dllDir}/${file}`);
+							} catch(e) {
+							}
 				} catch(e) {
+					console.log(`Skipping building of ${pack.name} due to node-gyp error`);
 				}
 
-				// Untar the package into the post-build directory
-				await exec(`tar -C ${buildPrefix}/electron -xzf ${buildPrefix}/${pack.name}/${tarballName}`);
-				try {
-					await fs.unlink(`${buildPrefix}/${pack.name}/${tarballName}`);
-				} catch(e) {
-				}
+				console.log(`Minifying ${pack.name} from entry ${packJson.main}`);
+				await esbuild.build({
+					entryPoints: [path.resolve(`${buildPrefix}/${pack.name}/${packJson.main}`)],
+					bundle: true,
+					minify: false,
+					loader: {
+					},
+					define: {
+						'process.env.NODE_ENV': '"production"',
+					},
+					platform: 'node',
+					external: ['sharp', 'canvas', 'node-adodb', 'probelab-reimager', '*.node'],
+					outfile: path.resolve(`${buildPrefix}/electron/${pack.name}/${packJson.main}`)
+				});
 
-				// Inject the compiled files back into the release as expected by node-gyp
-				// Packaging does not keep compiled files as it is expected to be platform agnostic
-				await fs.mkdir(`${buildPrefix}/electron/package/build/Release`, {recursive: true});
-				await fs.copyFile(`${buildPrefix}/${pack.name}/build/Release/${pack.name}.node`, `${buildPrefix}/electron/package/build/Release/${pack.name}.node`);
-
-				// Inject previously existing dlls
-				if (process.platform === 'win32') {
-					const files = await fs.readdir(`${buildPrefix}/electron/windows/`);
-					for (const file of files)
-						if (file.endsWith('.dll'))
-							await fs.copyFile(`${buildPrefix}/electron/windows/${file}`, `${buildPrefix}/electron/package/build/Release/${file}`);
-					await fs.rm(`${buildPrefix}/electron/windows`, {recursive: true});
-				}
+				console.log('Copying package files');
+				const files = await fs.readdir(`${buildPrefix}/${pack.name}`);
+				for (const file of files)
+					switch(file.toLowerCase()) {
+						case 'package.json':
+						case 'license':
+							await fs.copyFile(`${buildPrefix}/${pack.name}/${file}`, `${buildPrefix}/electron/${pack.name}/${file}`);
+							break;
+					}
 
 				// Inject required dlls
-				if (process.platform === 'win32' && pack.requiresDlls)
+				if (process.platform === 'win32' && pack.requiresDlls) {
+					console.log('Injecting external package DLLs');
+					await fs.mkdir(dllDir, {recursive: true});
 					for (const dllPack of pack.requiresDlls)
 						for (const file of await fs.readdir(path.join(buildPrefix, dllPack)))
 							if (file.endsWith('.dll'))
-								await fs.copyFile(path.join(buildPrefix, dllPack, file), `${buildPrefix}/electron/package/build/Release/${file}`);
-
-				// move the generic package to post-compiled state
-				await fs.rename(`${buildPrefix}/electron/package`, `${buildPrefix}/electron/${pack.name}`);
+								await fs.copyFile(path.join(buildPrefix, dllPack, file), `${dllDir}/${file}`);
+				}
 
 				// Bundle dylibs on mac to make sure paths don't break
 				if (process.platform === 'darwin')
