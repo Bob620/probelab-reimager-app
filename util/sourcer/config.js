@@ -18,6 +18,7 @@ const env = {
 	CXXFLAGS: `-stdlib=libc++ -mmacosx-version-min=${macTargetVersion}`,
 	CPPFLAGS: `-stdlib=libc++ -mmacosx-version-min=${macTargetVersion}`,
 	CFLAGS: `-stdlib=libc++ -mmacosx-version-min=${macTargetVersion}`,
+	//MACOSX_DEPLOYMENT_TARGET: macTargetVersion, // Breaks gobject-introspection?
 	PATH: `${buildPrefix}:${buildPrefix}/bin:/usr/local/bin:/usr/bin:/bin`,
 	PKG_CONFIG_PATH: `${buildPrefix}/lib/pkgconfig`,
 	CMAKE_INSTALL_PREFIX: `${buildPrefix}/`,
@@ -43,10 +44,10 @@ if (process.platform === 'win32') {
 
 const mesonConfig = `--prefix="${buildPrefix}/"`;
 const configureConfig = `--prefix="${buildPrefix}/"`;
-const cmakeConfig = `-f makefile.unix -DCMAKE_INSTALL_PREFIX="${buildPrefix}" -DCMAKE_SYSTEM_PREFIX_PATH="${buildPrefix}"`;
+const cmakeConfig = `-f makefile.unix -DCMAKE_INSTALL_PREFIX="${buildPrefix}" -DCMAKE_SYSTEM_PREFIX_PATH="${buildPrefix}" -DCMAKE_BUILD_TYPE=Release`;
 const electronConfig = `--target=${electronVersion} --arch=x64 --dist-url=https://electronjs.org/headers`;
 
-const nodeGyp = `${process.platform === 'win32' ? '' : 'HOME=~/.electron-gyp'} "${path.resolve(`${buildPrefix}/../node_modules/.bin/node-gyp${process.platform === 'win32' ? '.cmd' : ''}`)}"`;
+const nodeGyp = `${process.platform === 'win32' ? '' : 'HOME=~/.electron-gyp'} "${path.resolve(`${buildPrefix}/../node_modules/.bin/node-gyp${process.platform === 'win32' ? '.cmd' : ''}`)}" -j max`;
 
 let compileOrder = new Set();
 

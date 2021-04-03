@@ -1,4 +1,6 @@
-const {createDir, installPack, exec, copyDirSync, hashFile} = require('./util.js');
+const fs = require('fs')
+
+const {createDir, installPackage: installPack, exec, copyDirSync, hashFile} = require('./util.js');
 const {macTargetVersion, packageVersion} = require('./sourcer/config.js');
 
 createDir('.', 'build');
@@ -11,21 +13,22 @@ exec('npm run minify');
 console.log('Installing production npm packages...');
 fs.mkdirSync(`./bin/unpackaged/node_modules`, {recursive: true});
 
-let installPackage = installPack;
+let installPackage;
 
+console.log('Packaging...');
+exec('"./node_modules/.bin/electron-packager" ./bin/unpackaged --out ./bin --overwrite');
 switch(process.platform) {
 	case 'darwin':
-		installPackage = installPackage.bind('bin/Probelab ReImager-darwin-x64/resources/app');
-		console.log(`Preparing packages for MacOSX (${macTargetVersion}) build...`);
+		installPackage = installPack.bind(undefined, 'bin/Probelab ReImager-darwin-x64/Probelab ReImager.app/contents/Resources/app');
+		console.log(`Preparing packages for MacOS (${macTargetVersion}) build...`);
 		exec('npm run build-el-capitan');
 
-		console.log(`Injecting packages into MacOSX (${macTargetVersion}) build...`);
+		fs.accessSync('./bin/Probelab ReImager-darwin-x64', fs.constants.F_OK);
+
+		console.log(`Injecting packages into MacOS (${macTargetVersion}) build...`);
 		installPackage('sharp');
 		installPackage('canvas');
 		installPackage('probelab-reimager');
-
-		console.log('Packaging...');
-		exec('"./node_modules/.bin/electron-packager" ./bin/unpackaged --out ./bin --overwrite');
 
 		console.log(`Injecting dylibs into MacOSX (${macTargetVersion}) build...`);
 		copyDirSync(`./bin/libs`, `./bin/Probelab ReImager-darwin-x64/Probelab ReImager.app/contents/Frameworks/Electron Framework.framework/Libraries/libs`);
@@ -38,12 +41,10 @@ switch(process.platform) {
 		console.log(`sha256: ${hash}`);
 		break;
 	case 'win32':
-		installPackage = installPackage.bind('bin/Probelab ReImager-win32-x64/resources/app');
+		installPackage = installPack.bind(undefined, 'bin/Probelab ReImager-win32-x64/resources/app');
 		console.log(`Preparing packages for Windows build...`);
 		exec('npm run build-windows');
 
-		console.log('Packaging...');
-		exec('"./node_modules/.bin/electron-packager" ./bin/unpackaged --out ./bin --overwrite');
 		fs.accessSync('./bin/Probelab ReImager-win32-x64', fs.constants.F_OK);
 
 		console.log(`Injecting packages into Windows build...`);

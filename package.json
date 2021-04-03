@@ -98,9 +98,5 @@
     "react-svg": "^11.2.5",
     "stream-browserify": "^2.0.2"
   },
-  "dependencies": {
-    "canvas": "2.7.0",
-    "probelab-reimager": "github:bob620/probelab-reimager#dev",
-    "sharp": "0.27.2"
-  }
+  "dependencies": {}
 }

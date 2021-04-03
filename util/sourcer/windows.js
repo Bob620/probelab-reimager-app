@@ -1,28 +1,9 @@
 const fs = require('fs/promises');
 
+const {copyDir} = require('../util.js');
 const {getCompileOrder, exec, buildPrefix} = require('./config.js');
 const {compile} = require('./compile.js');
 const {download} = require('./download.js');
-
-async function copyDir(src, dest) {
-	src = src.endsWith('/') ? src : src + '/';
-	dest = dest.endsWith('/') ? dest : dest + '/';
-	const files = await fs.readdir(src, {withFileTypes: true});
-	try {
-		await fs.mkdir(dest);
-	} catch(e) {
-	}
-
-	for (const file of files) {
-		const srcUri = `${src}${file.name}`;
-		const destUri = `${dest}${file.name}`;
-
-		if (file.isFile())
-			await fs.copyFile(srcUri, destUri);
-		else if (file.isDirectory())
-			await copyDir(srcUri, destUri);
-	}
-}
 
 const packages = new Map([
 	['package', {
@@ -145,7 +126,7 @@ getCompileOrder(packages).then(async compileOrder => {
 			toCompile.add(packName);
 		} else
 			try {
-				await compile(pack);
+				await compile(packages, pack);
 				pack.compiled = true;
 			} catch(err) {
 				console.log(err);

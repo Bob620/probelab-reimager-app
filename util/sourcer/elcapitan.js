@@ -1,3 +1,6 @@
+const fs = require('fs/promises');
+
+const {copyDir} = require('../util.js');
 const {getCompileOrder, buildPrefix, macTargetVersion, env} = require('./config.js');
 const {compile} = require('./compile.js');
 const {download} = require('./download.js');
@@ -10,12 +13,29 @@ const packages = new Map([
 		'method': '',
 		'args': [],
 		'requires': [
-			'canvas',
-			'sharp'
+			'probelab-reimager',
 		],
 		'recompiles': [],
 		'makes': [],
 		'postCompile': async () => {
+		}
+	}],
+	['probelab-reimager', {
+		'details': 'https://github.com/Bob620/probelab-reimager',
+		'link': 'https://github.com/Bob620/probelab-reimager/archive/refs/heads/dev.zip',
+		'name': 'probelab-reimager',
+		'method': 'electron',
+		'args': [],
+		'requires': [
+			'sharp',
+			'canvas'
+		],
+		'recompiles': [],
+		'makes': ['probelab-reimager'],
+		'postCompile': async () => {
+			await copyDir(`${buildPrefix}/probelab-reimager/fonts`, `${buildPrefix}/electron/probelab-reimager/fonts`);
+			await fs.writeFile(`${buildPrefix}/electron/probelab-reimager/module.js`, (await fs.readFile(`${buildPrefix}/electron/probelab-reimager/module.js`, 'utf8'))
+				.replace(/\/\.\.\/fonts/gi, '/fonts'));
 		}
 	}],
 	['canvas', {
@@ -31,7 +51,11 @@ const packages = new Map([
 			'dylibbundler'
 		],
 		'recompiles': [],
-		'makes': ['canvas']
+		'makes': ['canvas'],
+		'postCompile': async () => {
+			await fs.writeFile(`${buildPrefix}/electron/canvas/index.js`, (await fs.readFile(`${buildPrefix}/electron/canvas/index.js`, 'utf8'))
+				.replace(/\.\.\/build\/Release\/canvas\.node/gi, './canvas.node'));
+		}
 	}],
 	['sharp', {
 		'details': 'https://sharp.pixelplumbing.com',
@@ -44,7 +68,24 @@ const packages = new Map([
 			'dylibbundler'
 		],
 		'recompiles': [],
-		'makes': ['sharp']
+		'makes': ['sharp'],
+		'postConfigure': async () => {
+			// Potentially need to patch the binding.gyp and add glib + gobject ???
+			//await fs.writeFile(`${buildPrefix}/sharp/binding.gyp`, (await fs.readFile(`${buildPrefix}/sharp/binding.gyp`, 'utf8'))
+			//	.replace(/'libvips-cpp.42.dylib',\n\t\t\t\t'libvips.42.dylib'/gi, '\n' +
+			//	'\t\t\t\t\'libvips-cpp.42.dylib\',\n' +
+			//	'\t\t\t\t\'libglib-2.0.0.dylib\',\n' +
+			//	'\t\t\t\t\'libgobject-2.0.0.dylib\',\n' +
+			//	'\t\t\t\t\'libvips.42.dylib\''));
+		},
+		'postCompile': async () => {
+			await fs.writeFile(`${buildPrefix}/electron/sharp/lib/index.js`, (await fs.readFile(`${buildPrefix}/electron/sharp/lib/index.js`, 'utf8'))
+				.replace(/\.\.\/build\/Release\/sharp\.node/gi, '../sharp.node'));
+			const files = await fs.readdir(`${buildPrefix}/sharp/vendor/8.10.5/lib/`);
+			for (const file of files)
+				if (file.endsWith('.dll'))
+					await fs.copyFile(`${buildPrefix}/sharp/vendor/8.10.5/lib/${file}`, `${buildPrefix}/electron/sharp/${file}`);
+		}
 	}],
 	['dylibbundler', {
 		'details': 'https://pango.gnome.org/',
@@ -307,7 +348,7 @@ const packages = new Map([
 	}],
 	['libjpeg', {
 		'details': 'https://www.libjpeg-turbo.org/',
-		'link': 'https://newcontinuum.dl.sourceforge.net/project/libjpeg-turbo/2.0.5/libjpeg-turbo-2.0.5.tar.gz',
+		'link': 'https://iweb.dl.sourceforge.net/project/libjpeg-turbo/2.0.6/libjpeg-turbo-2.0.6.tar.gz',
 		'name': 'libjpeg',
 		'method': 'cmake',
 		'args': [],
@@ -448,6 +489,9 @@ const packages = new Map([
 		'link': 'https://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.16.tar.gz',
 		'name': 'iconv',
 		'method': 'configure',
+		'before-recompile': [
+			'--without-libintl-prefix'
+		],
 		'args': [],
 		'requires': [],
 		'recompiles': [],
@@ -458,7 +502,9 @@ const packages = new Map([
 		'link': 'https://ftp.gnu.org/pub/gnu/gettext/gettext-0.21.tar.gz',
 		'name': 'gettext',
 		'method': 'configure',
-		'args': [],
+		'args': [
+			'--disable-java'
+		],
 		'requires': [
 			'iconv',
 			'pkgconfig'
@@ -506,7 +552,7 @@ getCompileOrder(packages).then(async compileOrder => {
 			toCompile.add(packName);
 		} else
 			try {
-				await compile(pack);
+				await compile(packages, pack);
 				pack.compiled = true;
 			} catch(err) {
 				console.log(err);

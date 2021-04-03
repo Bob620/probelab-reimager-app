@@ -54,11 +54,35 @@ function copyDirSync(src, dest) {
 	}
 }
 
+async function copyDir(src, dest) {
+	src = src.endsWith('/') ? src : src + '/';
+	dest = dest.endsWith('/') ? dest : dest + '/';
+	const files = await fs.promises.readdir(src, {withFileTypes: true});
+	try {
+		await fs.promises.mkdir(dest);
+	} catch(e) {
+	}
+
+	for (const file of files) {
+		const srcUri = `${src}${file.name}`;
+		const destUri = `${dest}${file.name}`;
+
+		if (file.isFile())
+			await fs.promises.copyFile(srcUri, destUri);
+		else if (file.isDirectory())
+			await copyDir(srcUri, destUri);
+	}
+}
+
 function installPackage(location, packName) {
 	const dest = path.resolve(location, 'node_modules', packName);
 	const src = path.resolve(buildPrefix, 'electron',  packName);
 
-	exec(`rm -fr ${dest}`);
+	console.log(`Installing ${packName}`);
+	try {
+		fs.rmSync(dest);
+	} catch(e) {
+	}
 	copyDirSync(src, dest);
 }
 
@@ -66,6 +90,7 @@ module.exports = {
 	installPackage,
 	exec,
 	copyDirSync,
+	copyDir,
 	createDir,
 	hashFile
 };

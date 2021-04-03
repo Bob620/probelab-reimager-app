@@ -9,13 +9,14 @@ const {
 	cmakeConfig,
 	mesonConfig,
 	exec,
-	packages,
 	nodeGyp,
 	electronConfig,
 	macTargetVersion
 } = require('./config.js');
 
-async function compile(pack, recompile = false) {
+async function compile(packages, pack, recompile = false) {
+	const args = `${pack.args ? pack.args.join(' ') : ''} ${!recompile && pack['before-recompile'] ? pack['before-recompile'].join(' ') : ''}`;
+
 	if (!pack.compiled || recompile) {
 		switch(pack.method) {
 			case 'configure':
@@ -33,7 +34,7 @@ async function compile(pack, recompile = false) {
 					await pack.postClean();
 
 				console.log(`Configuring ${pack.name} (${pack.link})`);
-				await exec(`./configure ${configureConfig} ${pack.args.join(' ')} > /dev/null`, pack.name);
+				await exec(`./configure ${configureConfig} ${args} > /dev/null`, pack.name);
 
 				if (pack.postConfigure)
 					await pack.postConfigure();
@@ -57,7 +58,7 @@ async function compile(pack, recompile = false) {
 					await pack.postClean();
 
 				console.log(`Configuring ${pack.name} (${pack.link})`);
-				await exec(`cmake make ${cmakeConfig} ${pack.args.join(' ')} . > /dev/null`, pack.name);
+				await exec(`cmake make ${cmakeConfig} ${args} . > /dev/null`, pack.name);
 
 				if (pack.postConfigure)
 					await pack.postConfigure();
@@ -77,7 +78,7 @@ async function compile(pack, recompile = false) {
 
 				console.log(`Configuring ${pack.name} (${pack.link})`);
 				try {
-					await exec(`meson _build ${mesonConfig} ${pack.args.join(' ')}`, pack.name);
+					await exec(`meson _build ${mesonConfig} ${args}`, pack.name);
 				} catch(err) {
 					throw err.stdout.toString();
 				}
@@ -203,7 +204,11 @@ async function compile(pack, recompile = false) {
 
 				// Bundle dylibs on mac to make sure paths don't break
 				if (process.platform === 'darwin')
-					await exec(`"${buildPrefix}/bin/dylibbundler" -s "${buildPrefix}/lib" -of -cd -b -d "./bin/libs" -x "${buildPrefix}/electron/${pack.name}/build/Release/${pack.name}.node" -p "@rpath/libs/"`);
+					try {													//  Search Dir for libs                Bundled libs to  exec lib dir     file to fix
+						await exec(`"${buildPrefix}/bin/dylibbundler" -s "${buildPrefix}/lib" -of -cd -b -d "../bin/libs" -p "./bin/libs/" -x "${dllDir}/${pack.name}.node"`);
+					} catch(e) {
+						console.log(`Unable to bundle ${pack.name}.node`);
+					}
 				break;
 			default:
 				break;
@@ -214,7 +219,7 @@ async function compile(pack, recompile = false) {
 
 		if (pack.recompiles && pack.recompiles.length > 0)
 			for (const packName of pack.recompiles)
-				await compile(packages.get(packName), true);
+				await compile(packages, packages.get(packName), true);
 	}
 }
 
