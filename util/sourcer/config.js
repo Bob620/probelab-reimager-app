@@ -15,6 +15,7 @@ const macTargetVersion = '10.11';
 
 const env = {
 	LDFLAGS: `-mmacosx-version-min=${macTargetVersion}`,
+	LD_LIBRARY_PATH: `${buildPrefix}/lib`,
 	CXXFLAGS: `-stdlib=libc++ -mmacosx-version-min=${macTargetVersion}`,
 	CPPFLAGS: `-stdlib=libc++ -mmacosx-version-min=${macTargetVersion}`,
 	CFLAGS: `-stdlib=libc++ -mmacosx-version-min=${macTargetVersion}`,
@@ -42,10 +43,10 @@ if (process.platform === 'win32') {
 //	env.VS140COMNTOOLS = process.env.VS140COMNTOOLS; // npm config set msvs_version 2015
 }
 
-const mesonConfig = `--prefix="${buildPrefix}/"`;
+const mesonConfig = `--prefix="${buildPrefix}/" -Dbuildtype=release`;
 const configureConfig = `--prefix="${buildPrefix}/"`;
 const cmakeConfig = `-f makefile.unix -DCMAKE_INSTALL_PREFIX="${buildPrefix}" -DCMAKE_SYSTEM_PREFIX_PATH="${buildPrefix}" -DCMAKE_BUILD_TYPE=Release`;
-const electronConfig = `--target=${electronVersion} --arch=x64 --dist-url=https://electronjs.org/headers`;
+const electronConfig = `--target=${electronVersion} --arch=x64 --dist-url=https://electronjs.org/headers --release `;
 
 const nodeGyp = `${process.platform === 'win32' ? '' : 'HOME=~/.electron-gyp'} "${path.resolve(`${buildPrefix}/../node_modules/.bin/node-gyp${process.platform === 'win32' ? '.cmd' : ''}`)}" -j max`;
 

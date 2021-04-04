@@ -65,18 +65,19 @@ const packages = new Map([
 		'args': [],
 		'requires': [
 			'vips',
+			'gobject',
+			'glib',
 			'dylibbundler'
 		],
 		'recompiles': [],
 		'makes': ['sharp'],
 		'postConfigure': async () => {
 			// Potentially need to patch the binding.gyp and add glib + gobject ???
-			//await fs.writeFile(`${buildPrefix}/sharp/binding.gyp`, (await fs.readFile(`${buildPrefix}/sharp/binding.gyp`, 'utf8'))
-			//	.replace(/'libvips-cpp.42.dylib',\n\t\t\t\t'libvips.42.dylib'/gi, '\n' +
-			//	'\t\t\t\t\'libvips-cpp.42.dylib\',\n' +
-			//	'\t\t\t\t\'libglib-2.0.0.dylib\',\n' +
-			//	'\t\t\t\t\'libgobject-2.0.0.dylib\',\n' +
-			//	'\t\t\t\t\'libvips.42.dylib\''));
+			await fs.writeFile(`${buildPrefix}/sharp/binding.gyp`, (await fs.readFile(`${buildPrefix}/sharp/binding.gyp`, 'utf8'))
+				.replace(/'libvips-cpp\.42\.dylib',/gi, '\'libvips-cpp.42.dylib\',\'libglib-2.0.0.dylib\',')
+				.replace(/'libvips\.42\.dylib'/gi, '\'libgobject-2.0.0.dylib\',\'libvips.42.dylib\'')
+				.replace(/'<\(sharp_vendor_dir\)\/lib'/gi, `'${buildPrefix}/lib/'`)
+			);
 		},
 		'postCompile': async () => {
 			await fs.writeFile(`${buildPrefix}/electron/sharp/lib/index.js`, (await fs.readFile(`${buildPrefix}/electron/sharp/lib/index.js`, 'utf8'))
