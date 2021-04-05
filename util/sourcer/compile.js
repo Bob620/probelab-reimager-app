@@ -1,5 +1,6 @@
 const path = require('path');
 const fs = require('fs/promises');
+const os = require('os');
 
 const esbuild = require('esbuild');
 
@@ -40,7 +41,7 @@ async function compile(packages, pack, recompile = false) {
 					await pack.postConfigure();
 
 				console.log(`Building ${pack.name} (${pack.link})`);
-				await exec('make install > /dev/null', pack.name);
+				await exec(`make -j${os.cpus().length} install > /dev/null`, pack.name);
 
 				break;
 			case 'cmake':
@@ -117,7 +118,7 @@ async function compile(packages, pack, recompile = false) {
 					await pack.postConfigure();
 
 				console.log(`Building ${pack.name} (${pack.link})`);
-				await exec('make install > /dev/null', pack.name);
+				await exec(`make -j${os.cpus().length} install > /dev/null`, pack.name);
 
 				break;
 			case 'dll':
@@ -171,7 +172,7 @@ async function compile(packages, pack, recompile = false) {
 				await esbuild.build({
 					entryPoints: [path.resolve(`${buildPrefix}/${pack.name}/${packJson.main}`)],
 					bundle: true,
-					minify: false,
+					minify: true,
 					loader: {
 					},
 					define: {
@@ -205,7 +206,7 @@ async function compile(packages, pack, recompile = false) {
 				// Bundle dylibs on mac to make sure paths don't break
 				if (process.platform === 'darwin')
 					try {													//  Search Dir for libs                Bundled libs to  exec lib dir     file to fix
-						await exec(`"${buildPrefix}/bin/dylibbundler" -s "${buildPrefix}/lib" -of -cd -b -d "../bin/libs" -p "./bin/libs/" -x "${dllDir}/${pack.name}.node"`);
+						await exec(`"${buildPrefix}/bin/dylibbundler" -s "${buildPrefix}/lib" -of -cd -b -d "../bin/libs" -p "@rpath/libs/" -x "${dllDir}/${pack.name}.node"`);
 					} catch(e) {
 						console.log(`Unable to bundle ${pack.name}.node`);
 					}

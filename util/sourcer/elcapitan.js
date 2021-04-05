@@ -1,6 +1,6 @@
 const fs = require('fs/promises');
 
-const {copyDir} = require('../util.js');
+const {copyDir, exec} = require('../util.js');
 const {getCompileOrder, buildPrefix, macTargetVersion, env} = require('./config.js');
 const {compile} = require('./compile.js');
 const {download} = require('./download.js');
@@ -33,6 +33,10 @@ const packages = new Map([
 		'recompiles': [],
 		'makes': ['probelab-reimager'],
 		'postCompile': async () => {
+			console.log('Probelab-ReImager mdb-sql needs `chmod 777`:');
+			await exec(`sudo chmod 777 ${buildPrefix}/probelab-reimager/node_modules/node-mdb-sql/mdb-sql`);
+			await fs.copyFile(`${buildPrefix}/probelab-reimager/node_modules/node-mdb-sql/mdb-sql`, `${buildPrefix}/electron/probelab-reimager/mdb-sql`);
+			await copyDir(`${buildPrefix}/probelab-reimager/node_modules/node-mdb-sql/.libs`, `${buildPrefix}/electron/probelab-reimager/.libs`);
 			await copyDir(`${buildPrefix}/probelab-reimager/fonts`, `${buildPrefix}/electron/probelab-reimager/fonts`);
 			await fs.writeFile(`${buildPrefix}/electron/probelab-reimager/module.js`, (await fs.readFile(`${buildPrefix}/electron/probelab-reimager/module.js`, 'utf8'))
 				.replace(/\/\.\.\/fonts/gi, '/fonts'));
