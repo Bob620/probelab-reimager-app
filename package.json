@@ -1,7 +1,7 @@
 {
   "name": "probelab-reimager-app",
   "productName": "Probelab ReImager",
-  "version": "1.7.2-stable",
+  "version": "1.7.3-stable",
   "description": "Visual UI for Probelab ReImager using Electron",
   "main": "./src/backend/main.js",
   "scripts": {
@@ -87,7 +87,6 @@
     "electron": "12.0.2",
     "electron-builder": "^22.9.1",
     "electron-packager": "^15.2.0",
-    "electron-rebuild": "^2.3.5",
     "esbuild": "^0.10.2",
     "esbuild-sass-plugin": "^1.2.0",
     "events": "^3.3.0",
