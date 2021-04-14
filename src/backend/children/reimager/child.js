@@ -36,12 +36,12 @@ class Child {
 
 	async getDir({uri}) {
 		this.data.log.info('Getting directory...');
-		this.data.imageCache = await Functions.getDir(uri, this.data.canvas);
+		this.data.imageCache = await Functions.getDir(uri, this.data.canvas, this.data.log);
 		this.data.cacheDir = path.resolve(uri);
 
 		const thermos = this.data.imageCache.map(thermo => thermo.serialize());
 
-		this.data.log.info('Returning thermos from directory');
+		this.data.log.info(`Returning ${thermos.length} thermos from directory`);
 		return thermos;
 	}
 

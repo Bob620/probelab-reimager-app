@@ -4,6 +4,7 @@ const fsPromise = fs.promises;
 const {PointShoot, ExtractedMap, constants, JeolImage, PFE} = require('probelab-reimager');
 
 const appConstants = require('../../../../constants.json');
+const {CreateFakeLog} = require('../../log.js');
 
 const Functions = {
 	sanitizePosition: inputPos => {
@@ -86,12 +87,16 @@ const Functions = {
 
 		return settings;
 	},
-	getDir: async (dirUri, canvas) => {
+	getDir: async (dirUri, canvas, log = CreateFakeLog()) => {
 		const directory = await fsPromise.readdir(dirUri, {withFileTypes: true});
-		const files = (await Functions.getImages(dirUri, canvas)).filter(i => i);
-		return files.concat((await Promise.all(directory.map(dir => dir.isDirectory() ? Functions.getImages(dirUri + dir.name + path.sep, canvas) : []))).flat().filter(i => i));
+		log.info(`Found ${directory.length} files in selected directory`);
+		const files = (await Functions.getImages(dirUri, canvas, log)).filter(i => i);
+		log.info(`Found ${files.length} valid images in selected directory`);
+		const subFiles = (await Promise.all(directory.map(dir => dir.isDirectory() ? Functions.getImages(dirUri + dir.name + path.sep, canvas, log) : []))).flat().filter(i => i);
+		log.info(`Found ${subFiles.length} valid images in sub directories`);
+		return files.concat(subFiles);
 	},
-	getImages: async (dirUri, canvas) => {
+	getImages: async (dirUri, canvas, log = CreateFakeLog()) => {
 		const files = fs.readdirSync(dirUri, {withFileTypes: true}).filter(file => file.isFile());
 		let thermos = [];
 		let extraLayers = [];
@@ -102,7 +107,7 @@ const Functions = {
 				extraLayers.push(file);
 				return Promise.all(thermos.map(thermo => thermo.addLayerFile(file.uri))).then(() => undefined);
 			} else {
-				const thermoItem = Functions.createThermo(file, canvas);
+				const thermoItem = Functions.createThermo(file, canvas, undefined, log);
 				if (thermoItem && thermoItem[1]) {
 					let outThermos;
 					if (thermoItem[0].getImages === undefined) {
@@ -121,14 +126,15 @@ const Functions = {
 							}
 							resolve(outThermos);
 						} catch(e) {
-							resolve()
+							log.warn(e);
+							resolve();
 						}
 					});
 				}
 			}
 		}).flat())).filter(i => i).flat();
 	},
-	createThermo: (file, canvas, uuid = undefined) => {
+	createThermo: (file, canvas, uuid = undefined, log = CreateFakeLog()) => {
 		if (file.isFile()) {
 			let thermo;
 			const fileName = file.name.toLowerCase();
