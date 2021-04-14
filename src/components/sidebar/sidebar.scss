@@ -61,9 +61,31 @@ p {
       align-items: center;
       flex-shrink: 0;
 
-      > input {
+      > label {
         width: 100%;
+        height: 100%;
         cursor: pointer;
+
+        justify-content: center;
+        display: flex;
+        flex-direction: column;
+
+        > p {
+          width: 100%;
+          text-align: center;
+        }
+
+        border-bottom: 2px;
+        border-bottom-color: white;
+        border-bottom-style: solid;
+
+        &:hover {
+          background-color: $hover-color;
+        }
+      }
+
+      > input {
+        display: none;
       }
     }
 

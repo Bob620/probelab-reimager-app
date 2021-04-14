@@ -32,7 +32,8 @@ class Sidebar extends Component {
 			<section id='sidebar'>
 				<div className='content'>
 					<div className='input'>
-						<input onChange={generalActions.setWorkingDirectory} type="file" webkitdirectory="true" />
+						<label htmlFor="workingDirectory"><p>Select Directory</p></label>
+						<input id="workingDirectory" onChange={generalActions.setWorkingDirectory} type="file" webkitdirectory="true" />
 					</div>
 					<ul className='current-dir'>{loadingDir ?
 						<div>
