@@ -129,10 +129,10 @@ class Options extends Component {
 											 changeFromAuto={settingActions.changeFromAutoScale}
 											 onChange={settingActions.changeScaleSize}
 							/>
-							<ToggleableScale min='0' max='100' maxLength='3' valueName='scaleBarHeight' autoName='autoHeight' text='Scale Bar Height(%): '
-											 toggleAuto={settingActions.toggleAutoScaleHeight}
-											 changeFromAuto={settingActions.changeFromAutoHeight}
-											 onChange={settingActions.changeScaleBarHeight}
+							<ToggleableScale min='0' max='500' maxLength='3' valueName='scaleBarLabelSize' autoName='autoLabelSize' text='Scale Label Size(%): '
+											 toggleAuto={settingActions.toggleScaleBarLabelSize}
+											 changeFromAuto={settingActions.changeFromAutoLabelSize}
+											 onChange={settingActions.changeScaleBarLabelSize}
 							/>
 							<ToggleableScale min='0' max='100' maxLength='3' valueName='backgroundOpacity' autoName='autoBackgroundOpacity' text='Background Opacity: '
 											 toggleAuto={settingActions.toggleAutoBackgroundOpacity}

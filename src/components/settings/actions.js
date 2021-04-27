@@ -23,6 +23,12 @@ export default CreateActions([
 		}
 	},
 	{
+		actionType: 'toggleScaleBarLabelSize',
+		func: ({stores}, force=undefined) => {
+			stores.settings.set('autoLabelSize', force !== undefined ? force : !stores.settings.get('autoLabelSize'));
+		}
+	},
+	{
 		actionType: 'changeBarPosition',
 		func: ({stores}, force=undefined, {target}) => {
 			stores.settings.set('scaleBarPosition', force !== undefined ? force : target.value);
@@ -140,6 +146,23 @@ export default CreateActions([
 		}
 	},
 	{
+		actionType: 'changeScaleBarLabelSize',
+		func: ({stores}, {target}) => {
+			const num = parseInt(target.value === '0' ? '0' : target.value.replace(/^0+/g, ''));
+			if (!isNaN(num))
+				if (0 <= num)
+					if (num <= 500)
+						stores.settings.set('scaleBarLabelSize', num);
+					else
+						stores.settings.set('scaleBarLabelSize', 500);
+				else
+					stores.settings.set('scaleBarLabelSize', 0);
+
+			if (target.value === '')
+				stores.settings.set('scaleBarLabelSize', '');
+		}
+	},
+	{
 		actionType: 'changePointFontSize',
 		func: ({stores}, {target}) => {
 			const num = parseInt(target.value === '0' ? '0' : target.value.replace(/^0+/g, ''));
@@ -202,6 +225,13 @@ export default CreateActions([
 		func: ({actions, stores}, event) => {
 			actions.changeScaleBarHeight(event);
 			stores.settings.set('autoHeight', false);
+		}
+	},
+	{
+		actionType: 'changeFromAutoLabelSize',
+		func: ({actions, stores}, event) => {
+			actions.changeScaleBarLabelSize(event);
+			stores.settings.set('autoLabelSize', false);
 		}
 	},
 	{

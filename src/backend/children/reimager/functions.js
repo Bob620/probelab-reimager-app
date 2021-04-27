@@ -69,6 +69,7 @@ const Functions = {
 			pointSize: inputSettings.autoPointFontSize ? 0 : (inputSettings.pointFontSize / 2),
 			scaleSize: inputSettings.autoScale ? 0 : inputSettings.scaleSize,
 			scaleBarHeight: inputSettings.autoHeight ? 0 : (inputSettings.scaleBarHeight / 100),
+			scaleBarLabelSize: inputSettings.autoLabelSize ? 0 : (inputSettings.scaleBarLabelSize / 100),
 			scaleBarTop: inputSettings.scaleBarPosition === appConstants.settings.scaleBarPositions.ABOVE,
 			pixelSizeConstant: inputSettings.autoPixelSizeConstant ? 0 : inputSettings.pixelSizeConstant,
 			uri: inputSettings.uri

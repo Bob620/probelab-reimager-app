@@ -15,6 +15,8 @@ module.exports = new Store('settings', {
 	scaleSize: 0,
 	autoScale: true,
 	scaleBarHeight: 0,
+	autoLabelSize: true,
+	scaleBarLabelSize: 0,
 	autoHeight: true,
 	scaleBarPosition: constants.settings.scaleBarPositions.ABOVE,
 	pixelSizeConstant: 0,
