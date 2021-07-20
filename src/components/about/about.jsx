@@ -17,7 +17,7 @@ class About extends Component {
 			<section id='main' className='about'>
 				<section className='people'>
 					<h1>People</h1>
-					<Person name='Noah Kraft' contact='kraft270@umn.edu' website='https://bobco.moe' role='Developer'/>
+					<Person name='Mia Kraft' contact='kraft270@umn.edu' website='https://bobco.moe' role='Developer'/>
 					<Person name='Anette von der Handt'  contact='avdhandt@umn.edu' website='http://avdhandt.umn.edu' role='QA and Management'/>
 				</section>
 				<section className='packages'>
@@ -30,8 +30,8 @@ class About extends Component {
 					<Package name='Bakadux' license='MIT' website='https://github.com/Bob620/bakadux' copyright={[
 						{name: 'Bob620', year: '2018', contact: 'bruder.kraft225@gmail.com'}]
 					}/>
-					<Package name='Thermo-ReImager' license='MIT' website='https://github.com/Bob620/thermo-reimager' copyright={[
-						{name: 'Bob620', year: '2019', contact: 'bruder.kraft225@gmail.com'}]
+					<Package name='Probelab-ReImager' license='MIT' website='https://github.com/Bob620/probelab-reimager' copyright={[
+						{name: 'Bob620', year: '2021', contact: 'bruder.kraft225@gmail.com'}]
 					}/>
 					<Package name='Electron' license='MIT' website='https://electronjs.org' copyright={[
 						{name: 'GitHub Inc.', year: '2013-2019', contact: ''}]
@@ -42,7 +42,7 @@ class About extends Component {
 				</section>
 				<section className='license'>
 					<Package name='Probelab ReImager' version={require('../../../package.json').version} license={require('../../../package.json').license} website='https://reimager.probelab.net' copyright={[
-						{name: require('../../../package.json').author, year: '2019', contact: require('../../../package.json').email}
+						{name: require('../../../package.json').author, year: '2021', contact: require('../../../package.json').email}
 					]}/>
 					<p>Please visit the <a target='_blank' href='https://github.com/Bob620/thermo-reimager-app'>github page</a> for the full license.</p>
 				</section>
@@ -50,6 +50,7 @@ class About extends Component {
 					<h1>Acknowledgements</h1>
 					<Acknowledgement text="We gratefully acknowledge Mark Hirschmann's contribution to the creation of Probelab ReImager" name='Marc Hirschmann' location='Department of Earth and Environmental Sciences, Univeristy of Minnesota'/>
 					<Acknowledgement text='NSF #1849465'/>
+					<Acknowledgement text="Thanks to Evan for maintaining MDB Tools for MDB support on non-windows platforms" name='Evan Miller' location='https://www.evanmiller.org/'/>
 				</section>
 				<section className='organizations'>
 					<Person name='Probelab' contact='avdhandt@umn.edu' website='http://probelab.net' />
