@@ -95,19 +95,23 @@ app.on('ready', async () => {
 					const thermo = (await reimager.send('getImages', {uri: path.resolve(uri) + path.sep}))[0];
 					let uuids = [];
 
-					for (const [uuid, therm] of uuidMap)
-						if (therm.entryFile === thermo.entryFile)
-							uuids.push(uuid);
+					if (thermo) {
+						for (const [uuid, therm] of uuidMap)
+							if (therm.entryFile === thermo.entryFile)
+								uuids.push(uuid);
 
-					await comms.send('updateDirectory', {
-						images: uuids.map(uuid => {
-							const temp = JSON.parse(JSON.stringify(thermo));
-							temp.uuid = uuid;
-							temp.imageUuid = uuid;
-							uuidMap.set(uuid, temp);
-							return temp;
-						})
-					});
+						await comms.send('updateDirectory', {
+							images: uuids.map(uuid => {
+								const temp = JSON.parse(JSON.stringify(thermo));
+								temp.uuid = uuid;
+								temp.imageUuid = uuid;
+								uuidMap.set(uuid, temp);
+								return temp;
+							})
+						});
+					} else {
+						logs.updateDir.info('No valid files found');
+					}
 				} catch (err) {
 					logs.updateDir.error(err);
 				}
@@ -133,7 +137,6 @@ app.on('ready', async () => {
 		} catch (err) {
 			logs.dirUpdate.error(err);
 		}
-		logs.dirUpdate.info('No actions taken yet');
 	});
 
 	comms.on('exportLog', async () => {
