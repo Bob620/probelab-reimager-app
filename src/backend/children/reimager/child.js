@@ -34,9 +34,9 @@ class Child {
 
 	}
 
-	async getDir({uri}) {
+	async getDir({uri, pixelSizeConstant}) {
 		this.data.log.info('Getting directory...');
-		this.data.imageCache = await Functions.getDir(uri, this.data.canvas, this.data.log);
+		this.data.imageCache = await Functions.getDir(uri, this.data.canvas, pixelSizeConstant, this.data.log);
 		this.data.cacheDir = path.resolve(uri);
 
 		const thermos = this.data.imageCache.map(thermo => thermo.serialize());
@@ -45,14 +45,15 @@ class Child {
 		return thermos;
 	}
 
-	async getImages({uri, uuids = {}}) {
+	async getImages({uri, uuids = {}, pixelSizeConstant}) {
 		this.data.log.info('Getting images...');
 		if (uri !== this.data.cacheDir)
-			await this.getDir({uri});
+			await this.getDir({uri, pixelSizeConstant});
 
 		return this.data.imageCache.map(thermo => {
 			const uuid = uuids[thermo.data.files.entry];
 			thermo.data.uuid = uuid ? uuid : thermo.data.uuid;
+			this.data.log(thermo.serialize().toString());
 			return thermo.serialize();
 		});
 	}
@@ -71,7 +72,7 @@ class Child {
 
 		const uriDir = path.dirname(uri);
 		if (uriDir !== this.data.cacheDir && path.dirname(uriDir) !== this.data.cacheDir)
-			await this.getDir({uri: uriDir});
+			await this.getDir({uri: uriDir, pixelSizeConstant: settings.pixelSizeConstant === 0 ? undefined : settings.pixelSizeConstant});
 
 		const tempThermos = this.data.imageCache;
 		if (tempThermos === undefined) {

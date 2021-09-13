@@ -88,17 +88,17 @@ const Functions = {
 
 		return settings;
 	},
-	getDir: async (dirUri, canvas, log = CreateFakeLog()) => {
+	getDir: async (dirUri, canvas, pixelSizeConstant = constants.PIXELSIZECONSTANT, log = CreateFakeLog()) => {
 		const directory = await fsPromise.readdir(dirUri, {withFileTypes: true});
 		log.info(`Found ${directory.length} files in selected directory`);
-		const files = (await Functions.getImages(dirUri, canvas, log)).filter(i => i);
+		const files = (await Functions.getImages(dirUri, canvas, pixelSizeConstant, log)).filter(i => i);
 		log.info(`Found ${files.length} valid images in selected directory`);
-		const subFiles = (await Promise.all(directory.map(dir => dir.isDirectory() ? Functions.getImages(dirUri + dir.name + path.sep, canvas, log) : []))).flat().filter(i => i);
+		const subFiles = (await Promise.all(directory.map(dir => dir.isDirectory() ? Functions.getImages(dirUri + dir.name + path.sep, canvas, pixelSizeConstant, log) : []))).flat().filter(i => i);
 		log.info(`Found ${subFiles.length} valid images in sub directories`);
 		return files.concat(subFiles);
 	},
-	getImages: async (dirUri, canvas, log = CreateFakeLog()) => {
-		const files = fs.readdirSync(dirUri, {withFileTypes: true}).filter(file => file.isFile());
+	getImages: async (dirUri, canvas, pixelSizeConstant = constants.PIXELSIZECONSTANT, log = CreateFakeLog()) => {
+		const files = (await fsPromise.readdir(dirUri, {withFileTypes: true})).filter(file => file.isFile());
 		let thermos = [];
 		let extraLayers = [];
 
@@ -108,7 +108,7 @@ const Functions = {
 				extraLayers.push(file);
 				return Promise.all(thermos.map(thermo => thermo.addLayerFile(file.uri))).then(() => undefined);
 			} else {
-				const thermoItem = Functions.createThermo(file, canvas, undefined, log);
+				const thermoItem = Functions.createThermo(file, canvas, pixelSizeConstant, undefined, log);
 				if (thermoItem && thermoItem[1]) {
 					let outThermos;
 					if (thermoItem[0].getImages === undefined) {
@@ -127,7 +127,8 @@ const Functions = {
 							}
 							resolve(outThermos);
 						} catch(e) {
-							log.warn(e);
+							log.warn(e.stack);
+							log.warn(e.message);
 							resolve();
 						}
 					});
@@ -135,7 +136,7 @@ const Functions = {
 			}
 		}).flat())).filter(i => i).flat();
 	},
-	createThermo: (file, canvas, uuid = undefined, log = CreateFakeLog()) => {
+	createThermo: (file, canvas, pixelSizeConstant = constants.PIXELSIZECONSTANT, uuid = undefined, log = CreateFakeLog()) => {
 		if (file.isFile()) {
 			let thermo;
 			const fileName = file.name.toLowerCase();
@@ -147,10 +148,10 @@ const Functions = {
 				}
 
 			if (fileName.endsWith(constants.pointShoot.fileFormats.ENTRY))
-				thermo = new PointShoot(file, canvas);
+				thermo = new PointShoot(file, pixelSizeConstant, canvas);
 
 			if (fileName.endsWith(constants.extractedMap.fileFormats.ENTRY))
-				thermo = new ExtractedMap(file, canvas);
+				thermo = new ExtractedMap(file, pixelSizeConstant, canvas);
 
 			if (fileName.endsWith(constants.pfe.fileFormats.ENTRY.toLowerCase()))
 				thermo = new PFE(file, canvas);
