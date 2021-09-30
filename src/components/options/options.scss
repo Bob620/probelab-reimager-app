@@ -32,8 +32,7 @@
       display: grid;
       grid-template-columns: 1fr 10px 1fr 10px 1fr;
       grid-template-rows: 1fr 10px 1fr 10px 1fr;
-      grid-template-areas: "ul . . . ur" ". . . . ." "ll . lc . lr" "f f f f f" "bl fl bc fr br""jeol jeol jeol jeol jeol";
-      min-height: 140px;
+      grid-template-areas: "ul . uc . ur" ". . . . ." "ll . lc . lr" "f f f f f" "bl fl bc fr br""jeol jeol jeol jeol jeol";
       max-height: 200px;
       height: 30%;
       width: calc(90% - 4px);
@@ -81,6 +80,12 @@
         border-bottom-right-radius: 4px;
         border-top-width: 0;
         border-left-width: 0;
+      }
+      > .uc {
+        grid-area: uc;
+        border-bottom-right-radius: 4px;
+        border-bottom-left-radius: 4px;
+        border-top-width: 0;
       }
       > .ur {
         grid-area: ur;
@@ -140,7 +145,7 @@
       display: flex;
       flex-direction: row;
       justify-content: space-around;
-      height: 270px;
+      height: 190px;
       padding: 2px;
       flex-shrink: 0;
 
@@ -286,13 +291,14 @@
 
         > li {
           display: flex;
-          justify-content: space-around;
+          justify-content: space-between;
           align-items: center;
 
           > div {
             flex-shrink: 0;
             height: 20px;
             width: 20px;
+            margin: 0 10px;
             border-radius: 4px;
             border-color: white;
             border-style: solid;

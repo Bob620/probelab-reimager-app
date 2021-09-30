@@ -1,7 +1,7 @@
 const path = require('path');
 const fs = require('fs');
 const fsPromise = fs.promises;
-const {PointShoot, ExtractedMap, constants, JeolImage, PFE} = require('probelab-reimager');
+const {NSS, constants, JeolImage, PFE} = require('probelab-reimager');
 
 const appConstants = require('../../../../constants.json');
 const {CreateFakeLog} = require('../../log.js');
@@ -28,6 +28,8 @@ const Functions = {
 				return constants.scale.types.BELOWCENTER;
 			case appConstants.settings.scalePositions.JEOL:
 				return constants.scale.types.JEOL;
+			case appConstants.settings.scalePositions.NONE:
+				return constants.scale.types.NONE;
 		}
 	},
 	sanitizeColor: inputColor => {
@@ -147,11 +149,8 @@ const Functions = {
 				} catch(err) {
 				}
 
-			if (fileName.endsWith(constants.pointShoot.fileFormats.ENTRY))
-				thermo = new PointShoot(file, pixelSizeConstant, canvas);
-
-			if (fileName.endsWith(constants.extractedMap.fileFormats.ENTRY))
-				thermo = new ExtractedMap(file, pixelSizeConstant, canvas);
+			if (fileName.endsWith(constants.pointShoot.fileFormats.ENTRY) || fileName.endsWith(constants.extractedMap.fileFormats.ENTRY) || fileName.endsWith('.map'))
+				thermo = new NSS(file, pixelSizeConstant, canvas);
 
 			if (fileName.endsWith(constants.pfe.fileFormats.ENTRY.toLowerCase()))
 				thermo = new PFE(file, canvas);

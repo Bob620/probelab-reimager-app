@@ -35,6 +35,11 @@ class Options extends Component {
 						>
 							<p>Upper Left</p>
 						</div>
+						<div className={`uc ${interactable ? 'selectable' : ''} ${currentPos === constants.settings.scalePositions.NONE ? 'selected' : ''}`}
+							 onClick={interactable ? settingActions.setScalePosition.bind(undefined, constants.settings.scalePositions.NONE) : () => {}}
+						>
+							<p>None</p>
+						</div>
 						<div className={`ur ${interactable ? 'selectable' : ''} ${currentPos === constants.settings.scalePositions.UPPERRIGHT ? 'selected' : ''}`}
 							 onClick={interactable ? settingActions.setScalePosition.bind(undefined, constants.settings.scalePositions.UPPERRIGHT) : () => {}}
 						>
@@ -92,28 +97,10 @@ class Options extends Component {
 									<option value={constants.settings.colors.BLACK}>Black</option>
 								</select>
 							</div>
-							<div className='colorOptions'>
-								<p>Point Color</p>
-								<select value={settingStore.get('pointColor')} onChange={settingActions.changePointColor}>
-									<option value={constants.settings.colors.RED}>Red</option>
-									<option value={constants.settings.colors.ORANGE}>Orange</option>
-									<option value={constants.settings.colors.WHITE}>White</option>
-									<option value={constants.settings.colors.BLACK}>Black</option>
-								</select>
-							</div>
-							<div className='colorOptions'>
-								<p>Point Marker</p>
-								<select value={settingStore.get('pointType')} onChange={settingActions.changePointType}>
-									<option value={constants.settings.pointTypes.THERMOLIKE}>Thermo-Like</option>
-									<option value={constants.settings.pointTypes.THERMOROUND}>Thermo-Round</option>
-									<option value={constants.settings.pointTypes.CIRCLE}>Circle</option>
-									<option value={constants.settings.pointTypes.CROSS}>Cross</option>
-								</select>
-							</div>
-							<ToggleableScale min='0' max='100' maxLength='3' valueName='pointFontSize' autoName='autoPointFontSize' text='Point Size(%): '
-											 toggleAuto={settingActions.toggleAutoPointFontSize}
-											 changeFromAuto={settingActions.changeFromAutoPointFontSize}
-											 onChange={settingActions.changePointFontSize}
+							<ToggleableScale min='0' max='100' maxLength='3' valueName='backgroundOpacity' autoName='autoBackgroundOpacity' text='Background Opacity: '
+											 toggleAuto={settingActions.toggleAutoBackgroundOpacity}
+											 changeFromAuto={settingActions.changeFromAutoBackgroundOpacity}
+											 onChange={settingActions.changeBackgroundOpacity}
 							/>
 						</div>
 						<div>
@@ -133,11 +120,6 @@ class Options extends Component {
 											 toggleAuto={settingActions.toggleScaleBarLabelSize}
 											 changeFromAuto={settingActions.changeFromAutoLabelSize}
 											 onChange={settingActions.changeScaleBarLabelSize}
-							/>
-							<ToggleableScale min='0' max='100' maxLength='3' valueName='backgroundOpacity' autoName='autoBackgroundOpacity' text='Background Opacity: '
-											 toggleAuto={settingActions.toggleAutoBackgroundOpacity}
-											 changeFromAuto={settingActions.changeFromAutoBackgroundOpacity}
-											 onChange={settingActions.changeBackgroundOpacity}
 							/>
 						</div>
 					</div>

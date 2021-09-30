@@ -43,6 +43,14 @@
       border-bottom-left-radius: 2px;
     }
   }
+  &.none {
+    justify-content: flex-start;
+    align-items: flex-start;
+
+    > .pos {
+      display: none;
+    }
+  }
 
   &.ll {
     justify-content: flex-start;

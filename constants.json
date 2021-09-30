@@ -11,7 +11,8 @@
       "BELOWLEFT": "bl",
       "BELOWRIGHT": "br",
       "BELOWCENTER": "bc",
-      "JEOL": "jeol"
+      "JEOL": "jeol",
+      "NONE": "none"
     },
     "pointTypes": {
       "THERMOLIKE": "thermo",

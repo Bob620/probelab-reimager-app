@@ -126,29 +126,40 @@ function createOperations(settings) {
 			case 'spot':
 				operations.push({
 					command: 'addPoint',
-					args: [point.relativeReference[0].x, point.relativeReference[0].y, point.name]
+					args: [point.relativeReference[0].x, point.relativeReference[0].y, point.label],
+					setting: {
+
+					}
 				});
 				break;
 			case 'rect':
 				operations.push({
 					command: 'addRectangle',
-					args: [point.relativeReference[0].x, point.relativeReference[0].y, point.relativeReference[1].x, point.relativeReference[1].y, point.name]
+					args: [point.relativeReference[0].x, point.relativeReference[0].y, point.relativeReference[1].x, point.relativeReference[1].y, point.label],
+					setting: {
+
+					}
 				});
 				break;
 			case 'circle':
 				operations.push({
 					command: 'addCircle',
-					args: [point.relativeReference[0].x, point.relativeReference[0].y, point.relativeReference[0].r, point.name]
+					args: [point.relativeReference[0].x, point.relativeReference[0].y, point.relativeReference[0].r, point.label],
+					setting: {
+
+					}
 				});
 				break;
 			case 'polygon':
 				operations.push({
 					command: 'addPoly',
-					args: [point.relativeReference, point.name]
+					args: [point.relativeReference, point.label],
+					setting: {
+
+					}
 				});
 				break;
 		}
-
 
 	operations.push({
 		command: 'addScale',
