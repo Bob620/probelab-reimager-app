@@ -62,7 +62,7 @@ module.exports = class {
 			}
 		};
 
-		this.respawn();
+		this.respawn(true);
 	}
 
 	isReady() {

@@ -153,6 +153,6 @@ class Child {
 }
 
 if (require.main === module)
-	module.exports = new Child(new CanvasRoot(new NodeCanvas(require('canvas'))));
+	module.exports = new Child(new CanvasRoot(new NodeCanvas(require('../../../../build/electron/canvas'))));
 else
-	module.exports = Child.bind(undefined, new CanvasRoot(new NodeCanvas(require('canvas'))));
+	module.exports = Child.bind(undefined, new CanvasRoot(new NodeCanvas(require('../../../../build/electron/canvas'))));

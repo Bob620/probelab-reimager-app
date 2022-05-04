@@ -22,7 +22,7 @@ const packages = new Map([
 		'details': 'https://github.com/Bob620/probelab-reimager',
 		'link': 'https://github.com/Bob620/probelab-reimager/archive/refs/heads/dev.zip',
 		'name': 'probelab-reimager',
-		'method': 'electron',
+		'method': 'node',
 		'args': [],
 		'requires': [
 			'sharp',
@@ -38,31 +38,23 @@ const packages = new Map([
 		}
 	}],
 	['canvas', {
-		'details': 'https://www.npmjs.com/package/canvas',
-		'link': 'https://github.com/Automattic/node-canvas/archive/v2.7.0.tar.gz',
+		'details': 'https://github.com/Brooooooklyn/canvas',
+		'link': 'https://github.com/Brooooooklyn/canvas.git',
 		'name': 'canvas',
-		'method': 'electron',
+		'method': 'rust',
 		'args': [],
 		'requires': [],
 		'requiresDlls': [
-			'cairo-prebuilt'
 		],
 		'recompiles': [],
 		'makes': ['canvas'],
-		'postConfigure': async () => {
-			await exec('npm install nan@2.14.0', 'canvas');
-		},
-		'postCompile': async () => {
-			await fs.writeFile(`${buildPrefix}/electron/canvas/index.js`, (await fs.readFile(`${buildPrefix}/electron/canvas/index.js`, 'utf8'))
-				.replace(/\.\.\/build\/Release\/canvas\.node/gi, './canvas.node'));
-		},
 		buildEnv: process.env
 	}],
 	['node-adodb', {
 		'details': 'https://github.com/nuintun/node-adodb',
 		'link': 'https://github.com/nuintun/node-adodb/archive/refs/tags/5.0.3.tar.gz',
 		'name': 'node-adodb',
-		'method': 'electron',
+		'method': 'node',
 		'args': [],
 		'requires': [],
 		'recompiles': [],
@@ -73,7 +65,7 @@ const packages = new Map([
 	}],
 	['sharp', {
 		'details': 'https://sharp.pixelplumbing.com',
-		'link': 'https://github.com/lovell/sharp/archive/v0.27.2.zip',
+		'link': 'https://github.com/lovell/sharp/archive/v0.30.4.zip',
 		'name': 'sharp',
 		'method': 'electron',
 		'args': [],
@@ -82,35 +74,17 @@ const packages = new Map([
 			'sharp-prebuilt'
 		],
 		'recompiles': [],
-		'makes': ['sharp'],
-		'postCompile': async () => {
-			await fs.writeFile(`${buildPrefix}/electron/sharp/lib/index.js`, (await fs.readFile(`${buildPrefix}/electron/sharp/lib/index.js`, 'utf8'))
-				.replace(/\.\.\/build\/Release\/sharp\.node/gi, '../sharp.node'));
-			const files = await fs.readdir(`${buildPrefix}/sharp/vendor/8.10.5/lib/`);
-			for (const file of files)
-				if (file.endsWith('.dll'))
-					await fs.copyFile(`${buildPrefix}/sharp/vendor/8.10.5/lib/${file}`, `${buildPrefix}/electron/sharp/${file}`);
-		}
+		'makes': ['sharp']
 	}],
 	['sharp-prebuilt', {
 		'details': 'https://sharp.pixelplumbing.com',
-		'link': 'https://github.com/lovell/sharp/releases/download/v0.27.2/sharp-v0.27.2-napi-v3-win32-x64.tar.gz',
+		'link': 'https://github.com/lovell/sharp/releases/download/v0.30.4/sharp-v0.30.4-napi-v5-win32-x64.tar.gz',
 		'name': 'sharp-prebuilt',
 		'method': 'dll',
 		'args': [],
 		'requires': [],
 		'recompiles': [],
 		'makes': ['sharp']
-	}],
-	['cairo-prebuilt', {
-		'details': 'https://www.npmjs.com/package/canvas',
-		'link': 'https://github.com/Automattic/node-canvas/releases/download/v2.7.0/canvas-v2.7.0-node-v83-win32-unknown-x64.tar.gz',
-		'name': 'cairo-prebuilt',
-		'method': 'dll',
-		'args': [],
-		'requires': [],
-		'recompiles': [],
-		'makes': ['canvas']
 	}]
 ]);
 

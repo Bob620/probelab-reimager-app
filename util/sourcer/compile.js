@@ -10,13 +10,31 @@ const {
 	cmakeConfig,
 	mesonConfig,
 	exec,
+	execRust,
 	nodeGyp,
 	electronConfig,
 	macTargetVersion
 } = require('./config.js');
 
 async function compile(packages, pack, recompile = false) {
+	if (pack.method === '')
+		return
 	const args = `${pack.args ? pack.args.join(' ') : ''} ${!recompile && pack['before-recompile'] ? pack['before-recompile'].join(' ') : ''}`;
+	const packHome = path.resolve(`${buildPrefix}/${pack.name}`);
+	const dllDir = path.resolve(`${buildPrefix}/electron/${pack.name}`);
+	const homeFiles = await fs.readdir(packHome);
+	let packJson;
+	let files;
+
+	const findDlls = async dir => {
+		const files = await fs.readdir(dir, {withFileTypes: true});
+		for (const file of files)
+			if ((file.name.endsWith('.dll') || file.name.endsWith('.node') && !file.name.endsWith('postbuild.node')))
+				await fs.copyFile(`${dir}/${file.name}`, `${dllDir}/${file.name}`);
+			else if (file.isDirectory()) {
+				await findDlls(`${dir}/${file.name}`);
+			}
+	};
 
 	if (!pack.compiled || recompile) {
 		switch(pack.method) {
@@ -135,6 +153,7 @@ async function compile(packages, pack, recompile = false) {
 								await fs.link(path.resolve(`${buildPrefix}/${pack.name}/Release/${file}`), path.resolve(`${buildPrefix}/${pack.name}/${file}`));
 
 				break;
+			case 'node':
 			case 'electron':
 				// Run clean and configure functions
 				if (pack.postClean)
@@ -147,55 +166,78 @@ async function compile(packages, pack, recompile = false) {
 				console.log(`NPM Installing ${pack.name} (${pack.link})`);
 				await exec(`npm install > /dev/null`, pack.name);
 
-				const packJson = require(`${buildPrefix}/${pack.name}/package.json`);
-				const dllDir = path.resolve(`${buildPrefix}/electron/${pack.name}`);
+				console.log(`Creating electron directory for ${pack.name}`);
+				await fs.mkdir(dllDir, {recursive: true});
+
+				packJson = require(`${packHome}/package.json`);
 
 				// Build the package
-				try {
-					console.log(`Building ${pack.name} (${pack.link})`);
-					//await exec(`npm rebuild ${electronConfig} > /dev/null`, pack.name);
-					await exec(`${nodeGyp} rebuild ${electronConfig} > /dev/null`, pack.name);
+				if (pack.method !== 'node') {
+					try {
+						console.log(`Building ${pack.name} (${pack.link})`);
+						console.log(`${nodeGyp} rebuild ${electronConfig} > /dev/null`);
+						//await exec(`${nodeGyp} configure ${electronConfig} > /dev/null`, pack.name);
+						await exec(`${nodeGyp} rebuild ${electronConfig} > /dev/null`, pack.name);
+						//await exec(`${nodeGyp} clean > /dev/null`, pack.name);
+					} catch(e) {
+						console.log(`Skipping building of ${pack.name} due to node-gyp error`);
+					}
+				}
 
+				console.log('Identifying Release files...');
+				if (homeFiles.includes('build') && (await fs.readdir(`${packHome}/build`)).includes('Release')) {
 					console.log('Copying built dlls and node files');
-					await fs.mkdir(dllDir, {recursive: true});
-					for (const file of await fs.readdir(`${buildPrefix}/${pack.name}/build/Release/`))
-						if (file.endsWith('.dll') || (file.endsWith('.node') && !file.endsWith('postbuild.node')))
-							try {
-								await fs.copyFile(`${buildPrefix}/${pack.name}/build/Release/${file}`, `${dllDir}/${file}`);
-							} catch(e) {
-							}
-				} catch(e) {
-					console.log(`Skipping building of ${pack.name} due to node-gyp error`);
+					await findDlls(`${packHome}/build/Release/`);
+				}
+
+				console.log('Identifying Vendor files...');
+				if (homeFiles.includes('vendor')) {
+					console.log('Copying vendor dlls and node files');
+					await findDlls(`${packHome}/vendor`);
 				}
 
 				console.log(`Minifying ${pack.name} from entry ${packJson.main}`);
 				await esbuild.build({
-					entryPoints: [path.resolve(`${buildPrefix}/${pack.name}/${packJson.main}`)],
+					entryPoints: [path.resolve(`${packHome}/${packJson.main}`)],
 					bundle: true,
 					minify: true,
-					loader: {
-					},
+					loader: {},
 					define: {
-						'process.env.NODE_ENV': '"production"',
+						'process.env.NODE_ENV': '"production"'
 					},
 					platform: 'node',
-					external: ['sharp', 'canvas', 'node-adodb', 'probelab-reimager', '*.node'],
-					outfile: path.resolve(`${buildPrefix}/electron/${pack.name}/${packJson.main}`)
+					external: ['sharp', 'canvas', 'node-adodb', 'probelab-reimager', '*.node', './adodb'],
+					outfile: path.resolve(`${dllDir}/${packJson.main}`)
 				});
 
+				console.log('Replacing loads for new directory structure of Released files...');
+				const depth = packJson.main.split(/[\\/]/gi).length - 1;
+
+				const regexNorm = new RegExp(`[\./\\\\]*build[\/\\\\]Release[\/\\\\]${pack.name}\\.node`);
+				const regexPlatform = new RegExp(`[\./\\\\]*build[\/\\\\]Release[\/\\\\]${pack.name}-`);
+				regexNorm.multiline = true;
+				regexNorm.ignoreCase = true;
+				regexPlatform.multiline = true;
+				regexPlatform.ignoreCase = true;
+
+				await fs.writeFile(`${dllDir}/${packJson.main}`, (await fs.readFile(`${dllDir}/${packJson.main}`, 'utf8'))
+					.replace(regexNorm, `./${'../'.repeat(depth)}${pack.name}.node`)
+					.replace(regexPlatform, `./${'../'.repeat(depth)}${pack.name}-`)
+				);
+
 				console.log('Copying package files');
-				const files = await fs.readdir(`${buildPrefix}/${pack.name}`);
+				files = await fs.readdir(`${buildPrefix}/${pack.name}`);
 				for (const file of files)
 					switch(file.toLowerCase()) {
 						case 'package.json':
 						case 'license':
-							await fs.copyFile(`${buildPrefix}/${pack.name}/${file}`, `${buildPrefix}/electron/${pack.name}/${file}`);
+							await fs.copyFile(`${packHome}/${file}`, `${dllDir}/${file}`);
 							break;
 					}
 
 				// Inject required dlls
 				if (process.platform === 'win32' && pack.requiresDlls) {
-					console.log('Injecting external package DLLs');
+					console.log('Injecting external package DLLs as needed');
 					await fs.mkdir(dllDir, {recursive: true});
 					for (const dllPack of pack.requiresDlls)
 						for (const file of await fs.readdir(path.join(buildPrefix, dllPack)))
@@ -205,10 +247,64 @@ async function compile(packages, pack, recompile = false) {
 
 				// Bundle dylibs on mac to make sure paths don't break
 				if (process.platform === 'darwin')
-					try {													//  Search Dir for libs                Bundled libs to  exec lib dir     file to fix
+					try {
+						console.log(`Bundling dylibs as needed using dylibbundler...`);
+						//                                                      Search Dir for libs                Bundled libs to  exec lib dir     file to fix
 						await exec(`"${buildPrefix}/bin/dylibbundler" -s "${buildPrefix}/lib" -of -cd -b -d "../bin/libs" -p "@rpath/libs/" -x "${dllDir}/${pack.name}.node"`);
 					} catch(e) {
 						console.log(`Unable to bundle ${pack.name}.node`);
+					}
+				break;
+			case 'rust':
+				// Run clean and configure functions
+				if (pack.postClean)
+					await pack.postClean();
+
+				if (pack.postConfigure)
+					await pack.postConfigure();
+
+				if ((await fs.readdir(packHome, {withFileTypes: true})).includes('skia.win32-x64-msvc.node')) {
+					// Install using npm
+					console.log(`NPM Installing ${pack.name} (${pack.link})`);
+					await exec(`yarn install --mode=skip-build > /dev/null`, pack.name);
+
+					console.log(`Downloading SKIA ${pack.name} (${pack.link})`);
+					await exec(`node scripts/release-skia-binary.js --download`, pack.name);
+				}
+
+				console.log(`Yarn Building ${pack.name} (${pack.link})`);
+				await execRust(`yarn build`, pack.name);
+
+				packJson = require(`${packHome}/package.json`);
+
+				console.log(`Minifying ${pack.name} from entry ${packJson.main}`);
+				await esbuild.build({
+					entryPoints: [path.resolve(`${packHome}/${packJson.main}`)],
+					bundle: true,
+					minify: true,
+					loader: {},
+					define: {
+						'process.env.NODE_ENV': '"production"'
+					},
+					platform: 'node',
+					external: ['sharp', 'canvas', 'node-adodb', 'probelab-reimager', '*.node', './adodb'],
+					outfile: path.resolve(`${dllDir}/${packJson.main}`)
+				});
+
+				console.log(`Creating electron directory for ${pack.name}`);
+				await fs.mkdir(dllDir, {recursive: true});
+
+				console.log('Copying built dlls and node files');
+				await findDlls(packHome);
+
+				console.log('Copying package files');
+				files = await fs.readdir(`${buildPrefix}/${pack.name}`);
+				for (const file of files)
+					switch(file.toLowerCase()) {
+						case 'package.json':
+						case 'license':
+							await fs.copyFile(`${packHome}/${file}`, `${dllDir}/${file}`);
+							break;
 					}
 				break;
 			default:

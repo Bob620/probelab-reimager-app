@@ -13,6 +13,16 @@ const buildPrefix = path.join(dirPrefix, 'build');
 
 const macTargetVersion = '10.11';
 
+const rustCoreutils = [
+	'[', 'b2sum', 'b3sum', 'base32', 'base64', 'basename', 'basenc', 'cat', 'cksum', 'comm', 'cp', 'csplit', 'cut', 'date',
+	'dd', 'df', 'dircolors', 'dirname', 'du', 'echo', 'env', 'expand', 'expr', 'factor', 'false', 'fmt', 'fold', 'hashsum',
+	'head', 'join', 'link', 'ln', 'ls', 'md5sum', 'mkdir', 'mktemp', 'more', 'mv', 'nl', 'numfmt', 'od', 'paste', 'pr',
+	'printenv', 'printf', 'ptx', 'pwd', 'readlink', 'realpath', 'relpath', 'rm', 'rmdir', 'seq', 'sha1sum', 'sha224sum',
+	'sha256sum', 'sha3-224sum', 'sha3-256sum', 'sha3-384sum', 'sha3-512sum', 'sha384sum', 'sha3sum',
+	'sha512sum', 'shake128sum', 'shake256sum', 'shred', 'shuf', 'sleep', 'sort', 'split', 'sum', 'tac', 'tail', 'tee',
+	'test', 'touch', 'tr', 'true', 'truncate', 'tsort', 'unexpand', 'uniq', 'unlink', 'wc', 'yes'
+];
+
 const env = {
 	LDFLAGS: `-mmacosx-version-min=${macTargetVersion}`,
 	LD_LIBRARY_PATH: `${buildPrefix}/lib`,
@@ -46,7 +56,7 @@ if (process.platform === 'win32') {
 const mesonConfig = `--prefix="${buildPrefix}/" -Dbuildtype=release`;
 const configureConfig = `--prefix="${buildPrefix}/"`;
 const cmakeConfig = `-f makefile.unix -DCMAKE_INSTALL_PREFIX="${buildPrefix}" -DCMAKE_SYSTEM_PREFIX_PATH="${buildPrefix}" -DCMAKE_BUILD_TYPE=Release`;
-const electronConfig = `--target=${electronVersion} --arch=x64 --dist-url=https://electronjs.org/headers --release `;
+const electronConfig = `--target=${electronVersion} --arch=x64 --dist-url=https://atom.io/download/electron --release `;
 
 const nodeGyp = `${process.platform === 'win32' ? '' : 'HOME=~/.electron-gyp'} "${path.resolve(`${buildPrefix}/../node_modules/.bin/node-gyp${process.platform === 'win32' ? '.cmd' : ''}`)}" -j max`;
 
@@ -121,15 +131,32 @@ async function prepare(packages, packName) {
 	if (pack.requires)
 		for (const prePack of pack.requires)
 			await prepare(packages, prePack);
-		
+
 	compileOrder.add(pack.name);
 }
 
 async function exec(command, cwd = '', override = false, customEnv = env) {
-	if (process.platform === 'win32')
+	if (process.platform === 'win32') {
 		command = command.replace(/\/dev\/null/g, 'nul');
 
+		if (rustCoreutils.includes(command.split(' ')[0]))
+			command = 'coreutils.exe ' + command;
+	}
+
 	cwd = override ? path.resolve(cwd) : path.join(buildPrefix, cwd);
+
+	return execSync(command, {
+		env: customEnv,
+		cwd,
+		maxBuffer: 1024 * 1024
+	});
+}
+
+async function execRust(command, cwd = '', override = false, customEnv = env) {
+	cwd = override ? path.resolve(cwd) : path.join(buildPrefix, cwd);
+
+	customEnv.PATH = `${customEnv.PATH};C:\\Program Files\\NASM;C:\\msys64\\usr\\bin;`
+	//customEnv.PATH = customEnv.PATH.replaceAll('C:', '/c').replaceAll('\\', '/').replaceAll(';', ':')
 
 	return execSync(command, {
 		env: customEnv,
@@ -151,6 +178,7 @@ module.exports = {
 	nodeGyp,
 	electronVersion,
 	exec,
+	execRust,
 	getCompileOrder: async packages => {
 		try {
 			await fs.access(buildPrefix, fsConstants.F_OK);

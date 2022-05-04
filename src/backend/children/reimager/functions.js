@@ -1,7 +1,7 @@
 const path = require('path');
 const fs = require('fs');
 const fsPromise = fs.promises;
-const {NSS, constants, JeolImage, PFE} = require('probelab-reimager');
+const {PointShoot, ExtractedMap, constants, JeolImage, PFE} = require('../../../../node_modules/probelab-reimager');
 
 const appConstants = require('../../../../constants.json');
 const {CreateFakeLog} = require('../../log.js');
@@ -149,8 +149,11 @@ const Functions = {
 				} catch(err) {
 				}
 
-			if (fileName.endsWith(constants.pointShoot.fileFormats.ENTRY) || fileName.endsWith(constants.extractedMap.fileFormats.ENTRY) || fileName.endsWith('.map'))
-				thermo = new NSS(file, pixelSizeConstant, canvas);
+			if (fileName.endsWith(constants.pointShoot.fileFormats.ENTRY))
+				thermo = new PointShoot(file, pixelSizeConstant, canvas);
+
+			if (fileName.endsWith(constants.extractedMap.fileFormats.ENTRY) || fileName.endsWith('.map'))
+				thermo = new ExtractedMap(file, canvas)
 
 			if (fileName.endsWith(constants.pfe.fileFormats.ENTRY.toLowerCase()))
 				thermo = new PFE(file, canvas);

@@ -5,6 +5,7 @@
   "description": "Visual UI for Probelab ReImager using Electron",
   "main": "./src/backend/main.js",
   "scripts": {
+    "check": "node -v",
     "install": "node util/install.js",
     "start": "electron .",
     "build-el-capitan": "node util/sourcer/elcapitan.js",
@@ -76,26 +77,26 @@
   "email": "bruder.kraft225@gmail.com",
   "license": "MIT",
   "devDependencies": {
-    "@fortawesome/fontawesome-svg-core": "^1.2.34",
-    "@fortawesome/free-regular-svg-icons": "^5.15.2",
-    "@fortawesome/free-solid-svg-icons": "^5.15.2",
+    "@fortawesome/fontawesome-svg-core": "^6.1.1",
+    "@fortawesome/free-regular-svg-icons": "^6.1.1",
+    "@fortawesome/free-solid-svg-icons": "^6.1.1",
     "@fortawesome/react-fontawesome": "^0.1.14",
     "bakadux": "^1.1.1",
     "bent": "^7.3.12",
     "buffer-browserify": "^0.2.5",
     "crypto-browserify": "^3.12.0",
-    "electron": "12.0.2",
-    "electron-builder": "^22.9.1",
+    "electron": "18.2.0",
+    "electron-builder": "^23.0.3",
     "electron-packager": "^15.2.0",
-    "esbuild": "^0.10.2",
-    "esbuild-sass-plugin": "^1.2.0",
+    "esbuild": "^0.14.38",
+    "esbuild-sass-plugin": "^2.2.6",
     "events": "^3.3.0",
-    "lzma-native": "^7.0.1",
-    "node-gyp": "^7.1.2",
+    "lzma-native": "^8.0.6",
+    "node-gyp": "^9.0.0",
     "react": "^16.14.0",
     "react-dom": "^16.14.0",
     "react-svg": "^11.2.5",
-    "stream-browserify": "^2.0.2"
-  },
-  "dependencies": {}
+    "stream-browserify": "^3.0.0",
+    "yarn": "^1.22.18"
+  }
 }

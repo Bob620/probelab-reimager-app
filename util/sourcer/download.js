@@ -61,8 +61,9 @@ async function download(pack) {
 			case 'git':
 				console.log(`Cloning ${pack.name} (${pack.link})`);
 
-				await exec(`git clone ${pack.link}`);
-				await fs.rename(downloadLocation.split('.').slice(0, -1).join('.'), extractLocation);
+				await exec(`git clone --recurse-submodules ${pack.link}`);
+				if (downloadLocation.split('.').slice(0, -1).join('.') !== extractLocation)
+					await fs.rename(downloadLocation.split('.').slice(0, -1).join('.'), extractLocation);
 				pack.downloaded = true;
 				break;
 			default:
