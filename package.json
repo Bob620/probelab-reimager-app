@@ -115,6 +115,6 @@
   "dependencies": {
     "canvas": "^2.5.0",
     "probelab-reimager": "github:bob620/probelab-reimager",
-    "sharp": "^0.25.4"
+    "sharp": "^0.30.5"
   }
 }
