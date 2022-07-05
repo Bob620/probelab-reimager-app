@@ -17,8 +17,8 @@ class About extends Component {
 			<section id='main' className='about'>
 				<section className='people'>
 					<h1>People</h1>
-					<Person name='Mia Kraft' contact='kraft270@umn.edu' website='https://bobco.moe' role='Developer'/>
-					<Person name='Anette von der Handt'  contact='avdhandt@umn.edu' website='http://avdhandt.umn.edu' role='QA and Management'/>
+					<Person name='Mia Kraft' contact='mia@kraft.codes' website='https://sr.ht/~mia/' role='Developer'/>
+					<Person name='Anette von der Handt'  contact='avonderh@mail.ubc.ca' website='http://avdhandt.umn.edu' role='QA and Management'/>
 				</section>
 				<section className='packages'>
 					<h1>Packages</h1>
@@ -42,7 +42,7 @@ class About extends Component {
 				</section>
 				<section className='license'>
 					<Package name='Probelab ReImager' version={require('../../../package.json').version} license={require('../../../package.json').license} website='https://reimager.probelab.net' copyright={[
-						{name: require('../../../package.json').author, year: '2021', contact: require('../../../package.json').email}
+						{name: require('../../../package.json').author, year: '2021', contact: ''}
 					]}/>
 					<p>Please visit the <a target='_blank' href='https://github.com/Bob620/thermo-reimager-app'>github page</a> for the full license.</p>
 				</section>
